@@ -1,0 +1,266 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{cite}
+\usepackage{float}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\begin{document}
+\title{Otimização do Custo e Qualidade de Pilhas de Minério - Entrega \#1}
+
+\author{
+\IEEEauthorblockN{Saulo Bruno do Amaral - 2024425199}
+\IEEEauthorblockA{
+Universidade Federal de Minas Gerais -- UFMG\\
+Belo Horizonte, Brasil
+}
+}
+
+\maketitle
+
+\section{Introdução}
+
+O problema consiste na composição de pilhas de minério destinadas a dois equipamentos de sinterização. Cada pilha deve atingir uma massa final definida, respeitar limites de qualidade e utilizar apenas minérios compatíveis com o equipamento ao qual está associada. A decisão é realizada em unidades discretas de caminhões, cada um com capacidade fixa de 2 kt.
+
+Nesta primeira entrega, o problema é tratado de forma mono-objetivo. São consideradas separadamente três funções objetivo: minimização do custo total de aquisição dos minérios, minimização do desvio quadrático do teor de SiO$_2$ em relação ao valor-alvo e minimização do desvio quadrático do teor de Al$_2$O$_3$ em relação ao valor-alvo.
+
+A solução computacional é construída a partir de uma representação discreta das pilhas...
+
+\section{Formulação Matemática}
+
+\subsection{Conjuntos e Índices}
+
+\begin{align}
+I &= \{1,\ldots,|I|\}, \\
+J &= \{1,\ldots,|J|\}, \\
+S &= \{1,\ldots,|S|\}, \\
+K &= \{1,2\}.
+\end{align}
+
+\begin{align}
+k=1 &\rightarrow \mathrm{SiO_2}, \\
+k=2 &\rightarrow \mathrm{Al_2O_3}.
+\end{align}
+
+\subsection{Parâmetros}
+
+\begin{table}[htbp]
+\caption{Parâmetros do problema}
+\centering
+\begin{tabular}{p{0.20\columnwidth} p{0.70\columnwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Parâmetro} \\
+\midrule
+$P_j$ & Preço do minério $j$ \\
+$F_{kj}$ & Teor da substância $k$ no minério $j$ \\
+$D_j^{\min}$ & Disponibilidade mínima do minério $j$ \\
+$D_j^{\max}$ & Disponibilidade máxima do minério $j$ \\
+$M_i$ & Massa da pilha $i$ \\
+$T$ & Capacidade de um caminhão \\
+$B_{sj}$ & Compatibilidade entre o sinter $s$ e o minério $j$ \\
+$L_{ks}^{\min}$ & Limite mínimo da substância $k$ no sinter $s$ \\
+$L_{ks}^{\max}$ & Limite máximo da substância $k$ no sinter $s$ \\
+$L_{ks}^{\mathrm{alvo}}$ & Valor-alvo da substância $k$ no sinter $s$ \\
+$s(i)$ & Sinter associado à pilha $i$ \\
+\bottomrule
+\end{tabular}
+\label{tab:parametros}
+\end{table}
+
+\subsection{Variáveis de Decisão}
+
+Seja $x_{ij}$ a quantidade de caminhões contendo o minério $j$ destinados à pilha $i$.
+
+\begin{equation}
+ x_{ij} \in \mathbb{Z}_{\geq 0},
+ \qquad \forall i\in I,\\ \forall j\in J
+\end{equation}
+
+\subsection{Teor das Pilhas}
+
+\begin{equation}
+L_{ki}
+=
+\frac{T}{M_i}
+\sum_{j\in J} x_{ij} F_{kj}
+\end{equation}
+
+\subsection{Funções Objetivo}
+
+\subsubsection{Minimização do custo}
+
+\begin{equation}
+\min f_1(x)
+=
+T
+\sum_{i\in I}
+\sum_{j\in J}
+P_j x_{ij}
+\end{equation}
+
+\subsubsection{Minimização do desvio de SiO$_2$}
+
+\begin{equation}
+\min f_2(x)
+=
+\sum_{i\in I}
+\left(
+L_{1i}
+-
+L_{1,s(i)}^{\mathrm{alvo}}
+\right)^2
+\end{equation}
+
+\subsubsection{Minimização do desvio de Al$_2$O$_3$}
+
+\begin{equation}
+\min f_3(x)
+=
+\sum_{i\in I}
+\left(
+L_{2i}
+-
+L_{2,s(i)}^{\mathrm{alvo}}
+\right)^2
+\end{equation}
+
+\subsection{Restrições}
+
+\subsubsection{Massa das pilhas}
+
+\begin{equation}
+T
+\sum_{j\in J}
+x_{ij}
+=
+M_i,
+\qquad \forall i\in I
+\end{equation}
+
+\subsubsection{Qualidade}
+
+\begin{equation}
+L_{k,s(i)}^{\min}
+\leq
+L_{ki}
+\leq
+L_{k,s(i)}^{\max},
+\qquad
+\forall i\in I,\ \forall k\in K
+\end{equation}
+
+\subsubsection{Compatibilidade}
+
+\begin{equation}
+x_{ij}
+\leq
+\frac{M_i}{T}
+B_{s(i),j},
+\qquad
+\forall i\in I,\ \forall j\in J
+\end{equation}
+
+\subsubsection{Disponibilidade}
+
+\begin{equation}
+D_j^{\min}
+\leq
+\sum_{i\in I} x_{ij}
+\leq
+D_j^{\max},
+\qquad
+\forall j\in J
+\end{equation}
+
+\subsubsection{Domínio}
+
+\begin{equation}
+x_{ij} \in \mathbb{Z}_{\geq 0},
+\qquad
+\forall i\in I,\ \forall j\in J
+\end{equation}
+
+\section{Representação Computacional da Solução}
+
+\subsection{Representação de uma Pilha}
+
+\subsection{Representação da Solução Completa}
+
+\subsection{Relação com $x_{ij}$}
+
+\subsection{Verificação de Viabilidade}
+
+\section{Heurística Construtiva}
+
+\subsection{Geração da Solução Inicial}
+
+\subsection{Atendimento das Disponibilidades Mínimas}
+
+\subsection{Preenchimento das Pilhas}
+
+\subsection{Tratamento de Inviabilidade Inicial}
+
+\section{Metaheurística VNS/GVNS}
+
+\subsection{Estrutura Geral}
+
+\subsection{Vizinhança $N_1$}
+
+\subsection{Vizinhança $N_2$}
+
+\subsection{Vizinhança $N_3$}
+
+\subsection{Busca Local}
+
+\subsection{Perturbação}
+
+\subsection{Tratamento de Soluções Inviáveis}
+
+\subsection{Critério de Aceitação}
+
+\subsection{Critério de Parada}
+
+\subsection{Pseudocódigo}
+
+\begin{algorithm}[H]
+\caption{Metaheurística VNS/GVNS}
+\label{alg:gvns}
+\begin{algorithmic}[1]
+    \State ...
+\end{algorithmic}
+\end{algorithm}
+
+\section{Planejamento Experimental}
+
+\subsection{Configuração dos Experimentos}
+
+\subsection{Parâmetros do Algoritmo}
+
+\subsection{Número de Execuções}
+
+\subsection{Métricas Utilizadas}
+
+\subsection{Critério de Comparação}
+
+\section{Resultados e Discussões}
+
+\subsection{Resultados para $f_1$}
+
+\subsection{Resultados para $f_2$}
+
+\subsection{Resultados para $f_3$}
+
+\subsection{Curvas de Convergência}
+
+\subsection{Melhores Soluções Encontradas}
+
+\section{Conclusão}
+
+\end{document}
