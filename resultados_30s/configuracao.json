@@ -1,0 +1,13 @@
+{
+  "metodo": "gvns",
+  "dados": "dados_exemplo.json",
+  "sha256_dados": "539aef34049e0e746c56f860c57ffadb8e122a3f485e21215b0aaae261f03291",
+  "execucoes_por_objetivo": 5,
+  "python": "3.14.7",
+  "limite_segundos": 30.0,
+  "politica_inviabilidade": "reparo inicial; rejeição de candidatos inviáveis na GVNS",
+  "semente_base": 2026,
+  "construcao": "mínimos em rodízio; completar por preço crescente",
+  "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, com ao menos metade dos caminhões alterados",
+  "busca_local": "N1, N2 e N3 em sequência, completas até o limite de tempo"
+}
