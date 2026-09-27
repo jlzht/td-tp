@@ -12,16 +12,36 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
+\floatname{algorithm}{Algoritmo}
+\algrenewcommand\algorithmicrequire{\textbf{Entrada:}}
+\algrenewcommand\algorithmicensure{\textbf{Saída:}}
+\algrenewcommand\algorithmicif{\textbf{se}}
+\algrenewcommand\algorithmicthen{\textbf{então}}
+\algrenewcommand\algorithmicelse{\textbf{senão}}
+\algrenewcommand\algorithmicfor{\textbf{para}}
+\algrenewcommand\algorithmicwhile{\textbf{enquanto}}
+\algrenewcommand\algorithmicdo{\textbf{faça}}
+\algrenewcommand\algorithmicend{\textbf{fim}}
+\algrenewcommand\algorithmicreturn{\textbf{retorne}}
+
+\graphicspath{{imagens/}}
+
+% Permite até 3 figuras/tabelas de largura dupla no topo de uma mesma página
+% (o padrão é 1, o que empurra as figuras largas para o fim do documento).
+\setcounter{dbltopnumber}{3}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\dblfloatpagefraction}{0.8}
+
 \begin{document}
 \title{Otimização do Custo e Qualidade de Pilhas de Minério - Entrega \#1}
 
 \author{
 \IEEEauthorblockN{Saulo Bruno do Amaral - 2024425199}
 \IEEEauthorblockN{Letícia Braga Esteves - 2023422609}
-\IEEEauthorblockN{Yuri - xxx}
-\IEEEauthorblockN{Roberto - xxx}
-\IEEEauthorblockN{Juliana - xxx}
-\IEEEauthorblockN{Igor - xxx}\IEEEauthorblockA{
+\IEEEauthorblockN{Yuri Wada Hirono Imokuti - 2023431004}
+\IEEEauthorblockN{Roberto Júnior Cassimiro Campolina- 2023060480}
+\IEEEauthorblockN{Juliana Goulart de Oliveira Duarte - 2024421690}
+\IEEEauthorblockN{Igor Grieder Melo- 2025421316}\IEEEauthorblockA{
 Universidade Federal de Minas Gerais -- UFMG\\
 Belo Horizonte, Brasil
 }
@@ -31,13 +51,15 @@ Belo Horizonte, Brasil
 
 \section{Introdução}
 
-O problema consiste na composição de pilhas de minério destinadas a dois equipamentos de sinterização. Cada pilha deve atingir uma massa final definida, respeitar limites de qualidade e utilizar apenas minérios compatíveis com o equipamento ao qual está associada. A decisão é realizada em unidades discretas de caminhões, cada um com capacidade fixa de 2 kt.
+O problema, proposto no case da disciplina~\cite{case_cassotis}, consiste na composição de pilhas de minério destinadas a dois equipamentos de sinterização. Cada pilha deve atingir uma massa final definida, respeitar limites de qualidade e utilizar apenas minérios compatíveis com o equipamento ao qual está associada. A decisão é realizada em unidades discretas de caminhões, cada um com capacidade fixa de 2 kt.
 
 Nesta primeira entrega, o problema é tratado de forma mono-objetivo. São consideradas separadamente três funções objetivo: minimização do custo total de aquisição dos minérios, minimização do desvio quadrático do teor de SiO$_2$ em relação ao valor-alvo e minimização do desvio quadrático do teor de Al$_2$O$_3$ em relação ao valor-alvo.
 
-A solução computacional é construída a partir de uma representação discreta das pilhas...
+A solução computacional é construída a partir de uma representação discreta das pilhas: cada pilha é um vetor em que cada posição corresponde a um caminhão e armazena o minério que ele transporta. Sobre essa representação, aplica-se a metaheurística GVNS (\textit{General Variable Neighborhood Search})~\cite{aula02}, com três estruturas de vizinhança e busca local do tipo VND. A solução inicial é gerada por uma heurística construtiva e, caso viole os limites de qualidade, é corrigida por um procedimento de reparo antes do início da busca. Como o método é estocástico, cada objetivo é otimizado em cinco execuções independentes.
 
-\section{Formulação Matemática}
+O restante do relatório está organizado da seguinte forma. A Seção~\ref{sec:formulacao} apresenta a formulação matemática do problema. As Seções~\ref{sec:representacao} e~\ref{sec:construtiva} descrevem a representação computacional da solução e a heurística construtiva. A Seção~\ref{sec:gvns} detalha a GVNS, incluindo as vizinhanças, a busca local, a perturbação e o tratamento de soluções inviáveis. A Seção~\ref{sec:planejamento} descreve o planejamento experimental, e a Seção~\ref{sec:resultados} apresenta e discute os resultados. Por fim, a Seção~\ref{sec:conclusao} apresenta as conclusões.
+
+\section{Formulação Matemática}\label{sec:formulacao}
 
 \subsection{Conjuntos e Índices}
 
@@ -62,12 +84,12 @@ k=2 &\rightarrow \mathrm{Al_2O_3}.
 \toprule
 \textbf{Símbolo} & \textbf{Parâmetro} \\
 \midrule
-$P_j$ & Preço do minério $j$ \\
+$P_j$ & Preço do minério $j$ (R\$/t) \\
 $F_{kj}$ & Teor da substância $k$ no minério $j$ \\
 $D_j^{\min}$ & Disponibilidade mínima do minério $j$ \\
 $D_j^{\max}$ & Disponibilidade máxima do minério $j$ \\
-$M_i$ & Massa da pilha $i$ \\
-$T$ & Capacidade de um caminhão \\
+$M_i$ & Massa da pilha $i$ (kt) \\
+$T$ & Capacidade de um caminhão (kt) \\
 $B_{sj}$ & Compatibilidade entre o sinter $s$ e o minério $j$ \\
 $L_{ks}^{\min}$ & Limite mínimo da substância $k$ no sinter $s$ \\
 $L_{ks}^{\max}$ & Limite máximo da substância $k$ no sinter $s$ \\
@@ -103,11 +125,13 @@ L_{ki}
 \begin{equation}
 \min f_1(x)
 =
-T
+1000\,T
 \sum_{i\in I}
 \sum_{j\in J}
 P_j x_{ij}
 \end{equation}
+
+O fator 1000 converte a capacidade do caminhão de kt para t, compatível com o preço em R\$/t, de modo que $f_1$ é expresso em reais. Com $T = 2$~kt, cada caminhão do minério $j$ custa $2\,000\,P_j$ reais.
 
 \subsubsection{Minimização do desvio de SiO$_2$}
 
@@ -191,7 +215,7 @@ x_{ij} \in \mathbb{Z}_{\geq 0},
 \forall i\in I,\ \forall j\in J
 \end{equation}
 
-\section{Representação Computacional da Solução}
+\section{Representação Computacional da Solução}\label{sec:representacao}
 
 \subsection{Representação de uma Pilha}
 
@@ -201,70 +225,423 @@ x_{ij} \in \mathbb{Z}_{\geq 0},
 
 \subsection{Verificação de Viabilidade}
 
-\section{Heurística Construtiva}
+\section{Heurística Construtiva}\label{sec:construtiva}
 
 \subsection{Geração da Solução Inicial}
 
+A solução inicial segue a sugestão do enunciado e é gerada em duas etapas determinísticas: primeiro, são distribuídos os caminhões dos minérios com disponibilidade mínima obrigatória; depois, as posições restantes de cada pilha são preenchidas com os minérios elegíveis mais baratos. Por construção, a solução respeita a massa das pilhas, a compatibilidade entre minérios e sinters e os limites de disponibilidade; apenas os limites de qualidade podem ser violados.
+
+Em ambas as etapas, antes de confirmar cada caminhão, verifica-se se ainda é possível completar todas as pilhas: a capacidade restante de cada sinter não pode exceder a disponibilidade máxima ainda livre dos minérios elegíveis para ele. Se a escolha tornaria o preenchimento impossível, ela é desfeita e o próximo candidato é testado.
+
 \subsection{Atendimento das Disponibilidades Mínimas}
+
+Na instância utilizada, quatro minérios têm uso mínimo obrigatório: M4 (2 caminhões), M10 (2), M11 (1) e M20 (1). Os minérios exclusivos de um sinter (M10, M11 e M20) são distribuídos primeiro, pois têm menos pilhas possíveis; em seguida, é distribuído o M4, que é elegível para os dois sinters. Os caminhões de cada minério são alocados em rodízio entre as pilhas elegíveis, de modo que o uso mínimo não se concentre em uma única pilha.
 
 \subsection{Preenchimento das Pilhas}
 
+As pilhas são completadas em ordem, de P1 a P10. Para cada posição livre, escolhe-se o minério mais barato que seja elegível para o sinter da pilha e que ainda não tenha atingido sua disponibilidade máxima. Essa regra gera uma solução de baixo custo, mas que tende a violar os limites de qualidade, já que vários dos minérios mais baratos da instância, como M13, M15 e M17, têm teores elevados de SiO$_2$ e Al$_2$O$_3$.
+
 \subsection{Tratamento de Inviabilidade Inicial}
 
-\section{Metaheurística VNS/GVNS}
+Se a solução construída violar algum limite de qualidade, um procedimento de reparo busca uma primeira solução viável antes do início da GVNS. O reparo tem a mesma estrutura da GVNS (perturbação seguida de VND), mas, em vez do objetivo, minimiza a violação total
+\begin{align}
+v_{ki} &= \max\{0,\, L_{k,s(i)}^{\min} - L_{ki}\} \nonumber \\
+       &\quad + \max\{0,\, L_{ki} - L_{k,s(i)}^{\max}\}, \\
+V(x)   &= \sum_{i \in I} \sum_{k \in K}
+          \frac{v_{ki}}{L_{k,s(i)}^{\max} - L_{k,s(i)}^{\min}} + V_D(x),
+\end{align}
+em que $v_{ki}$ é o quanto o teor da substância $k$ na pilha $i$ está fora dos limites do seu sinter e $V_D(x)$ é a violação dos limites de disponibilidade, calculada de forma análoga. Cada violação é dividida pela amplitude do intervalo permitido, para que substâncias e minérios com escalas diferentes contribuam de forma comparável. O reparo termina assim que qualquer solução viável é avaliada, ou após $R = 100$ tentativas. A violação $V$ é usada apenas nessa fase e nunca é somada a $f_1$, $f_2$ ou $f_3$. Em todas as execuções realizadas, o reparo encontrou uma solução viável.
+
+\section{Metaheurística VNS/GVNS}\label{sec:gvns}
 
 \subsection{Estrutura Geral}
 
+Foi adotada a GVNS (\textit{General Variable Neighborhood Search})~\cite{aula02}, variante da VNS em que a busca local é, ela própria, uma descida em vizinhanças variáveis (VND). A cada ciclo, a solução corrente é perturbada em uma vizinhança $N_k$, a perturbação é refinada pela VND, que percorre $N_1$, $N_2$ e $N_3$, e o resultado é aceito ou não. As três vizinhanças atuam diretamente sobre a composição das pilhas, como pede o enunciado, e são descritas a seguir. A GVNS é executada separadamente para cada objetivo, sempre com as mesmas restrições.
+
 \subsection{Vizinhança $N_1$}
+
+A vizinhança $N_1$ corresponde à sugerida no enunciado: escolhe-se uma pilha e uma posição do seu vetor e troca-se o minério dessa posição por outro minério elegível para o sinter da pilha. O movimento altera um único caminhão, preserva a massa e a compatibilidade, e pode violar a qualidade da pilha ou a disponibilidade do minério.
+
+Como a composição, os objetivos e as restrições dependem apenas de quantos caminhões de cada minério há na pilha, e não da ordem das posições, posições com o mesmo minério na mesma pilha são equivalentes. Por isso, cada par (minério atual, minério novo) de uma pilha é gerado uma única vez, o que evita avaliar vizinhos repetidos.
 
 \subsection{Vizinhança $N_2$}
 
+A vizinhança $N_2$ também segue o enunciado: escolhem-se duas pilhas $p_1$ e $p_2$ e um minério de cada uma; se o minério de $p_1$ for elegível para o sinter de $p_2$ e vice-versa, os dois caminhões são trocados. O movimento preserva a massa das pilhas e o uso total de cada minério, portanto nunca viola a disponibilidade; pode, porém, violar a qualidade de uma das duas pilhas. Assim como em $N_1$, trocas entre posições equivalentes são geradas uma única vez.
+
 \subsection{Vizinhança $N_3$}
+
+A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e reconstrói a composição inteira da décima, exigindo que pelo menos metade dos seus caminhões mude de minério. Por exemplo, em uma pilha de 10 caminhões, uma única aplicação de $N_3$ pode substituir cinco ou mais caminhões de uma vez.
+
+A nova composição é gerada diretamente como contagens de caminhões por minério, e não como permutações de posições. Durante a enumeração, o número de caminhões de cada minério é limitado pela disponibilidade que resta após o uso nas outras nove pilhas, e combinações que não podem atingir os limites de qualidade da pilha são descartadas antecipadamente. Assim, a pilha reconstruída sempre respeita massa, compatibilidade, disponibilidade e qualidade; se as outras nove pilhas já forem viáveis, o vizinho inteiro é viável. Durante a GVNS, em que a solução corrente é sempre viável, $N_3$ funciona, portanto, como um operador que preserva a viabilidade.
+
+A justificativa para $N_3$ é que $N_1$ e $N_2$ alteram no máximo dois caminhões por movimento. Quando uma restrição de qualidade está ativa, como ocorre com o SiO$_2$ na minimização do custo, muitas trocas isoladas tornam a pilha inviável e são rejeitadas, o que limita o avanço da busca. A $N_3$ permite movimentos grandes e coordenados dentro de uma pilha, que $N_1$ e $N_2$ só alcançariam passando por soluções inviáveis. Como o número de recomposições possíveis de uma pilha é muito grande, cada visita a $N_3$ examina no máximo 2\,000 candidatos, em ordem aleatória. A exigência de mudar ao menos metade dos caminhões garante que $N_3$ produza movimentos distintos dos de $N_1$ e $N_2$.
 
 \subsection{Busca Local}
 
+A busca local é uma VND (\textit{Variable Neighborhood Descent}) com estratégia de primeira melhora (Algoritmo~\ref{alg:vnd}). As vizinhanças são exploradas na ordem $N_1$, $N_2$, $N_3$, da menor para a maior alteração. Os vizinhos de cada vizinhança são percorridos em ordem aleatória, e o primeiro que melhora o critério é aceito, e a busca volta para $N_1$. Se nenhum vizinho de $N_\ell$ melhora, passa-se para $N_{\ell+1}$. A busca termina quando nenhuma das três vizinhanças produz melhora, isto é, quando a solução é um ótimo local em relação a $N_1$ e $N_2$ e aos candidatos examinados de $N_3$.
+
+A primeira melhora foi preferida à melhor melhora porque $N_2$ e $N_3$ têm muitos vizinhos, e examinar todos a cada passo tornaria cada ciclo muito mais caro. A ordem aleatória dos vizinhos faz com que execuções com sementes diferentes explorem regiões diferentes do espaço de busca.
+
 \subsection{Perturbação}
+
+A perturbação (\textit{shaking}) aplica $k$ movimentos sucessivos da vizinhança $N_k$ à solução corrente, com $k \in \{1, 2, 3\}$. Em cada movimento, os vizinhos são percorridos em ordem aleatória e é escolhido o primeiro viável. Dessa forma, a intensidade da perturbação cresce com $k$: $N_1$ troca um caminhão, $N_2$ faz duas trocas de caminhões entre pilhas e $N_3$ faz três reconstruções de pilha. O índice $k$ volta a 1 sempre que a solução corrente melhora e avança para a próxima vizinhança, de forma circular, quando não melhora.
 
 \subsection{Tratamento de Soluções Inviáveis}
 
+O enunciado admite várias políticas para os movimentos que violam restrições. Para este trabalho foi adotado uma combinação de três delas:
+\begin{itemize}
+    \item \textbf{reparo} da solução construtiva, quando ela é inviável, antes do início da GVNS;
+    \item \textbf{rejeição} dos movimentos inviáveis durante a GVNS: vizinhos inviáveis de $N_1$ e $N_2$ são descartados tanto na busca local quanto na perturbação;
+    \item \textbf{operador que preserva a viabilidade}, no caso de $N_3$, que só gera composições viáveis.
+\end{itemize}
+
+A alternativa de aceitar soluções inviáveis com penalização~\cite{aula04} foi descartada porque exigiria calibrar pesos de penalidade para cada objetivo, cujas escalas são muito diferentes (milhões de reais em $f_1$ e unidades de pp$^2$ em $f_2$ e $f_3$). Com a rejeição, a GVNS trabalha sempre sobre soluções viáveis, e o valor registrado de $f$ é sempre o de uma solução que atende a todas as restrições. A limitação dessa escolha, compensada pela $N_3$, é que a busca não pode atravessar regiões inviáveis para alcançar outras regiões viáveis.
+
 \subsection{Critério de Aceitação}
+
+Após a VND, a nova solução substitui a solução corrente somente se tiver valor do objetivo estritamente menor; nesse caso, $k$ volta a 1. Caso contrário, a solução corrente é mantida e $k$ avança. Independentemente da aceitação, a melhor solução viável avaliada ao longo de toda a execução, incluindo as avaliadas no reparo, na perturbação e na busca local, é armazenada e é a solução retornada.
 
 \subsection{Critério de Parada}
 
+A GVNS termina após um número fixo de $C = 50$ ciclos, cada um composto por uma perturbação e uma VND. O número de ciclos foi preferido ao tempo de execução como critério de parada porque não depende da máquina e torna os resultados reproduzíveis. O valor de 50 ciclos foi escolhido a partir de um experimento com 10 a 50 ciclos, descrito na Seção~\ref{sec:planejamento}. O reparo inicial tem um critério de parada próprio: termina ao encontrar uma solução viável ou após $R = 100$ tentativas.
+
 \subsection{Pseudocódigo}
 
-\begin{algorithm}[H]
-\caption{Metaheurística VNS/GVNS}
+O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\ref{alg:vnd}, a busca local VND usada tanto no reparo quanto na GVNS. Nos dois, $f$ é o objetivo otimizado ($f_1$, $f_2$ ou $f_3$) e $V(x)$ é a soma normalizada das violações de qualidade e de disponibilidade da solução $x$, com $V(x)=0$ se e somente se $x$ é viável. Em qualquer ponto do algoritmo, toda solução viável avaliada que melhora $f$ passa a ser a melhor solução $x^*$.
+
+\begin{algorithm}[!t]
+\caption{Metaheurística GVNS}
 \label{alg:gvns}
 \begin{algorithmic}[1]
-    \State ...
+\Require objetivo $f$, ciclos $C$, tentativas de reparo $R$, semente
+\Ensure melhor solução viável $x^*$
+\State $x \gets \Call{Construir}{\,}$
+\Comment{mínimos + menor preço}
+\If{$V(x) = 0$}
+    \State $x^* \gets x$
+\Else
+    \State $k \gets 1$
+    \Comment{reparo}
+    \For{$t = 1$ \textbf{até} $R$ \textbf{enquanto} não há $x^*$}
+        \State $x' \gets$ vizinho aleatório de $x$ em $N_k$, $k$ vezes
+        \State $x' \gets \Call{VND}{x', V, \text{reparo}}$
+        \If{$V(x') < V(x)$}
+            \State $x \gets x'$;\ $k \gets 1$
+        \Else
+            \State $k \gets (k \bmod 3) + 1$
+        \EndIf
+    \EndFor
+    \If{não há $x^*$} \State \textbf{falha} \EndIf
+\EndIf
+\State $x \gets x^*$;\ $k \gets 1$
+\Comment{GVNS}
+\For{$c = 1$ \textbf{até} $C$}
+    \State $x' \gets x$
+    \Comment{perturbação}
+    \For{$k$ vezes}
+        \State $x' \gets$ 1º vizinho viável de $x'$ em $N_k$
+    \EndFor
+    \State $x'' \gets \Call{VND}{x', f, \text{otimização}}$
+    \If{$f(x'') < f(x)$}
+    \Comment{aceitação}
+        \State $x \gets x''$;\ $k \gets 1$
+    \Else
+        \State $k \gets (k \bmod 3) + 1$
+    \EndIf
+\EndFor
+\State \Return $x^*$
 \end{algorithmic}
 \end{algorithm}
 
-\section{Planejamento Experimental}
+\begin{algorithm}[!t]
+\caption{Busca local VND}
+\label{alg:vnd}
+\begin{algorithmic}[1]
+\Require solução $x$, critério $g$ ($V$ ou $f$), modo
+\Ensure solução localmente ótima em $N_1$, $N_2$ e $N_3$
+\State $\ell \gets 1$
+\While{$\ell \le 3$}
+    \State $melhorou \gets$ falso
+    \For{cada $y \in N_\ell(x)$, em ordem aleatória}
+    \Comment{$N_3$: até 2\,000}
+        \If{modo = reparo \textbf{e} $V(y) = 0$}
+            \State \Return $y$
+        \EndIf
+        \If{modo = otimização \textbf{e} $V(y) > 0$}
+            \State \textbf{ignora} $y$
+            \Comment{rejeita inviável}
+        \EndIf
+        \If{$g(y) < g(x)$}
+        \Comment{primeira melhora}
+            \State $x \gets y$;\ $\ell \gets 1$;\ $melhorou \gets$ verdadeiro
+            \State \textbf{interrompe o laço}
+        \EndIf
+    \EndFor
+    \If{\textbf{não} $melhorou$} \State $\ell \gets \ell + 1$ \EndIf
+\EndWhile
+\State \Return $x$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Planejamento Experimental}\label{sec:planejamento}
 
 \subsection{Configuração dos Experimentos}
 
+Os experimentos utilizam a instância de exemplo do anexo do case, com 20 minérios, 10 pilhas (P1--P5 no Sinter~1 e P6--P10 no Sinter~2) e caminhões de 2~kt. O algoritmo foi implementado em Python~3.14, sem bibliotecas de otimização; o Matplotlib é usado apenas para gerar as figuras. Cada um dos três objetivos é otimizado separadamente, sempre com o mesmo conjunto de restrições.
+
 \subsection{Parâmetros do Algoritmo}
+
+A Tabela~\ref{tab:parametros_alg} resume os parâmetros da implementação. Nenhum deles é fixado pelo enunciado.
+
+\begin{table}[htbp]
+\caption{Parâmetros do algoritmo}
+\centering
+\begin{tabular}{p{0.55\columnwidth} r}
+\toprule
+\textbf{Parâmetro} & \textbf{Valor} \\
+\midrule
+Ciclos da GVNS por execução (critério de parada) & 50 \\
+Candidatos examinados por visita à $N_3$ & 2\,000 \\
+Tentativas máximas do reparo inicial & 100 \\
+Semente base & 2026 \\
+\bottomrule
+\end{tabular}
+\label{tab:parametros_alg}
+\end{table}
+
+O limite de 2\,000 candidatos por visita à $N_3$ existe porque o número de recomposições possíveis de uma pilha é muito grande; sem ele, uma única visita poderia não terminar em tempo razoável. O limite de 100 tentativas do reparo impede um laço infinito caso nenhuma solução viável seja encontrada; em todos os experimentos, o reparo encontrou uma solução viável.
+
+Para escolher o número de ciclos da GVNS, o algoritmo foi executado com limites de 10, 20, 30, 40 e 50 ciclos, com cinco execuções por objetivo em cada limite. A Tabela~\ref{tab:iteracoes} e a Figura~\ref{fig:iteracoes} apresentam a média e o desvio padrão do valor final.
+
+\begin{table*}[!t]
+\caption{Valor final médio e desvio padrão (cinco execuções) por limite de ciclos da GVNS}
+\centering
+\begin{tabular}{c r r r r r r}
+\toprule
+& \multicolumn{2}{c}{\textbf{$f_1$ (R\$ mi)}} & \multicolumn{2}{c}{\textbf{$f_2$ (pp$^2$)}} & \multicolumn{2}{c}{\textbf{$f_3$ (pp$^2$)}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+\textbf{Ciclos} & \textbf{Média} & \textbf{Desv. pad.} & \textbf{Média} & \textbf{Desv. pad.} & \textbf{Média} & \textbf{Desv. pad.} \\
+\midrule
+10 & 60{,}89 & 0{,}34 & 2{,}41971 & $5{,}6\times10^{-2}$ & 1{,}43043 & $1{,}3\times10^{-2}$ \\
+20 & 60{,}77 & 0{,}38 & 2{,}39931 & $2{,}8\times10^{-2}$ & 1{,}42640 & $8{,}2\times10^{-3}$ \\
+30 & 60{,}50 & 0{,}32 & 2{,}37946 & $1{,}5\times10^{-2}$ & 1{,}42610 & $8{,}4\times10^{-3}$ \\
+40 & 60{,}43 & 0{,}27 & 2{,}37282 & $7{,}0\times10^{-5}$ & 1{,}42323 & $6{,}8\times10^{-3}$ \\
+50 & 60{,}28 & 0{,}19 & 2{,}37282 & $6{,}6\times10^{-5}$ & 1{,}42027 & $4{,}3\times10^{-4}$ \\
+\bottomrule
+\end{tabular}
+\label{tab:iteracoes}
+\end{table*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{comparacao_iteracoes.png}
+\caption{Valor final de cada execução (pontos), média e mínimo por limite de ciclos da GVNS.}
+\label{fig:iteracoes}
+\end{figure*}
+
+O desvio de SiO$_2$ ($f_2$) se estabiliza a partir de 40 ciclos, quando as cinco execuções passam a terminar praticamente no mesmo valor. O desvio de Al$_2$O$_3$ ($f_3$) só apresenta o mesmo comportamento com 50 ciclos: o desvio padrão cai de $6{,}8\times10^{-3}$ para $4{,}3\times10^{-4}$~pp$^2$. Por isso, adotou-se 50 ciclos como critério de parada, o menor limite testado em que $f_2$ e $f_3$ convergem nas cinco execuções.
+
+Para o custo ($f_1$), a situação é diferente. O menor custo, R\$~60{,}06 milhões, já é atingido com 30 ciclos, mas a média continua caindo até 50 ciclos. Isso indica que um número maior de ciclos poderia reduzir a variabilidade entre execuções de $f_1$, ao custo de mais avaliações.
+
+As execuções com limites diferentes usam as mesmas sementes. Como o algoritmo é determinístico dada a semente, a execução com 10 ciclos coincide com os 10 primeiros ciclos da execução com 50; por isso, o valor final de uma mesma execução nunca piora quando o limite aumenta.
 
 \subsection{Número de Execuções}
 
+Como a GVNS é estocástica, cada objetivo foi otimizado em cinco execuções independentes, conforme exigido pelo enunciado, totalizando 15 execuções. As execuções diferem apenas na semente do gerador de números aleatórios, que determina as escolhas feitas na perturbação e a ordem de exploração das vizinhanças. A semente da execução $r \in \{1,\ldots,5\}$ do objetivo $f_k$ é
+\begin{equation}
+\text{semente} = 2026 + 10\,000\,(k-1) + r,
+\end{equation}
+o que garante sementes distintas para as 15 execuções e torna todos os resultados reproduzíveis. A semente base foi fixada antes da realização dos experimentos e não foi escolhida com base nos resultados.
+
 \subsection{Métricas Utilizadas}
+
+Para cada objetivo, são registrados o valor da melhor solução viável de cada execução e, a partir dos cinco valores, o mínimo, a média, o desvio padrão amostral e o máximo. O esforço computacional é medido pelo número de avaliações de soluções candidatas, isto é, pelo número de vezes em que os objetivos e as restrições de uma solução são calculados, incluindo as avaliações feitas no reparo, na perturbação e na busca local. O tempo de execução também é registrado, mas apenas como informação complementar, pois depende da máquina e da carga do sistema.
 
 \subsection{Critério de Comparação}
 
-\section{Resultados e Discussões}
+As execuções e as configurações do algoritmo são comparadas pelo valor final do objetivo otimizado. O mínimo indica a melhor solução encontrada; a média e o desvio padrão indicam a qualidade típica e a sensibilidade do método à semente. Na comparação entre limites de ciclos, também se considera o número médio de avaliações, que mede o custo computacional de cada configuração de forma independente da máquina.
+
+\section{Resultados e Discussões}\label{sec:resultados}
+
+% Figuras de largura dupla só aparecem a partir da página seguinte à sua
+% definição; por isso são definidas aqui, no início da seção de resultados.
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.85\textwidth]{melhor_f1.png}
+\caption{Melhor solução encontrada para $f_1$ (execução 4).}
+\label{fig:melhor_f1}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.85\textwidth]{melhor_f2.png}
+\caption{Melhor solução encontrada para $f_2$ (execução 3).}
+\label{fig:melhor_f2}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.85\textwidth]{melhor_f3.png}
+\caption{Melhor solução encontrada para $f_3$ (execução 3).}
+\label{fig:melhor_f3}
+\end{figure*}
 
 \subsection{Resultados para $f_1$}
 
+A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida em cada uma das cinco execuções, com o número de avaliações de soluções candidatas e o tempo medido. Todas as execuções terminaram com soluções viáveis.
+
+\begin{table}[htbp]
+\caption{Resultados das cinco execuções para $f_1$ (custo)}
+\centering
+\begin{tabular}{c c r r r}
+\toprule
+\textbf{Exec.} & \textbf{Semente} & \textbf{$f_1$ (R\$ mi)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
+\midrule
+1 & 2027 & 60{,}24 & 301\,215 & 14{,}3 \\
+2 & 2028 & 60{,}58 & 308\,761 & 16{,}4 \\
+3 & 2029 & 60{,}32 & 301\,445 & 15{,}8 \\
+4 & 2030 & \textbf{60{,}06} & 322\,874 & 28{,}5 \\
+5 & 2031 & 60{,}22 & 325\,270 & 22{,}8 \\
+\midrule
+\multicolumn{2}{l}{Mínimo} & 60{,}06 & & \\
+\multicolumn{2}{l}{Média} & 60{,}28 & & \\
+\multicolumn{2}{l}{Desvio padrão} & 0{,}19 & & \\
+\multicolumn{2}{l}{Máximo} & 60{,}58 & & \\
+\bottomrule
+\end{tabular}
+\label{tab:res_f1}
+\end{table}
+
+O menor custo encontrado foi R\$~60{,}06 milhões (execução 4). A diferença entre a melhor e a pior execução é de R\$~520 mil, cerca de 0{,}9\% do custo. Diferentemente de $f_2$ e $f_3$, as execuções de $f_1$ terminaram em valores distintos, o que indica que a busca para em ótimos locais diferentes conforme a semente.
+
 \subsection{Resultados para $f_2$}
+
+A Tabela~\ref{tab:res_f2} apresenta os resultados da minimização do desvio quadrático de SiO$_2$.
+
+\begin{table}[htbp]
+\caption{Resultados das cinco execuções para $f_2$ (desvio de SiO$_2$)}
+\centering
+\begin{tabular}{c c r r r}
+\toprule
+\textbf{Exec.} & \textbf{Semente} & \textbf{$f_2$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
+\midrule
+1 & 12027 & 2{,}37288 & 1\,029\,251 & 57{,}1 \\
+2 & 12028 & 2{,}37282 & 876\,394 & 33{,}7 \\
+3 & 12029 & \textbf{2{,}37273} & 943\,499 & 58{,}7 \\
+4 & 12030 & 2{,}37277 & 1\,119\,337 & 96{,}0 \\
+5 & 12031 & 2{,}37287 & 1\,162\,191 & 83{,}2 \\
+\midrule
+\multicolumn{2}{l}{Mínimo} & 2{,}37273 & & \\
+\multicolumn{2}{l}{Média} & 2{,}37282 & & \\
+\multicolumn{2}{l}{Desvio padrão} & $6{,}6\times10^{-5}$ & & \\
+\multicolumn{2}{l}{Máximo} & 2{,}37288 & & \\
+\bottomrule
+\end{tabular}
+\label{tab:res_f2}
+\end{table}
+
+As cinco execuções chegaram a valores praticamente iguais: a diferença entre a melhor e a pior é de $1{,}5\times10^{-4}$~pp$^2$. Esse comportamento indica que a busca é pouco sensível à semente para este objetivo. As execuções de $f_2$ exigiram cerca de três vezes mais avaliações que as de $f_1$. Como o critério de parada é o número de ciclos da GVNS, e não o de avaliações, o esforço gasto em cada ciclo varia conforme o objetivo.
 
 \subsection{Resultados para $f_3$}
 
+A Tabela~\ref{tab:res_f3} apresenta os resultados da minimização do desvio quadrático de Al$_2$O$_3$.
+
+\begin{table}[htbp]
+\caption{Resultados das cinco execuções para $f_3$ (desvio de Al$_2$O$_3$)}
+\centering
+\begin{tabular}{c c r r r}
+\toprule
+\textbf{Exec.} & \textbf{Semente} & \textbf{$f_3$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
+\midrule
+1 & 22027 & 1{,}41998 & 1\,330\,784 & 47{,}5 \\
+2 & 22028 & 1{,}42051 & 1\,222\,289 & 45{,}2 \\
+3 & 22029 & \textbf{1{,}41997} & 1\,012\,601 & 58{,}3 \\
+4 & 22030 & \textbf{1{,}41997} & 1\,180\,815 & 104{,}4 \\
+5 & 22031 & 1{,}42092 & 1\,292\,841 & 45{,}8 \\
+\midrule
+\multicolumn{2}{l}{Mínimo} & 1{,}41997 & & \\
+\multicolumn{2}{l}{Média} & 1{,}42027 & & \\
+\multicolumn{2}{l}{Desvio padrão} & $4{,}3\times10^{-4}$ & & \\
+\multicolumn{2}{l}{Máximo} & 1{,}42092 & & \\
+\bottomrule
+\end{tabular}
+\label{tab:res_f3}
+\end{table}
+
+As execuções 3 e 4 atingiram o mesmo valor, 1{,}41997~pp$^2$, e as demais ficaram a menos de $10^{-3}$~pp$^2$ dele. Assim como em $f_2$, a variabilidade entre execuções é muito pequena.
+
 \subsection{Curvas de Convergência}
+
+As Figuras~\ref{fig:conv_f1}, \ref{fig:conv_f2} e~\ref{fig:conv_f3} sobrepõem as cinco curvas de convergência de cada objetivo. Cada curva mostra o melhor valor viável encontrado até o momento em função do número de avaliações de soluções candidatas. Como a solução construtiva pode violar os limites de qualidade, cada curva começa apenas quando o reparo encontra a primeira solução viável; as avaliações gastas no reparo são contabilizadas no eixo horizontal.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{convergencia_f1.png}
+\caption{Curvas de convergência das cinco execuções para $f_1$ (custo).}
+\label{fig:conv_f1}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{convergencia_f2.png}
+\caption{Curvas de convergência das cinco execuções para $f_2$ (desvio de SiO$_2$).}
+\label{fig:conv_f2}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{convergencia_f3.png}
+\caption{Curvas de convergência das cinco execuções para $f_3$ (desvio de Al$_2$O$_3$).}
+\label{fig:conv_f3}
+\end{figure}
+
+Nos três objetivos, a maior parte da melhoria ocorre nas primeiras dezenas de milhares de avaliações. Em $f_1$, o custo cai de cerca de R\$~65 milhões para R\$~61 milhões nesse trecho inicial e, depois, passa a diminuir em saltos pequenos e espaçados, com as execuções terminando em patamares diferentes. Em $f_2$ e $f_3$, as curvas se estabilizam cedo e convergem para praticamente o mesmo valor; as melhorias após cerca de 200 mil avaliações são pequenas em relação à queda inicial.
 
 \subsection{Melhores Soluções Encontradas}
 
-\section{Conclusão}
+As Figuras~\ref{fig:melhor_f1}, \ref{fig:melhor_f2} e~\ref{fig:melhor_f3} representam a melhor solução obtida para cada objetivo. Cada linha corresponde a uma pilha e cada coluna a um minério; o número em cada célula é a quantidade de caminhões daquele minério na pilha, e a intensidade da cor acompanha esse número. A linha horizontal separa as pilhas do Sinter~1 (P1--P5) das do Sinter~2 (P6--P10). À direita, são apresentados os teores de SiO$_2$ e Al$_2$O$_3$ resultantes em cada pilha.
+
+A Tabela~\ref{tab:comparacao} avalia cada uma dessas soluções nos três objetivos.
+
+\begin{table}[htbp]
+\caption{Valores dos três objetivos nas melhores soluções de cada otimização}
+\centering
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Otimizado} & \textbf{$f_1$ (R\$ mi)} & \textbf{$f_2$ (pp$^2$)} & \textbf{$f_3$ (pp$^2$)} \\
+\midrule
+$f_1$ & \textbf{60{,}06} & 6{,}873 & 5{,}903 \\
+$f_2$ & 63{,}44 & \textbf{2{,}373} & 3{,}947 \\
+$f_3$ & 65{,}82 & 6{,}292 & \textbf{1{,}420} \\
+\bottomrule
+\end{tabular}
+\label{tab:comparacao}
+\end{table}
+
+A tabela evidencia o conflito entre os objetivos. A solução de menor custo tem os maiores desvios de qualidade; reduzir o desvio de Al$_2$O$_3$ ao mínimo encontrado custa R\$~5{,}76 milhões a mais (9{,}6\%). Nenhuma das três soluções é melhor que as outras em todos os objetivos, o que motiva a abordagem multiobjetivo da próxima etapa.
+
+Na solução de menor custo (Figura~\ref{fig:melhor_f1}), o teor de SiO$_2$ da pilha P1 é exatamente 6{,}200\%, o máximo permitido no Sinter~1, e as pilhas do Sinter~2 ficam entre 6{,}489\% e 6{,}494\%, próximas do máximo de 6{,}5\%. Ou seja, a restrição de qualidade de SiO$_2$ está ativa: o algoritmo usa minérios baratos até o limite permitido.
+
+Nas soluções de $f_2$ e $f_3$ (Figuras~\ref{fig:melhor_f2} e~\ref{fig:melhor_f3}), os teores não atingem os valores-alvo. Na solução de $f_2$, o SiO$_2$ varia de 5{,}880\% a 6{,}121\%, acima dos alvos de 5{,}55\% (Sinter~1) e 5{,}50\% (Sinter~2). Na de $f_3$, o Al$_2$O$_3$ varia de 1{,}500\% a 1{,}607\% no Sinter~1 (alvo de 1{,}25\%) e de 1{,}880\% a 1{,}984\% no Sinter~2 (alvo de 1{,}5\%). Nas duas soluções, dentro de cada sinter, o desvio cresce com a massa da pilha. Uma explicação provável é que o objetivo soma os desvios das pilhas sem ponderá-los pela massa: aproximar do alvo o teor de uma pilha maior exige mais caminhões dos minérios de teor adequado, cuja disponibilidade é limitada, e por isso é mais vantajoso aproximar as pilhas menores.
+
+\section{Conclusão}\label{sec:conclusao}
+
+A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, os resultados variaram cerca de 0{,}9\% entre execuções, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa 9{,}6\% a mais. Esses resultados servem de referência para a normalização dos objetivos na abordagem multiobjetivo da próxima entrega.
+
+\begin{thebibliography}{9}
+
+\bibitem{aula01}
+L.~B.~Real, ``Decidir, modelar e otimizar,'' notas de aula (Aula~01), Teoria da Decisão, Universidade Federal de Minas Gerais, Belo Horizonte, 2026.
+
+\bibitem{aula02}
+L.~B.~Real, ``Da construção de soluções às metaheurísticas: representação, busca local e VNS,'' notas de aula (Aula~02), Teoria da Decisão, Universidade Federal de Minas Gerais, Belo Horizonte, 2026.
+
+\bibitem{aula04}
+L.~B.~Real, ``Penalidades e otimização vetorial,'' notas de aula (Aula~04), Teoria da Decisão, Universidade Federal de Minas Gerais, Belo Horizonte, 2026.
+
+\bibitem{case_cassotis}
+Cassotis Consulting, ``Otimização de custo e qualidade na formação de pilhas de minério,'' case da disciplina Teoria da Decisão, Engenharia de Sistemas, Universidade Federal de Minas Gerais, Belo Horizonte, 2026/2.
+
+\end{thebibliography}
 
 \end{document}
