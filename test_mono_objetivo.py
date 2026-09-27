@@ -69,8 +69,9 @@ class MonoObjectiveTests(unittest.TestCase):
     def test_gvns_devolve_planos_viaveis(self):
         case = self.case
         for objective in range(3):
-            run = solve(case, objective, 1, seconds=2)
+            run = solve(case, objective, 1, iterations=1)
             self.assertGreater(run.evaluations, 0)
+            self.assertEqual(run.iterations, 1)
             self.assertGreater(run.seconds, 0)
             self.assertIsNotNone(run.best_plan)
             self.assertTrue(evaluate(case, run.best_plan).feasible)
@@ -80,7 +81,7 @@ class MonoObjectiveTests(unittest.TestCase):
                 self.assertTrue(evaluate(case, rebuilt).feasible)
 
     def test_parametros_do_experimento_sao_aplicados(self):
-        run = solve(self.case, 0, 1, seconds=2, base_seed=314)
+        run = solve(self.case, 0, 1, iterations=1, base_seed=314)
         self.assertEqual(run.seed, 315)
         self.assertGreater(run.evaluations, 0)
         self.assertTrue(evaluate(self.case, run.best_plan).feasible)

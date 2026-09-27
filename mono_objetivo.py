@@ -14,7 +14,7 @@ import statistics
 import sys
 import time
 from dataclasses import dataclass
-from itertools import combinations, product
+from itertools import combinations, islice, product
 from pathlib import Path
 
 from figuras import write_convergence, write_solution
@@ -23,7 +23,9 @@ from figuras import write_convergence, write_solution
 # Cinco execuções são exigidas pelo PDF. Os demais valores são escolhas
 # reproduzíveis desta implementação, não parâmetros fornecidos no case.
 RUNS = 5
-SECONDS = 10.0          # tempo máximo por execução; escolha do grupo
+ITERATIONS = 50          # ciclos globais de perturbação + VND por execução
+N3_CANDIDATES = 2000     # limite por visita à N3, cuja enumeração pode ser enorme
+REPAIR_STEPS = 100       # evita laço infinito se o reparo não achar plano viável
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
 
 
@@ -74,6 +76,7 @@ class Run:
     number: int
     seed: int
     evaluations: int
+    iterations: int
     seconds: float
     best_plan: list[list[int]] | None
     best_evaluation: Evaluation | None
@@ -81,7 +84,7 @@ class Run:
 
 
 class NoFeasiblePlanError(RuntimeError):
-    """Tempo encerrado antes de encontrar um plano viável."""
+    """Reparo terminou sem encontrar um plano viável."""
 
 
 def load_case(path: Path) -> Case:
@@ -229,7 +232,7 @@ def construct(case: Case) -> list[list[int]]:
 
 
 def neighbors(case: Case, plan: list[list[int]], kind: int,
-              rng: random.Random, deadline: float | None = None):
+              rng: random.Random):
     """Percorre vizinhos de N1, N2 ou N3 em ordem sorteada.
 
     Posições com o mesmo minério na mesma pilha são equivalentes: a composição,
@@ -262,8 +265,6 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
         global_usage = [sum(row.count(j) for row in plan)
                         for j in range(len(case.ores))]
         for p in piles:
-            if deadline is not None and time.perf_counter() >= deadline:
-                return
             n = len(plan[p])
             group = case.sinters[case.groups[p]]
             eligible = [j for j, ore in enumerate(case.ores)
@@ -306,8 +307,6 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
                 return bounds[0], bounds[1]
 
             def rebuild(index: int, remaining: int, si: float, al: float):
-                if deadline is not None and time.perf_counter() >= deadline:
-                    return
                 if not sum(lower[index:]) <= remaining <= sum(upper[index:]):
                     return
                 si_low, si_high = quality_range(si_values, index, remaining)
@@ -353,19 +352,17 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
 
 
 def neighbor(case: Case, plan: list[list[int]], kind: int,
-             rng: random.Random,
-             deadline: float | None = None) -> list[list[int]] | None:
+             rng: random.Random) -> list[list[int]] | None:
     """Primeiro vizinho na ordem sorteada; útil para a perturbação inicial."""
-    return next(neighbors(case, plan, kind, rng, deadline), None)
+    return next(neighbors(case, plan, kind, rng), None)
 
 
-def solve(case: Case, objective: int, number: int, seconds: float = SECONDS,
+def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
           base_seed: int = BASE_SEED) -> Run:
-    """Repara a construção e aplica GVNS somente a planos factíveis."""
-    if seconds <= 0:
-        raise ValueError("segundos deve ser positivo")
+    """Repara a construção e executa um número fixo de ciclos da GVNS."""
+    if iterations <= 0:
+        raise ValueError("iteracoes deve ser positivo")
     started = time.perf_counter()
-    deadline = started + seconds
     seed = base_seed + objective * 10000 + number
     rng = random.Random(seed)
     current = construct(case)
@@ -374,10 +371,8 @@ def solve(case: Case, objective: int, number: int, seconds: float = SECONDS,
     best_plan = best_result = None
     trace = []
 
-    def consider(plan: list[list[int]]) -> Evaluation | None:
+    def consider(plan: list[list[int]]) -> Evaluation:
         nonlocal evaluations, best_plan, best_result
-        if time.perf_counter() >= deadline:
-            return None
         result = evaluate(case, plan)
         evaluations += 1
         if result.feasible and (best_result is None or
@@ -387,16 +382,18 @@ def solve(case: Case, objective: int, number: int, seconds: float = SECONDS,
             trace.append((evaluations, result.objectives[objective]))
         return result
 
+    def candidates(plan: list[list[int]], level: int):
+        generated = neighbors(case, plan, level, rng)
+        return islice(generated, N3_CANDIDATES) if level == 3 else generated
+
     def local_search(plan: list[list[int]], result: Evaluation, repairing: bool):
         level = 1
         # A busca local visita N1, N2 e N3; melhora reinicia em N1.
         last_level = 3
-        while level <= last_level and time.perf_counter() < deadline:
+        while level <= last_level:
             improved = False
-            for candidate in neighbors(case, plan, level, rng, deadline):
+            for candidate in candidates(plan, level):
                 candidate_result = consider(candidate)
-                if candidate_result is None:
-                    return plan, result
                 if repairing and candidate_result.feasible:
                     return candidate, candidate_result
                 if not repairing and not candidate_result.feasible:
@@ -421,15 +418,15 @@ def solve(case: Case, objective: int, number: int, seconds: float = SECONDS,
     # A construção do PDF pode violar qualidade. O reparo procura uma
     # primeira solução factível; seus planos provisórios não entram na GVNS.
     level = 1
-    while best_plan is None and time.perf_counter() < deadline:
+    for _ in range(REPAIR_STEPS):
+        if best_plan is not None:
+            break
         shaken = [row.copy() for row in current]
         for _ in range(level):
-            moved = neighbor(case, shaken, level, rng, deadline)
+            moved = neighbor(case, shaken, level, rng)
             if moved is not None:
                 shaken = moved
         shaken_result = consider(shaken)
-        if shaken_result is None:
-            break
         if best_plan is not None:
             break
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=True)
@@ -441,29 +438,21 @@ def solve(case: Case, objective: int, number: int, seconds: float = SECONDS,
         else:
             level = level % 3 + 1
     if best_plan is None:
-        raise NoFeasiblePlanError("não foi possível reparar a construção dentro do tempo")
+        raise NoFeasiblePlanError("não foi possível reparar a construção")
     current = [row.copy() for row in best_plan]
     current_result = best_result
     assert current_result.feasible
 
     level = 1
-    while time.perf_counter() < deadline:
+    for _ in range(iterations):
         shaken = [row.copy() for row in current]
         for _ in range(level):
-            for moved in neighbors(case, shaken, level, rng, deadline):
+            for moved in candidates(shaken, level):
                 moved_result = consider(moved)
-                if moved_result is None:
-                    break
                 if moved_result.feasible:
                     shaken = moved
                     break
-            if time.perf_counter() >= deadline:
-                break
-        if time.perf_counter() >= deadline:
-            break
         shaken_result = consider(shaken)
-        if shaken_result is None:
-            break
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=False)
         assert shaken_result.feasible
         if shaken_result.objectives[objective] < current_result.objectives[objective] - 1e-12:
@@ -471,12 +460,12 @@ def solve(case: Case, objective: int, number: int, seconds: float = SECONDS,
             level = 1
         else:
             level = level % 3 + 1
-    return Run(objective, number, seed, evaluations,
+    return Run(objective, number, seed, evaluations, iterations,
                time.perf_counter() - started, best_plan, best_result, trace)
 
 
 def write_outputs(case: Case, runs: list[Run], directory: Path,
-                  data_path: Path, seconds: float = SECONDS,
+                  data_path: Path, iterations: int = ITERATIONS,
                   base_seed: int = BASE_SEED) -> None:
     """Grava as 15 execuções, estatísticas, planos e figuras do relatório."""
     directory.mkdir(parents=True, exist_ok=True)
@@ -485,25 +474,28 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         "sha256_dados": hashlib.sha256(data_path.read_bytes()).hexdigest(),
         "execucoes_por_objetivo": RUNS,
         "python": sys.version.split()[0],
-        "limite_segundos": seconds,
+        "limite_iteracoes_gvns": iterations,
+        "limite_candidatos_n3_por_visita": N3_CANDIDATES,
+        "limite_passos_reparo": REPAIR_STEPS,
         "politica_inviabilidade": "reparo inicial; rejeição de candidatos inviáveis na GVNS",
         "semente_base": base_seed,
         "construcao": "mínimos em rodízio; completar por preço crescente",
         "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, com ao menos metade dos caminhões alterados",
-        "busca_local": "N1, N2 e N3 em sequência, completas até o limite de tempo",
+        "busca_local": "N1 e N2 até primeira melhora ou exaustão; N3 até primeira melhora ou 2000 candidatos por visita",
     }
     (directory / "configuracao.json").write_text(
         json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
     with (directory / "execucoes.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, lineterminator="\n")
-        writer.writerow(["objetivo", "execucao", "semente", "avaliacoes", "segundos",
+        writer.writerow(["objetivo", "execucao", "semente", "iteracoes_gvns",
+                         "avaliacoes", "segundos_medidos",
                          "f1_rs", "f2_pp2", "f3_pp2", "violacao"])
         for run in runs:
             if run.best_evaluation is None:
                 raise RuntimeError(f"f{run.objective + 1}, execução {run.number}: sem plano factível")
             result = run.best_evaluation
             writer.writerow([f"f{run.objective + 1}", run.number, run.seed,
-                             run.evaluations, run.seconds,
+                             run.iterations, run.evaluations, run.seconds,
                              *result.objectives, result.violation])
     summary, solutions = [], {}
     for objective in range(3):
@@ -523,8 +515,8 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
                 for row in best.best_plan
             ],
         }
-        write_convergence(directory / f"convergencia_f{objective + 1}.svg", selected)
-        write_solution(directory / f"melhor_f{objective + 1}.svg", case, best)
+        write_convergence(directory / f"convergencia_f{objective + 1}.pdf", selected)
+        write_solution(directory / f"melhor_f{objective + 1}.pdf", case, best)
     with (directory / "resumo.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, lineterminator="\n")
         writer.writerow(["objetivo", "minimo", "media", "desvio_padrao_amostral", "maximo"])
@@ -536,12 +528,12 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
                    indent=2), encoding="utf-8")
 
 
-def run_method(case: Case, seconds: float = SECONDS,
+def run_method(case: Case, iterations: int = ITERATIONS,
                base_seed: int = BASE_SEED) -> list[Run]:
     runs = []
     for objective in range(3):
         for number in range(1, RUNS + 1):
-            run = solve(case, objective, number, seconds, base_seed)
+            run = solve(case, objective, number, iterations, base_seed)
             runs.append(run)
             value = run.best_evaluation.objectives[objective]
             print(f"GVNS, f{objective + 1}, execução {number}: {value}",
@@ -551,8 +543,8 @@ def run_method(case: Case, seconds: float = SECONDS,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--segundos", type=float, default=SECONDS,
-                        help="limite de tempo por execução, incluindo o reparo")
+    parser.add_argument("--iteracoes", type=int, default=ITERATIONS,
+                        help="ciclos globais da GVNS por execução (padrão: 50)")
     parser.add_argument("--semente-base", type=int, default=BASE_SEED,
                         help="ponto de partida dos sorteios reproduzíveis")
     parser.add_argument("--dados", type=Path,
@@ -560,13 +552,13 @@ def main() -> None:
     parser.add_argument("--saida", type=Path,
                         help="pasta de saída; padrão: resultados")
     args = parser.parse_args()
-    if args.segundos <= 0:
-        parser.error("--segundos deve ser positivo")
+    if args.iteracoes <= 0:
+        parser.error("--iteracoes deve ser positivo")
     case = load_case(args.dados)
     directory = args.saida or Path(__file__).with_name("resultados")
-    runs = run_method(case, args.segundos, args.semente_base)
+    runs = run_method(case, args.iteracoes, args.semente_base)
     write_outputs(case, runs, directory, args.dados,
-                  args.segundos, args.semente_base)
+                  args.iteracoes, args.semente_base)
     print(f"Resultados em {directory.resolve()}")
 
 
