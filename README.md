@@ -17,6 +17,8 @@ Há **10 pilhas no total**: P1–P5 alimentam o Sinter 1 e P6–P10 alimentam o 
 3. A GVNS perturba a solução e aplica busca local nas vizinhanças: **N1** substitui o minério de um caminhão dentro da pilha; **N2** troca caminhões entre duas pilhas; **N3** escolhe novamente a composição completa de uma pilha, mantendo as outras nove e mudando o minério de pelo menos metade dos seus caminhões.
 4. Durante a GVNS, candidatos inviáveis são rejeitados. Uma nova solução corrente só é aceita se melhorar o objetivo que está sendo resolvido.
 
+**Por que N3?** N1 altera um caminhão; N2 troca dois caminhões entre pilhas e mantém inalterado o uso total de cada minério. A N3 fixa nove pilhas e **recalcula as quantidades de minérios da décima**, permitindo mudar vários caminhões e o uso total dos minérios em um único movimento. A nova receita pode conservar alguns minérios antigos, mas deve trocar o minério de **pelo menos metade** dos caminhões daquela pilha. O gerador respeita massa, elegibilidade, disponibilidade e os limites de SiO₂ e Al₂O₃ da pilha reconstruída. Escolhemos esse movimento para explorar misturas mais distantes, com lógica diferente de N1 e N2, como o PDF solicita; a regra de metade dos caminhões é uma decisão nossa, não uma exigência do enunciado. A N3 pode ser mais demorada de examinar, e o limite de tempo pode interromper sua busca.
+
 ### Como executar
 
 É necessário **Python 3.10 ou superior**. O código usa somente a biblioteca padrão; não há dependências para instalar com `pip`. No terminal, a partir da raiz do repositório:
