@@ -11,6 +11,7 @@
 \usepackage{float}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage[hidelinks]{hyperref}
 
 \floatname{algorithm}{Algoritmo}
 \algrenewcommand\algorithmicrequire{\textbf{Entrada:}}
@@ -460,6 +461,10 @@ Para cada objetivo, são registrados o valor da melhor solução viável de cada
 \subsection{Critério de Comparação}
 
 As execuções e as configurações do algoritmo são comparadas pelo valor final do objetivo otimizado. O mínimo indica a melhor solução encontrada; a média e o desvio padrão indicam a qualidade típica e a sensibilidade do método à semente. Na comparação entre limites de ciclos, também se considera o número médio de avaliações, que mede o custo computacional de cada configuração de forma independente da máquina.
+
+\subsection{Código-fonte e reprodutibilidade}
+
+O código-fonte, os dados de entrada e as instruções para executar os experimentos estão disponíveis no repositório do projeto: \url{https://github.com/jlzht/td-tp}.
 
 \section{Resultados e Discussões}\label{sec:resultados}
 
