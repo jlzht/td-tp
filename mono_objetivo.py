@@ -14,7 +14,7 @@ import statistics
 import sys
 import time
 from dataclasses import dataclass
-from itertools import combinations, islice, product
+from itertools import combinations, product
 from pathlib import Path
 
 from figuras import write_convergence, write_solution
@@ -24,8 +24,7 @@ from figuras import write_convergence, write_solution
 # reproduzíveis desta implementação, não parâmetros fornecidos no case.
 RUNS = 5
 ITERATIONS = 50          # ciclos globais de perturbação + VND por execução
-N3_CANDIDATES = 2000     # limite por visita à N3, cuja enumeração pode ser enorme
-REPAIR_STEPS = 100       # evita laço infinito se o reparo não achar plano viável
+REPAIR_STEPS = 100       # ciclos de reparo; falha explícita se não achar plano viável
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
 
 
@@ -84,7 +83,7 @@ class Run:
 
 
 class NoFeasiblePlanError(RuntimeError):
-    """Reparo terminou sem encontrar um plano viável."""
+    """Reparo terminou sem plano viável; não é prova de inviabilidade da instância."""
 
 
 def load_case(path: Path) -> Case:
@@ -382,17 +381,13 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
             trace.append((evaluations, result.objectives[objective]))
         return result
 
-    def candidates(plan: list[list[int]], level: int):
-        generated = neighbors(case, plan, level, rng)
-        return islice(generated, N3_CANDIDATES) if level == 3 else generated
-
     def local_search(plan: list[list[int]], result: Evaluation, repairing: bool):
         level = 1
         # A busca local visita N1, N2 e N3; melhora reinicia em N1.
         last_level = 3
         while level <= last_level:
             improved = False
-            for candidate in candidates(plan, level):
+            for candidate in neighbors(case, plan, level, rng):
                 candidate_result = consider(candidate)
                 if repairing and candidate_result.feasible:
                     return candidate, candidate_result
@@ -438,7 +433,11 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         else:
             level = level % 3 + 1
     if best_plan is None:
-        raise NoFeasiblePlanError("não foi possível reparar a construção")
+        raise NoFeasiblePlanError(
+            f"Reparo esgotou {REPAIR_STEPS} ciclos sem encontrar solução viável "
+            f"(f{objective + 1}, execução {number}, semente {seed}). "
+            "Isso não prova que a instância seja inviável. "
+            "A otimização GVNS desta execução não foi iniciada.")
     current = [row.copy() for row in best_plan]
     current_result = best_result
     assert current_result.feasible
@@ -447,7 +446,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     for _ in range(iterations):
         shaken = [row.copy() for row in current]
         for _ in range(level):
-            for moved in candidates(shaken, level):
+            for moved in neighbors(case, shaken, level, rng):
                 moved_result = consider(moved)
                 if moved_result.feasible:
                     shaken = moved
@@ -475,13 +474,13 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         "execucoes_por_objetivo": RUNS,
         "python": sys.version.split()[0],
         "limite_iteracoes_gvns": iterations,
-        "limite_candidatos_n3_por_visita": N3_CANDIDATES,
+        "limite_candidatos_n3_por_visita": None,
         "limite_passos_reparo": REPAIR_STEPS,
         "politica_inviabilidade": "reparo inicial; rejeição de candidatos inviáveis na GVNS",
         "semente_base": base_seed,
         "construcao": "mínimos em rodízio; completar por preço crescente",
         "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, com ao menos metade dos caminhões alterados",
-        "busca_local": "N1 e N2 até primeira melhora ou exaustão; N3 até primeira melhora ou 2000 candidatos por visita",
+        "busca_local": "N1, N2 e N3 até primeira melhora ou exaustão; sem teto de candidatos",
     }
     (directory / "configuracao.json").write_text(
         json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -556,7 +555,10 @@ def main() -> None:
         parser.error("--iteracoes deve ser positivo")
     case = load_case(args.dados)
     directory = args.saida or Path(__file__).with_name("resultados")
-    runs = run_method(case, args.iteracoes, args.semente_base)
+    try:
+        runs = run_method(case, args.iteracoes, args.semente_base)
+    except NoFeasiblePlanError as exc:
+        parser.exit(2, f"Erro: {exc}\nNenhum resultado deste lote foi exportado.\n")
     write_outputs(case, runs, directory, args.dados,
                   args.iteracoes, args.semente_base)
     print(f"Resultados em {directory.resolve()}")

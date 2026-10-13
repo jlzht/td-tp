@@ -3,8 +3,10 @@ import random
 import unittest
 from collections import Counter
 from pathlib import Path
+from unittest.mock import patch
 
-from mono_objetivo import construct, evaluate, load_case, neighbor, neighbors, solve
+from mono_objetivo import (Case, NoFeasiblePlanError, Ore, Sinter,
+                          construct, evaluate, load_case, neighbor, neighbors, solve)
 
 
 DATA = Path(__file__).with_name("dados_exemplo.json")
@@ -92,6 +94,34 @@ class MonoObjectiveTests(unittest.TestCase):
         compositions = {tuple(tuple(sorted(Counter(row).items())) for row in move)
                         for move in moves}
         self.assertEqual(len(moves), len(compositions))
+
+    def test_reparo_esgotado_nao_devolve_plano_inviavel(self):
+        # Toda mistura tem Si=8%, acima de 6%: o reparo deve sinalizar falha.
+        case = Case(2, (2,), (1,),
+                    (Ore(100, 8, 1.5, 0, 2, {1}), Ore(200, 8, 1.5, 0, 2, {1})),
+                    {1: Sinter(4, 5, 6, 1, 1.5, 2)})
+        with patch("mono_objetivo.REPAIR_STEPS", 100):
+            with self.assertRaisesRegex(NoFeasiblePlanError,
+                                        r"100 ciclos.*f1, execução 1, semente 2027"):
+                solve(case, 0, 1, iterations=1)
+
+    def test_n3_examina_mais_de_dois_mil_sem_melhora(self):
+        # Gerador controlado para verificar o consumo além do antigo teto.
+        case = Case(2, (1,), (1,), (Ore(100, 5, 1.5, 0, 1, {1}),),
+                    {1: Sinter(4, 5, 6, 1, 1.5, 2)})
+        examined = 0
+
+        def generated(case, plan, kind, rng):
+            nonlocal examined
+            if kind == 3:
+                for _ in range(3001):
+                    examined += 1
+                    yield [row.copy() for row in plan]
+
+        with patch("mono_objetivo.neighbors", generated):
+            run = solve(case, 0, 1, iterations=1)
+        self.assertEqual(examined, 3001)
+        self.assertTrue(run.best_evaluation.feasible)
 
 
 if __name__ == "__main__":

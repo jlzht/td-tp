@@ -4,7 +4,7 @@ Este repositório implementa **GVNS** para três problemas mono-objetivo do case
 
 ## Dados e representação
 
-O arquivo `dados_exemplo.json` transcreve o **exemplo de formato dos dados** do PDF do case. Se a professora fornecer outra instância, passe o arquivo com `--dados`. Há 10 pilhas: P1–P5 alimentam o Sinter 1 e P6–P10, o Sinter 2. Cada caminhão transporta 2 kt de um único minério. Uma pilha de 20 kt ocupa 10 posições na solução; uma de 38 kt ocupa 19. O valor `x_ij` é o número de posições da pilha `i` ocupadas pelo minério `j`. O FeT consta dos dados, mas os objetivos e limites desta entrega envolvem SiO₂ e Al₂O₃.
+O arquivo `dados_exemplo.json` transcreve o **exemplo de formato dos dados** do PDF do case. Há 10 pilhas: P1–P5 alimentam o Sinter 1 e P6–P10, o Sinter 2. Cada caminhão transporta 2 kt de um único minério. Uma pilha de 20 kt ocupa 10 posições na solução; uma de 38 kt ocupa 19. O valor `x_ij` é o número de posições da pilha `i` ocupadas pelo minério `j`. O FeT consta dos dados, mas os objetivos e limites desta entrega envolvem SiO₂ e Al₂O₃.
 
 ## Como o algoritmo trabalha
 
@@ -35,7 +35,25 @@ para cada objetivo f1, f2, f3:
         salvar o melhor plano viável encontrado
 ```
 
-`--iteracoes` limita os **ciclos globais** por execução, e não 50 visitas a cada vizinhança. O valor padrão é **50**, escolhido para os experimentos; o PDF não fixa esse número. Cada ciclo pode visitar as três vizinhanças durante o VND. N1 e N2 são examinadas até a primeira melhora ou o fim dos vizinhos distintos. A N3 pode ter um número enorme de receitas: para manter cada visita finita, o programa examina **no máximo 2.000 candidatos por visita à N3**, parando antes se achar uma melhora. Esse teto é outra escolha nossa; uma visita à N3 pode deixar receitas sem examinar. O reparo tem limite de 100 tentativas e avisa se não encontrar uma solução viável. O tempo em segundos é apenas medido e registrado; ele não encerra a busca.
+`--iteracoes` limita os **ciclos globais** por execução, e não 50 visitas a cada vizinhança. O valor padrão é **50**, escolhido para os experimentos; o PDF não fixa esse número. Cada ciclo pode visitar as três vizinhanças durante a VND. **N1, N2 e N3 são examinadas até a primeira melhora ou o esgotamento dos vizinhos distintos, sem teto de candidatos e sem limite de tempo.** O reparo tem limite de 100 ciclos e avisa se não encontrar uma solução viável. O tempo em segundos é apenas medido e registrado; ele não encerra a busca.
+
+### N3 sem teto de candidatos
+
+A versão atual **retirou o antigo teto de 2.000 candidatos**. Durante a VND, uma visita a N3 continua até encontrar a primeira melhora ou esgotar todas as reconstruções geradas. Durante a perturbação, escolhemos o primeiro vizinho viável na ordem sorteada, como nas outras vizinhanças. Não há limite de nós parciais, receitas completas ou tempo de enumeração.
+
+Antes de gerar uma receita, a enumeração percorre combinações parciais de contagens, calcula limites de qualidade e descarta ramos. O antigo teto contava somente receitas completas, não esse trabalho anterior. Mesmo sem teto, o campo `avaliacoes` continua contando chamadas a `evaluate`, incluindo reparo, perturbação e VND; não conta os ramos e cálculos internos da enumeração.
+
+A enumeração é finita nesta representação inteira, mas pode ser muito grande. Uma VND concluída sem melhora nas três vizinhanças produz um ótimo local em N1, N2 e N3 segundo os operadores implementados e a tolerância numérica; não fornece prova de ótimo global.
+
+Os resultados históricos obtidos com teto de 2.000 não devem ser apresentados como resultados desta versão sem teto. Alterar o teto muda a sequência de sorteios consumidos e a trajetória da busca: mais candidatos não garantem melhor resultado final para um número fixo de ciclos. Dentro de uma mesma execução, a melhor solução registrada nunca piora.
+
+### Se o reparo não encontrar uma solução viável
+
+O reparo termina na primeira solução viável avaliada ou após **100 ciclos de perturbação e VND**. Esses 100 ciclos não são 100 candidatos nem um limite de tempo.
+
+Se esgotar os ciclos, `solve` lança `NoFeasiblePlanError`, com objetivo, número da execução e semente. **Isso significa falha da heurística em encontrar uma solução dentro do limite, não prova de que a instância seja inviável.** A GVNS daquela execução não começa e nenhuma solução inviável é devolvida como resultado.
+
+Na execução pelo terminal, essa falha encerra o programa com código de saída **2** e uma mensagem legível. O lote de 15 execuções é interrompido; a exportação só acontece quando todas terminam com sucesso, então não são exportados novos CSVs, planos ou figuras daquele lote. Arquivos de uma execução anterior na pasta de saída não são apagados e não representam o lote que falhou. Não há reinício automático ou aumento automático do limite.
 
 ## Instalação e execução
 

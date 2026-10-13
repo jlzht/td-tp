@@ -251,7 +251,7 @@ v_{ki} &= \max\{0,\, L_{k,s(i)}^{\min} - L_{ki}\} \nonumber \\
 V(x)   &= \sum_{i \in I} \sum_{k \in K}
           \frac{v_{ki}}{L_{k,s(i)}^{\max} - L_{k,s(i)}^{\min}} + V_D(x),
 \end{align}
-em que $v_{ki}$ é o quanto o teor da substância $k$ na pilha $i$ está fora dos limites do seu sinter e $V_D(x)$ é a violação dos limites de disponibilidade, calculada de forma análoga. Cada violação é dividida pela amplitude do intervalo permitido, para que substâncias e minérios com escalas diferentes contribuam de forma comparável. O reparo termina assim que qualquer solução viável é avaliada, ou após $R = 100$ tentativas. A violação $V$ é usada apenas nessa fase e nunca é somada a $f_1$, $f_2$ ou $f_3$. Em todas as execuções realizadas, o reparo encontrou uma solução viável.
+em que $v_{ki}$ é o quanto o teor da substância $k$ na pilha $i$ está fora dos limites do seu sinter e $V_D(x)$ é a violação dos limites de disponibilidade, calculada de forma análoga. Cada violação é dividida pela amplitude do intervalo permitido, para que substâncias e minérios com escalas diferentes contribuam de forma comparável. O reparo termina assim que qualquer solução viável é avaliada, ou após $R=100$ ciclos de perturbação e VND. Se esgotar esse limite, sinaliza falha: a GVNS daquela execução não começa e não devolve um plano inviável como resultado. Isso indica que a heurística não encontrou solução dentro do limite, e não prova inviabilidade da instância. Na execução pelo terminal, a mensagem identifica objetivo, execução e semente, e o lote é interrompido antes da exportação. A violação $V$ é usada apenas no reparo e nunca é somada aos objetivos. Nas 15 execuções deste lote, o reparo encontrou uma solução viável no primeiro ciclo.
 
 \section{Metaheurística VNS/GVNS}\label{sec:gvns}
 
@@ -275,17 +275,19 @@ A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e
 
 A nova composição é gerada diretamente como contagens de caminhões por minério, e não como permutações de posições. Durante a enumeração, o número de caminhões de cada minério é limitado pela disponibilidade que resta após o uso nas outras nove pilhas, e combinações que não podem atingir os limites de qualidade da pilha são descartadas antecipadamente. Assim, a pilha reconstruída sempre respeita massa, compatibilidade, disponibilidade e qualidade; se as outras nove pilhas já forem viáveis, o vizinho inteiro é viável. Durante a GVNS, em que a solução corrente é sempre viável, $N_3$ funciona, portanto, como um operador que preserva a viabilidade.
 
-A justificativa para $N_3$ é que $N_1$ e $N_2$ alteram no máximo dois caminhões por movimento. Quando uma restrição de qualidade está ativa, como ocorre com o SiO$_2$ na minimização do custo, muitas trocas isoladas tornam a pilha inviável e são rejeitadas, o que limita o avanço da busca. A $N_3$ permite movimentos grandes e coordenados dentro de uma pilha, que $N_1$ e $N_2$ só alcançariam passando por soluções inviáveis. Como o número de recomposições possíveis de uma pilha é muito grande, cada visita a $N_3$ examina no máximo 2\,000 candidatos, em ordem aleatória. A exigência de mudar ao menos metade dos caminhões garante que $N_3$ produza movimentos distintos dos de $N_1$ e $N_2$.
+As vizinhanças são complementares: $N_1$ ajusta uma receita, $N_2$ redistribui minérios entre pilhas sem alterar seu uso total, e $N_3$ avalia uma mudança maior e coordenada. A reconstrução permite avaliar diretamente a nova receita, sem exigir que cada alteração intermediária seja viável ou melhore o objetivo; isso pode contornar bloqueios dos movimentos pequenos. Não se afirma que a mesma receita só possa ser alcançada por $N_3$. A exigência de mudar ao menos metade dos caminhões distingue esse movimento de uma substituição isolada ou de uma troca entre pilhas.
+
+Na versão atual, $N_3$ não possui teto de candidatos completos, nós de enumeração ou tempo. A VND percorre seus vizinhos em ordem sorteada até a primeira melhora ou o esgotamento das reconstruções possíveis. A enumeração é finita, pois trabalha com contagens inteiras limitadas pela massa e pelas disponibilidades, mas seu esforço pode ser elevado. Antes de gerar cada receita, são percorridos ramos parciais e calculados limites de qualidade; esses cálculos não entram no contador de avaliações de soluções completas.
 
 \subsection{Busca Local}
 
-A busca local é uma VND (\textit{Variable Neighborhood Descent}) com estratégia de primeira melhora (Algoritmo~\ref{alg:vnd}). As vizinhanças são exploradas na ordem $N_1$, $N_2$, $N_3$, da menor para a maior alteração. Os vizinhos de cada vizinhança são percorridos em ordem aleatória, e o primeiro que melhora o critério é aceito, e a busca volta para $N_1$. Se nenhum vizinho de $N_\ell$ melhora, passa-se para $N_{\ell+1}$. A busca termina quando nenhuma das três vizinhanças produz melhora, isto é, quando a solução é um ótimo local em relação a $N_1$ e $N_2$ e aos candidatos examinados de $N_3$.
+A busca local é uma VND (\textit{Variable Neighborhood Descent}) com estratégia de primeira melhora (Algoritmo~\ref{alg:vnd}). As vizinhanças são exploradas na ordem $N_1$, $N_2$, $N_3$, da menor para a maior alteração. Os vizinhos de cada vizinhança são percorridos em ordem aleatória, e o primeiro que melhora o critério é aceito, e a busca volta para $N_1$. Se nenhum vizinho de $N_\ell$ melhora, passa-se para $N_{\ell+1}$. No modo de otimização, a busca termina quando as três vizinhanças são esgotadas sem melhora, produzindo um ótimo local em $N_1$, $N_2$ e $N_3$, segundo os operadores implementados e a tolerância numérica. No reparo, retorna assim que encontra uma solução viável. Nenhuma dessas condições prova ótimo global.
 
 A primeira melhora foi preferida à melhor melhora porque $N_2$ e $N_3$ têm muitos vizinhos, e examinar todos a cada passo tornaria cada ciclo muito mais caro. A ordem aleatória dos vizinhos faz com que execuções com sementes diferentes explorem regiões diferentes do espaço de busca.
 
 \subsection{Perturbação}
 
-A perturbação (\textit{shaking}) aplica $k$ movimentos sucessivos da vizinhança $N_k$ à solução corrente, com $k \in \{1, 2, 3\}$. Em cada movimento, os vizinhos são percorridos em ordem aleatória e é escolhido o primeiro viável. Dessa forma, a intensidade da perturbação cresce com $k$: $N_1$ troca um caminhão, $N_2$ faz duas trocas de caminhões entre pilhas e $N_3$ faz três reconstruções de pilha. O índice $k$ volta a 1 sempre que a solução corrente melhora e avança para a próxima vizinhança, de forma circular, quando não melhora.
+A perturbação (\textit{shaking}) tenta até $k$ movimentos sucessivos da vizinhança $N_k$, com $k \in \{1,2,3\}$. Em cada tentativa, escolhe o primeiro vizinho viável na ordem sorteada, mesmo que piore o objetivo. Se nenhum existir, a solução permanece igual naquela tentativa. Assim, tenta uma substituição em $N_1$, até duas trocas em $N_2$ ou até três reconstruções em $N_3$; uma mesma pilha pode ser reconstruída mais de uma vez. Depois das tentativas, aplica uma VND. Seu resultado é comparado com a solução anterior à perturbação: se melhorar, é aceito e $k$ volta a 1; caso contrário, a solução anterior é mantida e $k$ avança circularmente.
 
 \subsection{Tratamento de Soluções Inviáveis}
 
@@ -296,7 +298,7 @@ O enunciado admite várias políticas para os movimentos que violam restrições
     \item \textbf{operador que preserva a viabilidade}, no caso de $N_3$, que só gera composições viáveis.
 \end{itemize}
 
-A alternativa de aceitar soluções inviáveis com penalização~\cite{aula04} foi descartada porque exigiria calibrar pesos de penalidade para cada objetivo, cujas escalas são muito diferentes (milhões de reais em $f_1$ e unidades de pp$^2$ em $f_2$ e $f_3$). Com a rejeição, a GVNS trabalha sempre sobre soluções viáveis, e o valor registrado de $f$ é sempre o de uma solução que atende a todas as restrições. A limitação dessa escolha, compensada pela $N_3$, é que a busca não pode atravessar regiões inviáveis para alcançar outras regiões viáveis.
+A alternativa de aceitar soluções inviáveis com penalização~\cite{aula04} foi descartada porque exigiria calibrar pesos de penalidade para cada objetivo, cujas escalas são muito diferentes (milhões de reais em $f_1$ e unidades de pp$^2$ em $f_2$ e $f_3$). Com a rejeição, a GVNS trabalha sempre sobre soluções viáveis, e o valor registrado de $f$ é sempre o de uma solução que atende a todas as restrições. Essa política impede aceitar passos intermediários inviáveis. A reconstrução coordenada de $N_3$ pode contornar alguns desses bloqueios, sem garantir acesso a toda região viável.
 
 \subsection{Critério de Aceitação}
 
@@ -304,7 +306,7 @@ Após a VND, a nova solução substitui a solução corrente somente se tiver va
 
 \subsection{Critério de Parada}
 
-A GVNS termina após um número fixo de $C = 50$ ciclos, cada um composto por uma perturbação e uma VND. O número de ciclos foi preferido ao tempo de execução como critério de parada porque não depende da máquina e torna os resultados reproduzíveis. O valor de 50 ciclos foi escolhido a partir de um experimento com 10 a 50 ciclos, descrito na Seção~\ref{sec:planejamento}. O reparo inicial tem um critério de parada próprio: termina ao encontrar uma solução viável ou após $R = 100$ tentativas.
+A GVNS termina após $C=50$ ciclos globais, cada um composto por perturbação e VND. Esse valor é parametrizável e foi mantido para comparar a versão atual com os experimentos anteriores. Não é um limite por vizinhança nem um número de avaliações; o tempo de cada ciclo depende da enumeração e das melhorias encontradas. O reparo termina ao encontrar uma solução viável ou após $R=100$ ciclos, com falha explícita se o limite for esgotado. Nenhum limite de tempo interrompe a busca.
 
 \subsection{Pseudocódigo}
 
@@ -314,7 +316,7 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
 \caption{Metaheurística GVNS}
 \label{alg:gvns}
 \begin{algorithmic}[1]
-\Require objetivo $f$, ciclos $C$, tentativas de reparo $R$, semente
+\Require objetivo $f$, ciclos $C$, ciclos de reparo $R$, semente
 \Ensure melhor solução viável $x^*$
 \State $x \gets \Call{Construir}{\,}$
 \Comment{mínimos + menor preço}
@@ -324,7 +326,9 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
     \State $k \gets 1$
     \Comment{reparo}
     \For{$t = 1$ \textbf{até} $R$ \textbf{enquanto} não há $x^*$}
-        \State $x' \gets$ vizinho aleatório de $x$ em $N_k$, $k$ vezes
+        \State $x' \gets$ perturbar $x$ em $N_k$, até $k$ movimentos existentes
+        \State avaliar $x'$ e atualizar $x^*$ se viável
+        \If{há $x^*$} \State \textbf{interrompe o laço} \EndIf
         \State $x' \gets \Call{VND}{x', V, \text{reparo}}$
         \If{$V(x') < V(x)$}
             \State $x \gets x'$;\ $k \gets 1$
@@ -332,15 +336,16 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
             \State $k \gets (k \bmod 3) + 1$
         \EndIf
     \EndFor
-    \If{não há $x^*$} \State \textbf{falha} \EndIf
+    \If{não há $x^*$} \State \textbf{encerre com erro de reparo} \EndIf
 \EndIf
 \State $x \gets x^*$;\ $k \gets 1$
 \Comment{GVNS}
 \For{$c = 1$ \textbf{até} $C$}
     \State $x' \gets x$
     \Comment{perturbação}
-    \For{$k$ vezes}
-        \State $x' \gets$ 1º vizinho viável de $x'$ em $N_k$
+    \For{até $k$ tentativas}
+        \State $y \gets$ 1º vizinho viável de $x'$ em $N_k$, se existir
+        \If{$y$ existe} \State $x' \gets y$ \EndIf
     \EndFor
     \State $x'' \gets \Call{VND}{x', f, \text{otimização}}$
     \If{$f(x'') < f(x)$}
@@ -359,17 +364,16 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
 \label{alg:vnd}
 \begin{algorithmic}[1]
 \Require solução $x$, critério $g$ ($V$ ou $f$), modo
-\Ensure solução localmente ótima em $N_1$, $N_2$ e $N_3$
+\Ensure solução refinada; na otimização, ótimo local em $N_1$, $N_2$, $N_3$
 \State $\ell \gets 1$
 \While{$\ell \le 3$}
     \State $melhorou \gets$ falso
     \For{cada $y \in N_\ell(x)$, em ordem aleatória}
-    \Comment{$N_3$: até 2\,000}
         \If{modo = reparo \textbf{e} $V(y) = 0$}
             \State \Return $y$
         \EndIf
         \If{modo = otimização \textbf{e} $V(y) > 0$}
-            \State \textbf{ignora} $y$
+            \State \textbf{continue} para o próximo vizinho
             \Comment{rejeita inviável}
         \EndIf
         \If{$g(y) < g(x)$}
@@ -402,53 +406,21 @@ A Tabela~\ref{tab:parametros_alg} resume os parâmetros da implementação. Nenh
 \textbf{Parâmetro} & \textbf{Valor} \\
 \midrule
 Ciclos da GVNS por execução (critério de parada) & 50 \\
-Candidatos examinados por visita à $N_3$ & 2\,000 \\
-Tentativas máximas do reparo inicial & 100 \\
+Teto de candidatos de $N_3$ & Sem teto \\
+Ciclos máximos do reparo inicial & 100 \\
 Semente base & 2026 \\
 \bottomrule
 \end{tabular}
 \label{tab:parametros_alg}
 \end{table}
 
-O limite de 2\,000 candidatos por visita à $N_3$ existe porque o número de recomposições possíveis de uma pilha é muito grande; sem ele, uma única visita poderia não terminar em tempo razoável. O limite de 100 tentativas do reparo impede um laço infinito caso nenhuma solução viável seja encontrada; em todos os experimentos, o reparo encontrou uma solução viável.
+A versão atual retirou o teto de enumeração de $N_3$, mantendo 50 ciclos globais e 100 ciclos de reparo. O esforço completo de uma visita pode incluir muitas combinações parciais antes de gerar uma receita. Por isso, o número de avaliações não representa todo o trabalho de enumeração e não fixa o tempo da execução.
 
-Para escolher o número de ciclos da GVNS, o algoritmo foi executado com limites de 10, 20, 30, 40 e 50 ciclos, com cinco execuções por objetivo em cada limite. A Tabela~\ref{tab:iteracoes} e a Figura~\ref{fig:iteracoes} apresentam a média e o desvio padrão do valor final.
-
-\begin{table*}[!t]
-\caption{Valor final médio e desvio padrão (cinco execuções) por limite de ciclos da GVNS}
-\centering
-\begin{tabular}{c r r r r r r}
-\toprule
-& \multicolumn{2}{c}{\textbf{$f_1$ (R\$ mi)}} & \multicolumn{2}{c}{\textbf{$f_2$ (pp$^2$)}} & \multicolumn{2}{c}{\textbf{$f_3$ (pp$^2$)}} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-\textbf{Ciclos} & \textbf{Média} & \textbf{Desv. pad.} & \textbf{Média} & \textbf{Desv. pad.} & \textbf{Média} & \textbf{Desv. pad.} \\
-\midrule
-10 & 60{,}89 & 0{,}34 & 2{,}41971 & $5{,}6\times10^{-2}$ & 1{,}43043 & $1{,}3\times10^{-2}$ \\
-20 & 60{,}77 & 0{,}38 & 2{,}39931 & $2{,}8\times10^{-2}$ & 1{,}42640 & $8{,}2\times10^{-3}$ \\
-30 & 60{,}50 & 0{,}32 & 2{,}37946 & $1{,}5\times10^{-2}$ & 1{,}42610 & $8{,}4\times10^{-3}$ \\
-40 & 60{,}43 & 0{,}27 & 2{,}37282 & $7{,}0\times10^{-5}$ & 1{,}42323 & $6{,}8\times10^{-3}$ \\
-50 & 60{,}28 & 0{,}19 & 2{,}37282 & $6{,}6\times10^{-5}$ & 1{,}42027 & $4{,}3\times10^{-4}$ \\
-\bottomrule
-\end{tabular}
-\label{tab:iteracoes}
-\end{table*}
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=\textwidth]{comparacao_iteracoes.png}
-\caption{Valor final de cada execução (pontos), média e mínimo por limite de ciclos da GVNS.}
-\label{fig:iteracoes}
-\end{figure*}
-
-O desvio de SiO$_2$ ($f_2$) se estabiliza a partir de 40 ciclos, quando as cinco execuções passam a terminar praticamente no mesmo valor. O desvio de Al$_2$O$_3$ ($f_3$) só apresenta o mesmo comportamento com 50 ciclos: o desvio padrão cai de $6{,}8\times10^{-3}$ para $4{,}3\times10^{-4}$~pp$^2$. Por isso, adotou-se 50 ciclos como critério de parada, o menor limite testado em que $f_2$ e $f_3$ convergem nas cinco execuções.
-
-Para o custo ($f_1$), a situação é diferente. O menor custo, R\$~60{,}06 milhões, já é atingido com 30 ciclos, mas a média continua caindo até 50 ciclos. Isso indica que um número maior de ciclos poderia reduzir a variabilidade entre execuções de $f_1$, ao custo de mais avaliações.
-
-As execuções com limites diferentes usam as mesmas sementes. Como o algoritmo é determinístico dada a semente, a execução com 10 ciclos coincide com os 10 primeiros ciclos da execução com 50; por isso, o valor final de uma mesma execução nunca piora quando o limite aumenta.
+Os 15 experimentos foram executados com três processos em paralelo, em lotes independentes por objetivo e semente. O tempo total de parede foi 47 minutos e 39 segundos. A duração média por execução foi de 20 minutos e 51 segundos para $f_1$, 1 minuto e 52 segundos para $f_2$ e 2 minutos e 2 segundos para $f_3$. Os tempos individuais refletem a concorrência entre processos e não estimam precisamente a duração de uma execução sequencial. Esses resultados substituem as tabelas e figuras da versão anterior com enumeração limitada.
 
 \subsection{Número de Execuções}
 
-Como a GVNS é estocástica, cada objetivo foi otimizado em cinco execuções independentes, conforme exigido pelo enunciado, totalizando 15 execuções. As execuções diferem apenas na semente do gerador de números aleatórios, que determina as escolhas feitas na perturbação e a ordem de exploração das vizinhanças. A semente da execução $r \in \{1,\ldots,5\}$ do objetivo $f_k$ é
+Como a GVNS é estocástica, cada objetivo foi otimizado em cinco execuções independentes, conforme exigido pelo enunciado, totalizando 15 execuções. Cada uma usa sua própria sequência pseudoaleatória; sementes diferentes não provam independência estatística perfeita. As execuções diferem apenas na semente do gerador de números aleatórios, que determina as escolhas feitas na perturbação e a ordem de exploração das vizinhanças. A semente da execução $r \in \{1,\ldots,5\}$ do objetivo $f_k$ é
 \begin{equation}
 \text{semente} = 2026 + 10\,000\,(k-1) + r,
 \end{equation}
@@ -460,7 +432,7 @@ Para cada objetivo, são registrados o valor da melhor solução viável de cada
 
 \subsection{Critério de Comparação}
 
-As execuções e as configurações do algoritmo são comparadas pelo valor final do objetivo otimizado. O mínimo indica a melhor solução encontrada; a média e o desvio padrão indicam a qualidade típica e a sensibilidade do método à semente. Na comparação entre limites de ciclos, também se considera o número médio de avaliações, que mede o custo computacional de cada configuração de forma independente da máquina.
+As execuções e as configurações do algoritmo são comparadas pelo valor final do objetivo otimizado. O mínimo indica a melhor solução encontrada; a média e o desvio padrão indicam a qualidade típica e a sensibilidade do método à semente. Também são registrados o número de avaliações e o tempo medido. As avaliações são uma contagem independente da máquina, mas não incluem os cálculos internos da enumeração de $N_3$.
 
 \subsection{Código-fonte e reprodutibilidade}
 
@@ -472,21 +444,21 @@ O código-fonte, os dados de entrada e as instruções para executar os experime
 % definição; por isso são definidas aqui, no início da seção de resultados.
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.85\textwidth]{melhor_f1.png}
-\caption{Melhor solução encontrada para $f_1$ (execução 4).}
+\includegraphics[width=0.85\textwidth]{melhor_f1.pdf}
+\caption{Melhor solução encontrada para $f_1$ (execução 5), sem teto de $N_3$.}
 \label{fig:melhor_f1}
 \end{figure*}
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.85\textwidth]{melhor_f2.png}
+\includegraphics[width=0.85\textwidth]{melhor_f2.pdf}
 \caption{Melhor solução encontrada para $f_2$ (execução 3).}
 \label{fig:melhor_f2}
 \end{figure*}
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.85\textwidth]{melhor_f3.png}
+\includegraphics[width=0.85\textwidth]{melhor_f3.pdf}
 \caption{Melhor solução encontrada para $f_3$ (execução 3).}
 \label{fig:melhor_f3}
 \end{figure*}
@@ -502,22 +474,22 @@ A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida e
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_1$ (R\$ mi)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
 \midrule
-1 & 2027 & 60{,}24 & 301\,215 & 14{,}3 \\
-2 & 2028 & 60{,}58 & 308\,761 & 16{,}4 \\
-3 & 2029 & 60{,}32 & 301\,445 & 15{,}8 \\
-4 & 2030 & \textbf{60{,}06} & 322\,874 & 28{,}5 \\
-5 & 2031 & 60{,}22 & 325\,270 & 22{,}8 \\
+1 & 2027 & 59{,}90 & 6\,374\,387 & 1132{,}3 \\
+2 & 2028 & 60{,}32 & 6\,488\,737 & 1143{,}4 \\
+3 & 2029 & 60{,}54 & 7\,450\,070 & 1378{,}5 \\
+4 & 2030 & 60{,}32 & 9\,659\,800 & 1584{,}9 \\
+5 & 2031 & \textbf{59{,}86} & 5\,951\,121 & 1014{,}5 \\
 \midrule
-\multicolumn{2}{l}{Mínimo} & 60{,}06 & & \\
-\multicolumn{2}{l}{Média} & 60{,}28 & & \\
-\multicolumn{2}{l}{Desvio padrão} & 0{,}19 & & \\
-\multicolumn{2}{l}{Máximo} & 60{,}58 & & \\
+\multicolumn{2}{l}{Mínimo} & 59{,}86 & & \\
+\multicolumn{2}{l}{Média} & 60{,}19 & & \\
+\multicolumn{2}{l}{Desvio padrão} & 0{,}30 & & \\
+\multicolumn{2}{l}{Máximo} & 60{,}54 & & \\
 \bottomrule
 \end{tabular}
 \label{tab:res_f1}
 \end{table}
 
-O menor custo encontrado foi R\$~60{,}06 milhões (execução 4). A diferença entre a melhor e a pior execução é de R\$~520 mil, cerca de 0{,}9\% do custo. Diferentemente de $f_2$ e $f_3$, as execuções de $f_1$ terminaram em valores distintos, o que indica que a busca para em ótimos locais diferentes conforme a semente.
+O menor custo encontrado foi R\$~59{,}86 milhões (execução 5). A diferença entre a melhor e a pior execução foi de R\$~680 mil, aproximadamente 1{,}1\% do menor custo. As sementes conduziram a soluções finais distintas, sem prova de ótimo global. A retirada do teto muda a trajetória da busca e não garante melhora para toda semente; dentro de uma mesma execução, a melhor solução registrada nunca piora.
 
 \subsection{Resultados para $f_2$}
 
@@ -530,11 +502,11 @@ A Tabela~\ref{tab:res_f2} apresenta os resultados da minimização do desvio qua
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_2$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
 \midrule
-1 & 12027 & 2{,}37288 & 1\,029\,251 & 57{,}1 \\
-2 & 12028 & 2{,}37282 & 876\,394 & 33{,}7 \\
-3 & 12029 & \textbf{2{,}37273} & 943\,499 & 58{,}7 \\
-4 & 12030 & 2{,}37277 & 1\,119\,337 & 96{,}0 \\
-5 & 12031 & 2{,}37287 & 1\,162\,191 & 83{,}2 \\
+1 & 12027 & 2{,}37288 & 1\,029\,251 & 117{,}4 \\
+2 & 12028 & 2{,}37282 & 876\,394 & 97{,}6 \\
+3 & 12029 & \textbf{2{,}37273} & 943\,499 & 99{,}5 \\
+4 & 12030 & 2{,}37277 & 1\,119\,337 & 106{,}0 \\
+5 & 12031 & 2{,}37287 & 1\,162\,191 & 140{,}4 \\
 \midrule
 \multicolumn{2}{l}{Mínimo} & 2{,}37273 & & \\
 \multicolumn{2}{l}{Média} & 2{,}37282 & & \\
@@ -545,7 +517,7 @@ A Tabela~\ref{tab:res_f2} apresenta os resultados da minimização do desvio qua
 \label{tab:res_f2}
 \end{table}
 
-As cinco execuções chegaram a valores praticamente iguais: a diferença entre a melhor e a pior é de $1{,}5\times10^{-4}$~pp$^2$. Esse comportamento indica que a busca é pouco sensível à semente para este objetivo. As execuções de $f_2$ exigiram cerca de três vezes mais avaliações que as de $f_1$. Como o critério de parada é o número de ciclos da GVNS, e não o de avaliações, o esforço gasto em cada ciclo varia conforme o objetivo.
+As cinco execuções chegaram a valores praticamente iguais: a diferença entre a melhor e a pior é de $1{,}5\times10^{-4}$~pp$^2$. Esse comportamento indica que a busca é pouco sensível à semente para este objetivo. Nesta versão sem teto, as execuções de $f_1$ exigiram aproximadamente sete vezes mais avaliações, em média, que as de $f_2$, mostrando o maior esforço de exploração associado ao custo. Como o critério de parada é o número de ciclos da GVNS, e não o de avaliações, o esforço gasto em cada ciclo varia conforme o objetivo.
 
 \subsection{Resultados para $f_3$}
 
@@ -558,11 +530,11 @@ A Tabela~\ref{tab:res_f3} apresenta os resultados da minimização do desvio qua
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_3$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
 \midrule
-1 & 22027 & 1{,}41998 & 1\,330\,784 & 47{,}5 \\
-2 & 22028 & 1{,}42051 & 1\,222\,289 & 45{,}2 \\
-3 & 22029 & \textbf{1{,}41997} & 1\,012\,601 & 58{,}3 \\
-4 & 22030 & \textbf{1{,}41997} & 1\,180\,815 & 104{,}4 \\
-5 & 22031 & 1{,}42092 & 1\,292\,841 & 45{,}8 \\
+1 & 22027 & 1{,}41998 & 1\,330\,784 & 146{,}3 \\
+2 & 22028 & 1{,}42051 & 1\,222\,289 & 118{,}0 \\
+3 & 22029 & \textbf{1{,}41997} & 1\,012\,601 & 95{,}3 \\
+4 & 22030 & 1{,}41997 & 1\,180\,815 & 120{,}0 \\
+5 & 22031 & 1{,}42092 & 1\,292\,841 & 132{,}5 \\
 \midrule
 \multicolumn{2}{l}{Mínimo} & 1{,}41997 & & \\
 \multicolumn{2}{l}{Média} & 1{,}42027 & & \\
@@ -581,21 +553,21 @@ As Figuras~\ref{fig:conv_f1}, \ref{fig:conv_f2} e~\ref{fig:conv_f3} sobrepõem a
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\columnwidth]{convergencia_f1.png}
+\includegraphics[width=\columnwidth]{convergencia_f1.pdf}
 \caption{Curvas de convergência das cinco execuções para $f_1$ (custo).}
 \label{fig:conv_f1}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\columnwidth]{convergencia_f2.png}
+\includegraphics[width=\columnwidth]{convergencia_f2.pdf}
 \caption{Curvas de convergência das cinco execuções para $f_2$ (desvio de SiO$_2$).}
 \label{fig:conv_f2}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\columnwidth]{convergencia_f3.png}
+\includegraphics[width=\columnwidth]{convergencia_f3.pdf}
 \caption{Curvas de convergência das cinco execuções para $f_3$ (desvio de Al$_2$O$_3$).}
 \label{fig:conv_f3}
 \end{figure}
@@ -615,7 +587,7 @@ A Tabela~\ref{tab:comparacao} avalia cada uma dessas soluções nos três objeti
 \toprule
 \textbf{Otimizado} & \textbf{$f_1$ (R\$ mi)} & \textbf{$f_2$ (pp$^2$)} & \textbf{$f_3$ (pp$^2$)} \\
 \midrule
-$f_1$ & \textbf{60{,}06} & 6{,}873 & 5{,}903 \\
+$f_1$ & \textbf{59{,}86} & 6{,}673 & 6{,}260 \\
 $f_2$ & 63{,}44 & \textbf{2{,}373} & 3{,}947 \\
 $f_3$ & 65{,}82 & 6{,}292 & \textbf{1{,}420} \\
 \bottomrule
@@ -623,15 +595,15 @@ $f_3$ & 65{,}82 & 6{,}292 & \textbf{1{,}420} \\
 \label{tab:comparacao}
 \end{table}
 
-A tabela evidencia o conflito entre os objetivos. A solução de menor custo tem os maiores desvios de qualidade; reduzir o desvio de Al$_2$O$_3$ ao mínimo encontrado custa R\$~5{,}76 milhões a mais (9{,}6\%). Nenhuma das três soluções é melhor que as outras em todos os objetivos, o que motiva a abordagem multiobjetivo da próxima etapa.
+A tabela evidencia o conflito entre os objetivos. A solução de menor custo tem os maiores desvios de qualidade; reduzir o desvio de Al$_2$O$_3$ ao mínimo encontrado custa R\$~5{,}96 milhões a mais (10{,}0\%). Nenhuma das três soluções é melhor que as outras em todos os objetivos, o que motiva a abordagem multiobjetivo da próxima etapa.
 
-Na solução de menor custo (Figura~\ref{fig:melhor_f1}), o teor de SiO$_2$ da pilha P1 é exatamente 6{,}200\%, o máximo permitido no Sinter~1, e as pilhas do Sinter~2 ficam entre 6{,}489\% e 6{,}494\%, próximas do máximo de 6{,}5\%. Ou seja, a restrição de qualidade de SiO$_2$ está ativa: o algoritmo usa minérios baratos até o limite permitido.
+Na solução de menor custo (Figura~\ref{fig:melhor_f1}), o teor de SiO$_2$ de P2 é 6{,}200\%, no máximo permitido pelo Sinter~1. As pilhas do Sinter~2 ficam entre 6{,}419\% e 6{,}500\%, com P6 no limite superior. O custo baixo é acompanhado de misturas próximas dos limites de sílica, enquanto os alvos químicos continuam distantes.
 
-Nas soluções de $f_2$ e $f_3$ (Figuras~\ref{fig:melhor_f2} e~\ref{fig:melhor_f3}), os teores não atingem os valores-alvo. Na solução de $f_2$, o SiO$_2$ varia de 5{,}880\% a 6{,}121\%, acima dos alvos de 5{,}55\% (Sinter~1) e 5{,}50\% (Sinter~2). Na de $f_3$, o Al$_2$O$_3$ varia de 1{,}500\% a 1{,}607\% no Sinter~1 (alvo de 1{,}25\%) e de 1{,}880\% a 1{,}984\% no Sinter~2 (alvo de 1{,}5\%). Nas duas soluções, dentro de cada sinter, o desvio cresce com a massa da pilha. Uma explicação provável é que o objetivo soma os desvios das pilhas sem ponderá-los pela massa: aproximar do alvo o teor de uma pilha maior exige mais caminhões dos minérios de teor adequado, cuja disponibilidade é limitada, e por isso é mais vantajoso aproximar as pilhas menores.
+Nas soluções de $f_2$ e $f_3$ (Figuras~\ref{fig:melhor_f2} e~\ref{fig:melhor_f3}), os teores não atingem os valores-alvo. Na solução de $f_2$, o SiO$_2$ varia de 5{,}880\% a 6{,}121\%, acima dos alvos de 5{,}55\% (Sinter~1) e 5{,}50\% (Sinter~2). Na de $f_3$, o Al$_2$O$_3$ varia de 1{,}500\% a 1{,}607\% no Sinter~1 (alvo de 1{,}25\%) e de 1{,}880\% a 1{,}984\% no Sinter~2 (alvo de 1{,}5\%). Na solução de $f_2$, o desvio de sílica cresce com a massa dentro de cada sinter. Na solução de $f_3$, esse comportamento é observado para o indicador otimizado no Sinter~2, mas não é estritamente crescente no Sinter~1. A disponibilidade limitada e a ausência de ponderação por massa podem contribuir para essas diferenças, mas essa interpretação não constitui uma demonstração causal.
 
 \section{Conclusão}\label{sec:conclusao}
 
-A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, os resultados variaram cerca de 0{,}9\% entre execuções, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa 9{,}6\% a mais. Esses resultados servem de referência para a normalização dos objetivos na abordagem multiobjetivo da próxima entrega.
+A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 1{,}1\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}0\% a mais. Esses resultados servem de referência para a normalização dos objetivos na abordagem multiobjetivo da próxima entrega.
 
 \begin{thebibliography}{9}
 
