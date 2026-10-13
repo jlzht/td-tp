@@ -21,13 +21,13 @@ def main():
                         help="máximo de visitas a N3 por chamada (padrão: 5)")
     parser.add_argument("--candidatos-n3", type=int, default=25,
                         help="máximo de candidatos completos por visita (padrão: 25)")
-    parser.add_argument("--saida", type=Path, default=ROOT/"resultados_teste_rapido")
+    parser.add_argument("--saida", type=Path, default=ROOT/"resultados_entrega2/teste_rapido_construcao_comum")
     args = parser.parse_args()
     if args.visitas_n3 < 0 or args.candidatos_n3 < 0:
         parser.error("limites devem ser não negativos")
     data = ROOT/"dados_exemplo.json"
     case = mono.load_case(data)
-    normal, references, _ = load_normalization(ROOT/"normalizacao.json", data, case)
+    normal, _, _ = load_normalization(ROOT/"normalizacao.json", data, case)
     configs = load_configurations(ROOT/"configuracoes_multi.json")
     original = mono.neighbors
     records = []
@@ -52,7 +52,7 @@ def main():
         config = configs[method][index]
         seed = mono.BASE_SEED + (100000 if method == "soma" else 200000) + 1000 + index+1
         with patch("mono_objetivo.neighbors", limited_neighbors):
-            record = execute_job((case, normal, references, method, config, 1, seed, 1))
+            record = execute_job((case, normal, method, config, 1, seed, 1))
         record["teste_rapido_n3_limitada"] = True
         record["limite_visitas_n3"] = args.visitas_n3
         record["limite_candidatos_n3_por_visita"] = args.candidatos_n3

@@ -132,10 +132,25 @@ arredondamento. O limite continua sendo 100 ciclos. Uma falha fica registrada
 como `falha_reparo`; não prova que o problema seja impossível e não entra nos
 gráficos como solução válida. O lote continua com as outras configurações.
 
-**Partida fixa:** Soma Ponderada usa a construção e o reparo. ε-restrito começa
-pela referência mono-objetivo admissível de menor custo, se houver; empates seguem
-a ordem f1, f2, f3. Sem referência admissível, usa construção e reparo incluindo
-ε. Registramos essa diferença para interpretar esforço e tempo entre métodos.
+### Política obrigatória de partida: construção original em todas as abordagens
+
+**Mono-objetivo, Soma Ponderada e ε-restrito chamam a mesma função
+`construct(case)` da Entrega 1 em todas as execuções.** Ela distribui os mínimos
+obrigatórios e completa as pilhas por preço, conforme o procedimento original.
+Para os mesmos dados, o vetor construído é idêntico nas três interfaces.
+
+As receitas mono-objetivo são usadas exclusivamente para calcular e validar a
+normalização. Elas não são selecionadas como partida de nenhuma chamada.
+
+Depois dessa construção comum, cada chamada executa o reparo com suas restrições
+ativas: físicas em mono e Soma Ponderada; físicas e ε em ε-restrito. O reparo
+usa a semente da chamada, portanto a solução admissível obtida ao final dele
+pode diferir entre abordagens e execuções. **Construção igual não significa
+necessariamente a mesma solução no início da otimização após o reparo.**
+
+Cada registro informa `partida: construcao`, e o manifesto registra a política
+comum. Essa regra substitui o antigo atalho de usar uma referência admissível
+como partida no ε-restrito.
 
 ### Configurações e rodadas
 
@@ -171,7 +186,7 @@ python3 teste_rapido.py
 ```
 
 Os limites do teste podem ser alterados com `--visitas-n3` e `--candidatos-n3`.
-O resultado identificado como limitado fica em `resultados_teste_rapido/teste_rapido.json`.
+O resultado identificado como limitado fica em `resultados_entrega2/teste_rapido_construcao_comum/teste_rapido.json`.
 O teto de candidatos conta receitas completas; não limita nós parciais anteriores
 a elas. A trava de visitas impede novas enumerações depois do número definido.
 
@@ -189,7 +204,7 @@ python3 multiobjetivo.py --rodadas 1 --iteracoes 2 --processos 3 --saida meu_pil
 Execute as cinco rodadas completas:
 
 ```sh
-python3 multiobjetivo.py --rodadas 5 --iteracoes 50 --processos 3 --saida resultados_entrega2/oficial
+python3 multiobjetivo.py --rodadas 5 --iteracoes 50 --processos 3 --saida resultados_entrega2/oficial_construcao_comum
 ```
 
 Sem opções, executa as duas abordagens, cinco rodadas, 50 ciclos e um processo.
@@ -223,7 +238,7 @@ para abordagem em {Soma Ponderada, ε-restrito}:
     para rodada de 1 a 5:
         para configuração da grade:
             fixar semente, valor escalar e restrições ativas
-            escolher partida pela política fixa
+            construir com construct(case), igual à Entrega 1 em todas as chamadas
             reparar até obter plano admissível ou esgotar 100 ciclos
             se o reparo falhou:
                 salvar falha; seguir para a próxima chamada
@@ -265,3 +280,18 @@ diferentes. A soma dos tempos de chamadas paralelas não é o tempo de relógio 
 Pilotos ficam separados do lote oficial; consulte o status e os comandos em
 `resultados_entrega2/LEIA-ME.md`. Somente um lote completo de cinco rodadas por
 abordagem atende ao experimento planejado para a entrega.
+
+
+### Resultados anteriores à política de construção comum
+
+`resultados_entrega2/piloto_validado/`, `teste_rapido/` e `oficial/` preservam
+resultados da implementação anterior, cujo ε-restrito podia partir de uma
+referência. Eles permanecem como histórico com os hashes originais.
+O lote anterior tem 28 chamadas de Soma Ponderada, todas iniciadas pela
+construção; nenhuma chamada oficial ε-restrito foi executada.
+
+O programa rejeita a retomada automática desses manifestos com o código novo.
+Para os experimentos da política atual, use `oficial_construcao_comum/`.
+Um reaproveitamento das chamadas ponderadas anteriores exige uma migração
+verificada e com proveniência registrada; essa migração não foi realizada.
+O teste rápido atual é separado e não substitui o lote oficial.

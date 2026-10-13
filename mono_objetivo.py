@@ -392,14 +392,13 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
 
 
 def solve_scalar(case: Case, criterion: Criterion, seed: int,
-                 iterations: int = ITERATIONS,
-                 initial_plan: list[list[int]] | None = None) -> Run:
-    """Repara a construção e executa um número fixo de ciclos da GVNS."""
+                 iterations: int = ITERATIONS) -> Run:
+    """Toda chamada começa pela construção original da Entrega 1 e seu reparo."""
     if iterations <= 0:
         raise ValueError("iteracoes deve ser positivo")
     started = time.perf_counter()
     rng = random.Random(seed)
-    current = construct(case) if initial_plan is None else [row.copy() for row in initial_plan]
+    current = construct(case)  # mesma construção para mono, Soma Ponderada e ε-restrito
     current_result = evaluate(case, current)
     evaluations = 1
     best_plan = best_result = None

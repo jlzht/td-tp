@@ -703,12 +703,24 @@ O atendimento dos $\varepsilon$ é verificado no registro da melhor solução,
 na perturbação e na VND. A reconstrução $N_3$ mantém sua definição física,
 mas não garante, por si só, os dois limites agregados.
 
-Na Soma Ponderada, partimos da construção gulosa e a reparamos. Para
-$\varepsilon$-restrito, escolhemos a referência mono-objetivo admissível de
-menor custo, se existir; em empate, vale a ordem $f_1,f_2,f_3$.
-Sem referência admissível, partimos da construção e reparamos também os
-$\varepsilon$. A partida é registrada em cada chamada. Essa diferença precisa
-ser considerada ao interpretar tempos e avaliações entre métodos.
+\paragraph{Política única e obrigatória de partida}
+Todas as chamadas mono-objetivo, Soma Ponderada e $\varepsilon$-restrito
+executam a mesma função \texttt{construct(case)} da Entrega 1: distribuição
+dos mínimos obrigatórios e preenchimento por preço. Para os mesmos dados,
+a construção bruta é determinística e idêntica em todas as abordagens.
+As receitas de referência são utilizadas exclusivamente para a normalização;
+não são usadas como partida das buscas.
+
+Cada chamada repara essa construção conforme suas restrições ativas.
+Na Soma Ponderada e no mono-objetivo, são as restrições físicas; no
+$\varepsilon$-restrito, são as físicas e os dois $\varepsilon$.
+Como o reparo utiliza a semente da chamada e critérios de admissibilidade
+que podem diferir, sua saída pode ser diferente. Assim, a igualdade da
+construção não implica identidade do plano admissível que inicia a GVNS.
+Os registros identificam a partida como \texttt{construcao}.
+Essa política substitui a seleção anterior de referências para iniciar
+chamadas do $\varepsilon$-restrito.
+
 O reparo mantém o máximo de 100 ciclos; se falhar, registramos a falha,
 o esforço e a semente, sem exportar um ponto inviável e sem concluir
 que a configuração seja matematicamente impossível.
@@ -753,27 +765,33 @@ São conjuntos não dominados entre as soluções encontradas, não uma prova
 da fronteira exata.
 
 \subsection{Estado dos Experimentos}
-A implementação das duas abordagens foi concluída e 18 testes automatizados
-passaram. O piloto da grade completa utilizou uma rodada e dois ciclos globais:
-as sete configurações ponderadas e os nove pares de $\varepsilon$ encontraram
-soluções admissíveis; a grade foi mantida.
+A implementação utiliza a política de construção comum em todas as
+abordagens. A revisão adicionou um teste que verifica a chamada da construção
+original nos dois métodos. Os 19 testes automatizados passaram nesta revisão;
+a verificação com os dados do case usa o roteiro rápido limitado.
 
-Os testes rápidos posteriores limitam apenas seu próprio processo a cinco
-visitas de $N_3$, com até 25 candidatos completos por visita. Esses resultados
-são identificados como testes limitados, sem certificado de ótimo local em
-$N_3$, e não entram nas tabelas oficiais. A produção mantém $N_3$ sem teto.
+O piloto anterior usou uma rodada e dois ciclos globais: sete configurações
+ponderadas e nove pares de $\varepsilon$ encontraram soluções admissíveis.
+Esse piloto pertence à versão anterior, que admitia selecionar referências
+como partida no $\varepsilon$-restrito; não valida experimentalmente a nova
+política de partida comum.
 
-O lote oficial foi interrompido com 28 de 80 chamadas concluídas, todas
-admissíveis, pertencentes à Soma Ponderada. Restam sete chamadas dessa
-abordagem e as 45 do método $\varepsilon$-restrito. Os registros permitem
-retomar somente as chamadas pendentes. Os gráficos parciais foram separados
-e não são apresentados como as seis projeções exigidas para a entrega final.
+Os testes rápidos limitam apenas seu próprio processo a cinco visitas de
+$N_3$, com até 25 candidatos completos por visita. Seus resultados são
+identificados como limitados e não certificam ótimo local em $N_3$.
+A produção mantém $N_3$ sem teto.
 
-A formulação, o código e a documentação estão implementados. A conclusão
-experimental da Entrega 2 ainda requer o lote completo, os conjuntos não
-dominados das cinco rodadas por abordagem, as seis projeções oficiais e a
-análise dos compromissos e da variabilidade. A comparação deve considerar
-falhas e esforço: 35 e 45 chamadas têm esforços diferentes, mesmo com 50 ciclos.
+O lote oficial anterior foi interrompido com 28 chamadas de Soma Ponderada
+concluídas, todas admissíveis e iniciadas pela construção. Nenhuma chamada
+oficial $\varepsilon$-restrito foi executada. Esses resultados são preservados
+com os manifestos e hashes originais; sua reutilização na versão atual exige
+uma migração verificada e documentada. A retomada automática rejeita a mudança
+de código e política. Os novos experimentos devem usar uma pasta própria.
+
+A conclusão experimental da Entrega 2 requer o lote completo com a política
+vigente, os conjuntos não dominados das cinco rodadas por abordagem, as seis
+projeções oficiais e a análise dos compromissos e da variabilidade. As grades
+continuam com 35 chamadas ponderadas e 45 de $\varepsilon$-restrito.
 
 \section{Conclusão}\label{sec:conclusao}
 

@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import multiobjetivo as multi
 from mono_objetivo import (Case, Ore, Sinter, NoFeasiblePlanError, evaluate,
-                          load_case, neighbors, solve_scalar)
+                          construct, load_case, neighbors, solve_scalar)
 
 ROOT = Path(__file__).resolve().parent
 
@@ -69,12 +69,26 @@ class MultiObjectiveTests(unittest.TestCase):
         self.assertAlmostEqual(self.criterion.value(run.best_evaluation), 1)
         self.assertTrue(all(abs(value-1) < 1e-10 for _, value in run.trace))
 
+    def test_ambas_abordagens_chamam_construcao_original(self):
+        # Mesmo vetor bruto, sem seleção de referência como partida.
+        configs = {"soma": {"id": "w", "pesos": [1/3]*3},
+                   "epsilon": {"id": "eps", "epsilons": [1, 1]}}
+        for method, config in configs.items():
+            with self.subTest(method=method), \
+                 patch("mono_objetivo.construct", wraps=construct) as builder, \
+                 patch("mono_objetivo.neighbors", return_value=iter(())):
+                record = multi.execute_job((self.case, self.normal, method, config, 1, 42, 1))
+            builder.assert_called_once_with(self.case)
+            self.assertEqual(record["status"], "ok")
+            self.assertEqual(record["partida"], "construcao")
+            self.assertEqual(record["caminhoes_por_pilha_e_minerio"], [[2, 0, 0]])
+
     def test_falha_epsilon_e_registrada(self):
         # Sem minério B, o mínimo de alumina é 1.8%; ε3=.1 não é encontrado.
         case = small_case()
         case.ores = (case.ores[0], case.ores[2])
         with patch("mono_objetivo.REPAIR_STEPS", 2):
-            record = multi.execute_job((case, self.normal, [], "epsilon", self.config, 1, 42, 1))
+            record = multi.execute_job((case, self.normal, "epsilon", self.config, 1, 42, 1))
         self.assertEqual(record["status"], "falha_reparo")
         self.assertNotIn("objetivos", record)
         self.assertGreater(record["avaliacoes"], 0)

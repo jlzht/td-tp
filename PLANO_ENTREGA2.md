@@ -136,7 +136,7 @@ V_\varepsilon(x)=V_{\mathrm{fis}}(x)
 +\max(0,\bar f_3(x)-\varepsilon_3).
 \]
 
-Não somar Vε ao custo otimizado. Antes de reparar, podemos procurar um plano já conhecido que satisfaça aquele par de ε, documentando uma regra fixa de seleção da partida. Se não existir no banco, isso não prova impossibilidade: tentar o reparo. Se o reparo falhar em 100 ciclos, registrar **configuração sem solução encontrada**, tempo e semente; não exportar uma solução que viole ε como resultado válido.
+Não somar Vε ao custo otimizado. Todas as chamadas usam a construção original da Entrega 1. As referências servem exclusivamente à normalização. O reparo considera as restrições ativas, incluindo ε quando aplicável; sua saída pode diferir apesar de a construção bruta ser igual. Se o reparo falhar em 100 ciclos, registrar **configuração sem solução encontrada**, tempo e semente; não exportar uma solução que viole ε como resultado válido.
 
 ## 7. O que significa “cinco execuções” nesta proposta
 
@@ -258,3 +258,18 @@ As pessoas 2 e 3 precisam combinar a interface da GVNS antes de editar o mesmo t
 - PDFs parciais isolados em `resultados_entrega2/oficial/graficos_parciais/`.
 - Próxima etapa experimental: retomar o lote e preencher resultados, seis
   projeções oficiais e análise final no relatório cumulativo.
+
+
+## Decisão vigente: construção comum em todas as abordagens
+
+A pedido do grupo, a seleção de referência como partida foi removida.
+Todas as chamadas mono-objetivo, Soma Ponderada e ε-restrito executam
+`construct(case)` da Entrega 1. O reparo e a GVNS recebem as restrições ativas;
+no ε-restrito, isso inclui os ε. A construção determinística é igual para os
+mesmos dados, mas o plano admissível após o reparo pode variar com método e
+semente. A normalização mantém as mesmas três receitas de referência.
+
+Os pilotos e as 28 chamadas oficiais anteriores são históricos com a política
+e os hashes originais. O lote da política atual deve usar uma nova pasta,
+`resultados_entrega2/oficial_construcao_comum`, sem misturar manifestos.
+Apenas a verificação rápida limitada é executada nesta revisão.

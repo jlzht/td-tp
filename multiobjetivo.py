@@ -152,24 +152,15 @@ def nondominated(records: list[dict]) -> list[dict]:
 
 def execute_job(job) -> dict:
     """Uma configuração em uma rodada; sem alteração automática dos limites."""
-    case, normalization, references, method, config, round_number, seed, iterations = job
+    case, normalization, method, config, round_number, seed, iterations = job
     criterion = make_criterion(method, config, normalization)
-    initial = None
-    start = "construcao"
-    # Política fixa: no ε-restrito, escolher a referência admissível mais barata.
-    # Sem referência admissível, construir e reparar incluindo os ε.
-    if method == "epsilon":
-        admissible = [(evaluate(case, p).objectives[0], index, p)
-                      for index, p in enumerate(references)
-                      if criterion.feasible(evaluate(case, p))]
-        if admissible:
-            _, index, initial = min(admissible, key=lambda item: (item[0], item[1]))
-            start = f"referencia_f{index+1}"
+    # Todas as abordagens chamam construct(case) dentro de solve_scalar.
+    # As receitas de referência servem exclusivamente à normalização.
     record = {"metodo": method, "configuracao": config["id"], "parametros": config,
               "rodada": round_number, "semente": seed, "iteracoes": iterations,
-              "partida": start}
+              "partida": "construcao"}
     try:
-        run = solve_scalar(case, criterion, seed, iterations, initial)
+        run = solve_scalar(case, criterion, seed, iterations)
     except NoFeasiblePlanError as exc:
         return {**record, "status": "falha_reparo", "mensagem": str(exc),
                 "avaliacoes": exc.evaluations, "segundos": exc.seconds}
@@ -252,7 +243,7 @@ def main() -> None:
         parser.error("rodadas deve ser 1–99; iterações e processos devem ser positivos")
     try:
         case = load_case(args.dados)
-        normalization, references, normal_source = load_normalization(args.normalizacao, args.dados, case)
+        normalization, _, normal_source = load_normalization(args.normalizacao, args.dados, case)
         configs = load_configurations(args.configuracoes)
         methods = ["soma", "epsilon"] if args.metodo == "todos" else [args.metodo]
         selected_ids = set(args.configuracao or [])
@@ -266,8 +257,8 @@ def main() -> None:
                     if selected_ids and config["id"] not in selected_ids:
                         continue
                     seed = args.semente_base + (100000 if method == "soma" else 200000) + n*1000 + index+1
-                    jobs.append((case, normalization, references, method, config, n, seed, args.iteracoes))
-        methods = [m for m in methods if any(job[3] == m for job in jobs)]
+                    jobs.append((case, normalization, method, config, n, seed, args.iteracoes))
+        methods = [m for m in methods if any(job[2] == m for job in jobs)]
         code_hashes = {name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
                        for name in ("mono_objetivo.py", "multiobjetivo.py", "figuras.py")}
         manifest = {"dados_sha256": normal_source["data_sha256"], "codigo_sha256": code_hashes,
@@ -278,7 +269,7 @@ def main() -> None:
                     "metodos": methods, "selecao": sorted(selected_ids),
                     "reparo_ciclos": REPAIR_STEPS, "teto_n3": None,
                     "tolerancia_epsilon": EPS_TOL, "tolerancias_dominancia": DOM_TOL,
-                    "partida_epsilon": "referência admissível mais barata; caso contrário construção e reparo",
+                    "politica_partida": "construção original da Entrega 1 em todas as chamadas; reparo segundo as restrições ativas",
                     "semente": "base + 100000 (soma) ou 200000 (epsilon) + 1000*rodada + índice_configuração (1..n)"}
         directory = args.saida
         directory.mkdir(parents=True, exist_ok=True)
@@ -293,7 +284,7 @@ def main() -> None:
         checkpoints.mkdir(exist_ok=True)
         records, pending = [], []
         for job in jobs:
-            method, config, n, seed = job[3:7]
+            method, config, n, seed = job[2:6]
             path = checkpoints/f"{method}_r{n}_{config['id']}.json"
             if path.exists():
                 record = json.loads(path.read_text())

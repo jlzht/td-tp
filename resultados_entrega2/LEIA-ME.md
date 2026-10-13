@@ -1,3 +1,18 @@
+# Histórico de experimentos — política anterior
+
+**Estas pastas são históricas.** Os pilotos anteriores permitiam iniciar ε-restrito
+por uma referência admissível. O código atual exige a construção original da
+Entrega 1 em todas as abordagens. Os hashes e registros antigos foram preservados;
+os comandos históricos abaixo exigem a versão correspondente (commit `663d820`).
+A retomada com o código atual na mesma pasta será rejeitada.
+
+## Política vigente
+
+Verificação rápida atual: `teste_rapido_construcao_comum/`, com N3 limitada.
+Experimentos da nova política: usar `oficial_construcao_comum/`.
+Os 28 resultados ponderados antigos começaram pela construção, mas um
+reaproveitamento requer migração auditável, ainda não realizada.
+
 # Experimentos da Entrega 2
 
 ## Piloto validado
@@ -58,7 +73,7 @@ e **zero** das 45 de ε-restrito. Restam 52 chamadas. `resumo.json` informa
 `completo: false`. O piloto de 16 configurações está completo e separado.
 
 Os PDFs gerados com dados parciais estão em `oficial/graficos_parciais/`
-e não representam a entrega final. Repetir o comando com a mesma configuração
+e não representam a entrega final. Na versão histórica correspondente, repetir o comando com a mesma configuração
 retoma só as chamadas pendentes. A análise final do relatório depende desse
 lote completo. Use `teste_rapido.py` para verificar funcionamento sem iniciar
 as 80 chamadas.
