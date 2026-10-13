@@ -204,11 +204,11 @@ As pessoas 2 e 3 precisam combinar a interface da GVNS antes de editar o mesmo t
 
 ## 11. Checklist da entrega
 
-- [ ] Etapa 1 atualizada, incluindo a retirada do teto e os feedbacks do reparo.
-- [ ] Preencher as subseções de representação computacional que ainda estão vazias no LaTeX: vetor da pilha, plano completo, relação com xij e verificação de viabilidade.
-- [ ] Duas formulações escalares com as três funções e restrições originais.
-- [ ] Normalização fixa, reproduzível e baseada na etapa 1.
-- [ ] Pesos e ε definidos, justificados e registrados.
+- [x] Etapa 1 atualizada, incluindo a retirada do teto e os feedbacks do reparo.
+- [x] Preencher as subseções de representação computacional que ainda estão vazias no LaTeX: vetor da pilha, plano completo, relação com xij e verificação de viabilidade.
+- [x] Duas formulações escalares com as três funções e restrições originais.
+- [x] Normalização fixa, reproduzível e baseada na etapa 1.
+- [x] Pesos e ε definidos, justificados e registrados.
 - [ ] Cinco rodadas de cada abordagem, com configuração e semente identificáveis.
 - [ ] Nenhum resultado ε-restrito apresentado como válido se violar seus ε.
 - [ ] Soluções finais não dominadas filtradas em 3D, separadamente por abordagem.
@@ -248,3 +248,13 @@ As pessoas 2 e 3 precisam combinar a interface da GVNS antes de editar o mesmo t
   candidatos completos por visita; esses resultados são rotulados como teste,
   não como experimentos oficiais. Os smoke tests automatizados reais também
   usam essas travas; produção e lote oficial continuam sem teto.
+
+## Fechamento do desenvolvimento
+
+- Implementação, documentação e testes rápidos concluídos.
+- Lote oficial interrompido: 28 chamadas salvas, todas viáveis; 52 pendentes.
+- Nenhuma chamada oficial ε-restrito começou. As nove configurações de ε
+  foram verificadas no piloto e a implementação também nos testes unitários.
+- PDFs parciais isolados em `resultados_entrega2/oficial/graficos_parciais/`.
+- Próxima etapa experimental: retomar o lote e preencher resultados, seis
+  projeções oficiais e análise final no relatório cumulativo.

@@ -7,5 +7,13 @@
     "chamadas_salvas_no_fim": 4,
     "interrompido": true,
     "motivo": "Crash informado pelo usuário; a invocação não chegou a gravar o histórico. Duração de relógio desconhecida."
+  },
+  {
+    "inicio_utc": "2026-10-13T19:25:06.970923+00:00",
+    "segundos_relogio": 4157.119520833,
+    "processos": 2,
+    "chamadas_pendentes_no_inicio": 76,
+    "chamadas_salvas_no_fim": 28,
+    "interrompido": true
   }
 ]

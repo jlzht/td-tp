@@ -679,7 +679,8 @@ mantendo o custo como objetivo e limitando os dois desvios agregados:
 A grade é o produto cartesiano $\{0{,}25;0{,}50;1{,}00\}^2$, totalizando
 nove pares. Por exemplo, $\varepsilon_2=0{,}25$ impõe
 $f_2\leq a_2+0{,}25(b_2-a_2)$; não significa um teor de 0,25\%.
-Os $\varepsilon$ não substituem os limites de qualidade de cada pilha.
+Para $\varepsilon_q=1$, o limite adicional é $b_q$, o máximo empírico
+da coluna de referência. Mantêm-se também os limites físicos de cada pilha.
 A admissibilidade ativa exige as restrições físicas e os dois $\varepsilon$,
 com tolerância absoluta de $10^{-10}$ nos valores normalizados.
 
@@ -752,13 +753,27 @@ São conjuntos não dominados entre as soluções encontradas, não uma prova
 da fronteira exata.
 
 \subsection{Estado dos Experimentos}
-Primeiro validamos as fórmulas, a admissibilidade com $\varepsilon$,
-a política de falha, a dominância e a retomada em uma instância pequena.
-Depois testamos as configurações nos dados do case com poucas iterações,
-antes do lote oficial de cinco rodadas com 50 ciclos. Resultados de piloto
-não substituem esse lote. A comparação final deve considerar regiões
-alcançadas, variabilidade, compromissos, falhas e esforço computacional:
-35 e 45 chamadas têm esforços diferentes, mesmo usando 50 ciclos cada.
+A implementação das duas abordagens foi concluída e 18 testes automatizados
+passaram. O piloto da grade completa utilizou uma rodada e dois ciclos globais:
+as sete configurações ponderadas e os nove pares de $\varepsilon$ encontraram
+soluções admissíveis; a grade foi mantida.
+
+Os testes rápidos posteriores limitam apenas seu próprio processo a cinco
+visitas de $N_3$, com até 25 candidatos completos por visita. Esses resultados
+são identificados como testes limitados, sem certificado de ótimo local em
+$N_3$, e não entram nas tabelas oficiais. A produção mantém $N_3$ sem teto.
+
+O lote oficial foi interrompido com 28 de 80 chamadas concluídas, todas
+admissíveis, pertencentes à Soma Ponderada. Restam sete chamadas dessa
+abordagem e as 45 do método $\varepsilon$-restrito. Os registros permitem
+retomar somente as chamadas pendentes. Os gráficos parciais foram separados
+e não são apresentados como as seis projeções exigidas para a entrega final.
+
+A formulação, o código e a documentação estão implementados. A conclusão
+experimental da Entrega 2 ainda requer o lote completo, os conjuntos não
+dominados das cinco rodadas por abordagem, as seis projeções oficiais e a
+análise dos compromissos e da variabilidade. A comparação deve considerar
+falhas e esforço: 35 e 45 chamadas têm esforços diferentes, mesmo com 50 ciclos.
 
 \section{Conclusão}\label{sec:conclusao}
 

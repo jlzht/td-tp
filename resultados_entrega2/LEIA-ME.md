@@ -48,3 +48,17 @@ não foi salvo; não deve ser inventado a partir da soma dos tempos das chamadas
 ```sh
 python3 multiobjetivo.py --rodadas 5 --iteracoes 50 --processos 2 --saida resultados_entrega2/oficial
 ```
+
+## Estado atual: lote oficial interrompido
+
+A implementação e os testes estão concluídos. O lote oficial foi interrompido
+para encerrar a etapa de desenvolvimento sem aguardar as chamadas longas.
+Há **28 chamadas completas, todas viáveis**, das 35 de Soma Ponderada,
+e **zero** das 45 de ε-restrito. Restam 52 chamadas. `resumo.json` informa
+`completo: false`. O piloto de 16 configurações está completo e separado.
+
+Os PDFs gerados com dados parciais estão em `oficial/graficos_parciais/`
+e não representam a entrega final. Repetir o comando com a mesma configuração
+retoma só as chamadas pendentes. A análise final do relatório depende desse
+lote completo. Use `teste_rapido.py` para verificar funcionamento sem iniciar
+as 80 chamadas.
