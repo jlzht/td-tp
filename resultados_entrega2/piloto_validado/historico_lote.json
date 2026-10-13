@@ -1,0 +1,10 @@
+[
+  {
+    "inicio_utc": "2026-10-13T19:06:40.364795+00:00",
+    "segundos_relogio": 140.40234950001468,
+    "processos": 3,
+    "chamadas_pendentes_no_inicio": 16,
+    "chamadas_salvas_no_fim": 16,
+    "interrompido": false
+  }
+]

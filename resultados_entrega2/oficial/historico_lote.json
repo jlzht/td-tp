@@ -1,0 +1,11 @@
+[
+  {
+    "inicio_utc": null,
+    "segundos_relogio": null,
+    "processos": 3,
+    "chamadas_pendentes_no_inicio": 80,
+    "chamadas_salvas_no_fim": 4,
+    "interrompido": true,
+    "motivo": "Crash informado pelo usuário; a invocação não chegou a gravar o histórico. Duração de relógio desconhecida."
+  }
+]

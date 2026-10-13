@@ -2,6 +2,8 @@
 import random
 import unittest
 from collections import Counter
+from contextlib import contextmanager
+from itertools import islice
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,6 +12,24 @@ from mono_objetivo import (Case, NoFeasiblePlanError, Ore, Sinter,
 
 
 DATA = Path(__file__).with_name("dados_exemplo.json")
+
+
+@contextmanager
+def short_search():
+    """Smoke tests: só 5 visitas de até 25 candidatos reais de N3."""
+    visits = 0
+
+    def limited(case, plan, kind, rng):
+        nonlocal visits
+        if kind != 3:
+            yield from neighbors(case, plan, kind, rng)
+            return
+        visits += 1
+        if visits <= 5:
+            yield from islice(neighbors(case, plan, kind, rng), 25)
+
+    with patch("mono_objetivo.neighbors", limited):
+        yield
 
 
 class MonoObjectiveTests(unittest.TestCase):
@@ -71,7 +91,8 @@ class MonoObjectiveTests(unittest.TestCase):
     def test_gvns_devolve_planos_viaveis(self):
         case = self.case
         for objective in range(3):
-            run = solve(case, objective, 1, iterations=1)
+            with short_search():
+                run = solve(case, objective, 1, iterations=1)
             self.assertGreater(run.evaluations, 0)
             self.assertEqual(run.iterations, 1)
             self.assertGreater(run.seconds, 0)
@@ -83,7 +104,8 @@ class MonoObjectiveTests(unittest.TestCase):
                 self.assertTrue(evaluate(case, rebuilt).feasible)
 
     def test_parametros_do_experimento_sao_aplicados(self):
-        run = solve(self.case, 0, 1, iterations=1, base_seed=314)
+        with short_search():
+            run = solve(self.case, 0, 1, iterations=1, base_seed=314)
         self.assertEqual(run.seed, 315)
         self.assertGreater(run.evaluations, 0)
         self.assertTrue(evaluate(self.case, run.best_plan).feasible)

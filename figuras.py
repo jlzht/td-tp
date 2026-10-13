@@ -75,3 +75,31 @@ def write_solution(path: Path, case, run) -> None:
     fig.subplots_adjust(top=0.79, bottom=0.23)
     fig.savefig(path, format="pdf", bbox_inches="tight")
     plt.close(fig)
+
+
+def write_projections(directory: Path, method: str, points: list[dict], rounds: int) -> None:
+    """Três projeções de um conjunto filtrado em 3D; cores identificam rodadas.
+
+    Uma receita encontrada em várias rodadas é desenhada em cada cor com
+    marcadores vazados de tamanhos diferentes, preservando a procedência.
+    """
+    labels = ("Custo (R$ milhões)", "Desvio de SiO₂ (pp²)", "Desvio de Al₂O₃ (pp²)")
+    colors = plt.get_cmap("tab10")
+    title = "Soma Ponderada" if method == "soma" else "ε-restrito"
+    for a, b in ((0, 1), (0, 2), (1, 2)):
+        fig, ax = plt.subplots(figsize=(7, 4.8))
+        for n in range(1, rounds+1):
+            selected = [p for p in points if any(o["rodada"] == n for o in p["origens"])]
+            x = [p["objetivos"][a] / (1e6 if a == 0 else 1) for p in selected]
+            y = [p["objetivos"][b] for p in selected]
+            ax.scatter(x, y, facecolors="none", edgecolors=[colors((n-1)%10)],
+                       s=35+25*(n-1), linewidths=1.3, label=f"Rodada {n}")
+        if not points:
+            ax.text(.5, .5, "Nenhuma solução admissível encontrada", ha="center",
+                    va="center", transform=ax.transAxes)
+        ax.set(title=f"{title}: soluções não dominadas nos três objetivos",
+               xlabel=labels[a], ylabel=labels[b])
+        ax.grid(alpha=.25)
+        ax.legend(loc="upper center", bbox_to_anchor=(.5, -.16), ncol=min(rounds, 5), frameon=False)
+        fig.savefig(directory/f"{method}_f{a+1}_f{b+1}.pdf", format="pdf", bbox_inches="tight")
+        plt.close(fig)

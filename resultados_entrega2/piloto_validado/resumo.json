@@ -1,0 +1,49 @@
+{
+  "completo": true,
+  "chamadas_previstas": 16,
+  "chamadas_concluidas": 16,
+  "abordagens": {
+    "soma": {
+      "chamadas": 7,
+      "viaveis": 7,
+      "falhas_reparo": 0,
+      "receitas_nao_dominadas": 6,
+      "avaliacoes": 1240109,
+      "soma_segundos_das_chamadas": 111.67788883400499,
+      "por_rodada": {
+        "1": 6
+      },
+      "minimos_observados": [
+        61280000.0,
+        2.4736864344463894,
+        1.6928491769750775
+      ],
+      "maximos_observados": [
+        65460000.0,
+        6.74139551742416,
+        4.489620245005808
+      ]
+    },
+    "epsilon": {
+      "chamadas": 9,
+      "viaveis": 9,
+      "falhas_reparo": 0,
+      "receitas_nao_dominadas": 9,
+      "avaliacoes": 1224345,
+      "soma_segundos_das_chamadas": 210.50111654194188,
+      "por_rodada": {
+        "1": 9
+      },
+      "minimos_observados": [
+        59860000.0,
+        3.4179269361457623,
+        2.622407664019632
+      ],
+      "maximos_observados": [
+        64900000.0,
+        6.673096395875354,
+        6.2600051211607255
+      ]
+    }
+  }
+}

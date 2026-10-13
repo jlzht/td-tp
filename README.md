@@ -1,6 +1,8 @@
-# Trabalho de Teoria da Decisão — Entrega 1
+# Trabalho de Teoria da Decisão — Entregas 1 e 2
 
-Este repositório implementa **GVNS** para três problemas mono-objetivo do case de composição de pilhas: minimizar o custo (`f1`), o desvio quadrático de SiO₂ (`f2`) ou o desvio quadrático de Al₂O₃ (`f3`). Cada objetivo é resolvido separadamente, sempre com as mesmas restrições de massa, qualidade, elegibilidade e disponibilidade dos minérios.
+A Entrega 1 implementa **GVNS** para três problemas mono-objetivo do case de composição de pilhas: minimizar o custo (`f1`), o desvio quadrático de SiO₂ (`f2`) ou o desvio quadrático de Al₂O₃ (`f3`). Cada objetivo é resolvido separadamente, sempre com as mesmas restrições de massa, qualidade, elegibilidade e disponibilidade dos minérios.
+
+A Entrega 2 reutiliza a mesma GVNS para **Soma Ponderada** e **ε-restrito**, com normalização fixa e filtragem de soluções não dominadas nos três objetivos. O relatório é cumulativo; não há apresentação oral nessa segunda entrega.
 
 ## Dados e representação
 
@@ -61,13 +63,13 @@ Use Python 3.10 ou superior. A única dependência externa é Matplotlib, usada 
 
 ```sh
 python3 -m pip install -r requirements.txt
-python3 -m unittest -q test_mono_objetivo.py
+python3 -m unittest -q
 python3 mono_objetivo.py --iteracoes 50 --saida minha_execucao
 ```
 
 O último comando faz **15 execuções**: cinco sementes para cada um dos três objetivos. Sem `--iteracoes`, usa 50; sem `--saida`, escreve em `resultados/`. `--dados arquivo.json` seleciona outra instância e `--semente-base NUMERO` muda a sequência de sorteios. Veja `python3 mono_objetivo.py --help`.
 
-Para reproduzir a comparação versionada:
+Para fazer uma nova comparação de ciclos (os resultados anteriores com teto de N3 são históricos):
 
 ```sh
 for n in 10 20 30 40 50; do
@@ -83,9 +85,183 @@ As sementes são fixadas por objetivo e número da execução para facilitar com
 
 | Arquivo | Função |
 | --- | --- |
-| `mono_objetivo.py` | Dados, construção, reparo, GVNS, validação e exportação. |
+| `mono_objetivo.py` | Modelo físico, construção, movimentos e uma única GVNS para as duas entregas. |
+| `multiobjetivo.py` | Normalização, critérios escalares, rodadas, dominância e exportação multiobjetivo. |
+| `normalizacao.json` | Três receitas de referência da Entrega 1, matriz cruzada, escalas e hash dos dados. |
+| `configuracoes_multi.json` | Sete vetores de pesos e nove pares de ε. |
+| `teste_rapido.py` | Três chamadas de um ciclo, com N3 limitada apenas para verificar funcionamento. |
+| `test_multiobjetivo.py` | Testes das escalas, ε no reparo/otimização, dominância e retomada. |
+| `entrega-1.tex` | Relatório cumulativo das duas etapas. |
 | `figuras.py` | Gráficos PDF com Matplotlib. |
 | `dados_exemplo.json` | Instância de exemplo fornecida no anexo do case. |
 | `test_mono_objetivo.py` | Testes das fórmulas e movimentos. |
 | `requirements.txt` | Dependência para as figuras. |
 | `resultados_iteracoes/` | Pasta criada ao executar a comparação com 10, 20, 30, 40 e 50 ciclos. |
+
+
+## Entrega 2 — começar por aqui
+
+### O que muda no problema
+
+Os três objetivos continuam sendo calculados por `evaluate`: custo em reais,
+desvio de SiO₂ em pp² e desvio de Al₂O₃ em pp². Massa, qualidade por pilha,
+elegibilidade e disponibilidade continuam obrigatórias.
+
+1. **Normalizar:** `normalizacao.json` contém as três melhores receitas isoladas
+   do lote sem teto (15 chamadas, 50 ciclos). Para cada coluna da matriz cruzada,
+   `a` é o mínimo e `b` o máximo. Usamos `(f-a)/(b-a)`, sem cortar resultados fora
+   de `[0,1]`. Essas referências são empíricas, não ideais/nadires provados.
+   O carregamento confere o hash dos dados, as receitas e seus objetivos.
+2. **Soma Ponderada:** minimizar `w1*f1_normalizado + w2*f2_normalizado +
+   w3*f3_normalizado`, com pesos não negativos que somam 1. Peso zero não remove
+   restrições físicas.
+3. **ε-restrito:** minimizar custo normalizado, exigindo também
+   `f2_normalizado <= eps2` e `f3_normalizado <= eps3`. São limites dos desvios
+   agregados, não novos percentuais de cada pilha.
+4. **Buscar:** a mesma GVNS recebe o valor a minimizar e a medida de violação.
+   O ε é verificado no reparo, na perturbação, na VND e ao registrar a melhor
+   solução. Não adicionamos penalidade ao custo. N3 mantém sua definição e não
+   tem teto de candidatos, nós ou tempo.
+5. **Comparar:** guardar a receita final de cada configuração, reunir resultados
+   por abordagem e filtrar dominância nos três objetivos. Gerar seis projeções
+   PDF com Matplotlib.
+
+No reparo de ε-restrito, a medida é `violacao_fisica + excesso_eps2 +
+excesso_eps3`. Excessos normalizados de até `1e-10` são desprezados apenas como
+arredondamento. O limite continua sendo 100 ciclos. Uma falha fica registrada
+como `falha_reparo`; não prova que o problema seja impossível e não entra nos
+gráficos como solução válida. O lote continua com as outras configurações.
+
+**Partida fixa:** Soma Ponderada usa a construção e o reparo. ε-restrito começa
+pela referência mono-objetivo admissível de menor custo, se houver; empates seguem
+a ordem f1, f2, f3. Sem referência admissível, usa construção e reparo incluindo
+ε. Registramos essa diferença para interpretar esforço e tempo entre métodos.
+
+### Configurações e rodadas
+
+`configuracoes_multi.json` define:
+
+- 7 pesos: equilíbrio, três prioridades individuais e três compromissos entre pares;
+- 9 pares de ε: produto cartesiano de `{0.25, 0.50, 1.00}`.
+
+Uma **rodada** percorre toda a grade da abordagem. Cinco rodadas fazem
+**35 chamadas** para Soma Ponderada e **45 chamadas** para ε-restrito, 80 no total.
+Cada chamada é uma nova GVNS com 50 ciclos globais por padrão. Essa organização,
+as grades e os 50 ciclos são decisões do grupo; o PDF exige cinco execuções por
+abordagem, mas não fornece esses valores da grade.
+
+As sementes são `base + deslocamento + 1000*rodada + indice_configuracao`, com
+índice começando em 1 e deslocamento 100000 para soma e 200000 para epsilon.
+A ordem do arquivo de configurações participa dessa fórmula. Não mudamos
+sementes para escolher resultados melhores. Processos paralelos não alteram a
+semente de cada chamada; tempos medidos dependem da carga da máquina.
+
+### Como executar
+
+Faça primeiro os testes de funcionamento. O roteiro rápido limita N3 a cinco
+visitas e 25 candidatos completos por visita, por chamada; faz somente três
+chamadas de um ciclo. Não altera a GVNS de produção e seus resultados não são
+experimentos oficiais nem certificados de ótimo local em N3:
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 teste_rapido.py
+```
+
+Os limites do teste podem ser alterados com `--visitas-n3` e `--candidatos-n3`.
+O resultado identificado como limitado fica em `resultados_teste_rapido/teste_rapido.json`.
+O teto de candidatos conta receitas completas; não limita nós parciais anteriores
+a elas. A trava de visitas impede novas enumerações depois do número definido.
+
+Os testes automatizados também limitam os smoke tests que usam N3 real a cinco
+visitas e 25 candidatos. O teste de retirada do teto usa um gerador controlado
+com 3.001 candidatos baratos, sem enumeração real. Para rodar os testes e,
+se necessário, repetir o piloto da grade completa **sem as travas do teste rápido**:
+
+```sh
+python3 -m pip install -r requirements.txt
+python3 -m unittest -q
+python3 multiobjetivo.py --rodadas 1 --iteracoes 2 --processos 3 --saida meu_piloto
+```
+
+Execute as cinco rodadas completas:
+
+```sh
+python3 multiobjetivo.py --rodadas 5 --iteracoes 50 --processos 3 --saida resultados_entrega2/oficial
+```
+
+Sem opções, executa as duas abordagens, cinco rodadas, 50 ciclos e um processo.
+`--metodo soma` ou `--metodo epsilon` executa só uma abordagem. `--configuracao ID`
+pode ser repetido para selecionar configurações num piloto:
+
+```sh
+python3 multiobjetivo.py --rodadas 1 --iteracoes 1 \
+  --configuracao equilibrada --configuracao eps_100_100 --configuracao eps_025_025 \
+  --saida piloto_curto
+```
+
+Use `--configuracoes arquivo.json` para uma grade diferente; o formato é o de
+`configuracoes_multi.json`. `--normalizacao arquivo.json` seleciona referências
+compatíveis com `--dados arquivo.json`. Não reutilize as escalas desta instância
+em dados diferentes. Veja `python3 multiobjetivo.py --help`.
+
+**Retomada automática:** repetir exatamente o comando usa as chamadas já salvas
+em `chamadas/` e executa apenas as pendentes. É permitido mudar `--processos`.
+Se dados, versão do Python, código, normalização, seleção ou parâmetros mudarem,
+o programa exige outra pasta de saída. Não mistura versões de experimentos.
+Falhas de reparo concluídas também são retomadas como resultados de falha, sem
+repetição silenciosa. `Ctrl+C` preserva chamadas concluídas; a chamada em andamento
+será refeita ao retomar. Não há teto de tempo dentro de uma chamada.
+
+### Pseudocódigo multiobjetivo
+
+```text
+carregar os dados, a normalização fixa e as grades
+para abordagem em {Soma Ponderada, ε-restrito}:
+    para rodada de 1 a 5:
+        para configuração da grade:
+            fixar semente, valor escalar e restrições ativas
+            escolher partida pela política fixa
+            reparar até obter plano admissível ou esgotar 100 ciclos
+            se o reparo falhou:
+                salvar falha; seguir para a próxima chamada
+            senão:
+                executar a mesma GVNS por 50 ciclos globais
+                salvar melhor receita admissível, curva, tempo e avaliações
+    reunir receitas finais das cinco rodadas
+    unir composições idênticas preservando suas origens
+    retirar receitas dominadas nos três objetivos
+    gerar f1×f2, f1×f3 e f2×f3 identificando as rodadas
+```
+
+### O que esperar na pasta de saída
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `normalizacao.json` | Cópia das escalas e referências fixas usadas. |
+| `configuracoes.json` | Grades, seleção, parâmetros, hashes do código/dados, Python e sementes. |
+| `chamadas/*.json` | Receita completa e curva de cada chamada, ou registro explícito de falha. |
+| `execucoes.csv` | Uma linha por chamada concluída; status, semente, ciclos, partida, tempo, avaliações e objetivos. |
+| `resumo.json` | Completude do lote, viáveis, falhas, não dominadas, extremos e esforço por abordagem. |
+| `historico_lote.json` | Tempo de relógio, quantidade de processos e retomadas de cada invocação. |
+| `nao_dominadas_soma.json`, `nao_dominadas_epsilon.json` | União filtrada em 3D por abordagem, com receitas e origens. |
+| `nao_dominadas_rodadas_*.json` | Conjunto filtrado de cada rodada, para comparar variabilidade. |
+| `soma_f1_f2.pdf`, `soma_f1_f3.pdf`, `soma_f2_f3.pdf` | Três projeções da Soma Ponderada. |
+| `epsilon_f1_f2.pdf`, `epsilon_f1_f3.pdf`, `epsilon_f2_f3.pdf` | Três projeções do ε-restrito. |
+
+Se executar apenas um método, são produzidas suas três projeções. Receitas
+compartilhadas por rodadas aparecem como círculos vazados de cores/tamanhos
+diferentes. Os objetivos dos eixos estão nas unidades originais; custo em
+milhões de reais. Um ponto pode parecer dominado em 2D e ser não dominado em 3D.
+Empates nos objetivos de receitas distintas são preservados para a Entrega 3.
+
+Dominância usa tolerâncias absolutas de `1e-6` R$ e `1e-10` pp², antes de arredondar.
+Os conjuntos são aproximações entre soluções encontradas, sem prova da fronteira
+exata. Não compare métodos apenas contando pontos: 35 e 45 chamadas têm esforços
+diferentes. A soma dos tempos de chamadas paralelas não é o tempo de relógio do lote.
+
+Pilotos ficam separados do lote oficial; consulte o status e os comandos em
+`resultados_entrega2/LEIA-ME.md`. Somente um lote completo de cinco rodadas por
+abordagem atende ao experimento planejado para a entrega.

@@ -221,3 +221,30 @@ As pessoas 2 e 3 precisam combinar a interface da GVNS antes de editar o mesmo t
 - Enunciado fornecido pelo grupo: `Case-UFMG-Teoria_da_Decisão (2).pdf`, páginas 4–5. É a fonte dos requisitos; as grades e decisões de implementação acima são propostas nossas.
 - [Implementação e descrição de ε-restrito no GAMS](https://www.gams.com/latest/gamslib_ml/libhtml/gamslib_epscm.html): uso de um objetivo e restrições nos demais, e matriz de resultados cruzados. O exemplo usa uma versão aumentada; nosso plano propõe inicialmente o ε-restrito convencional com filtragem posterior, sem presumir garantias de um solucionador exato.
 - [Blank e Deb, Pymoo: Multi-Objective Optimization in Python](https://www.julianblank.com/_static/research/ieee20-pymoo.pdf): discussão da decomposição e da limitação da Soma Ponderada em partes não convexas da fronteira. A referência conceitual não implica trocar a GVNS por outra biblioteca.
+
+
+## Desenvolvimento em 13/10/2026
+
+- Estado anterior registrado no commit `a0b7d93`, antes da implementação.
+- Normalização fixa salva e conferida com reavaliação das três receitas.
+- Uma única GVNS utilizada pelas interfaces mono e multiobjetivo.
+- ε incluído no reparo, perturbação, VND e registro da melhor solução.
+- Dominância em 3D, receitas e origens preservadas, seis projeções Matplotlib PDF.
+- Retomada por chamada com configuração e hashes, sem misturar experimentos.
+- Piloto da grade: 16 chamadas, uma rodada, dois ciclos, todas admissíveis.
+  A grade de sete pesos e nove pares ε foi mantida.
+- Os 18 testes passaram; regressão contra a base anterior conferiu receitas,
+  objetivos, avaliações, sementes e curvas nos três objetivos com um ciclo.
+- As quatro subseções de representação do relatório foram preenchidas e a
+  formulação multiobjetivo foi incorporada ao mesmo LaTeX.
+- Lote oficial: 80 chamadas, cinco rodadas, 50 ciclos, três processos.
+  O status auditável fica em `resultados_entrega2/oficial/resumo.json`; não
+  confundir resultados parciais ou do piloto com lote completo.
+
+- Após o crash, quatro chamadas oficiais completas foram preservadas. O lote
+  foi retomado com dois processos e ambiente local `.venv`, mantendo Python
+  3.14.7 e Matplotlib 3.11.2.
+- A pedido do grupo, `teste_rapido.py` limita N3 a cinco visitas de até 25
+  candidatos completos por visita; esses resultados são rotulados como teste,
+  não como experimentos oficiais. Os smoke tests automatizados reais também
+  usam essas travas; produção e lote oficial continuam sem teto.

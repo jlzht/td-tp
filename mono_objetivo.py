@@ -14,6 +14,7 @@ import statistics
 import sys
 import time
 from dataclasses import dataclass
+from typing import Callable
 from itertools import combinations, product
 from pathlib import Path
 
@@ -82,8 +83,28 @@ class Run:
     trace: list[tuple[int, float]]
 
 
+@dataclass
+class Criterion:
+    """O que minimizar e quais violações reparar no problema escalar ativo.
+
+    A medida de violação só guia o reparo. Zero significa solução admissível;
+    durante a otimização ela nunca é somada ao valor do objetivo.
+    """
+    name: str
+    value: Callable[[Evaluation], float]
+    violation: Callable[[Evaluation], float]
+
+    def feasible(self, result: Evaluation) -> bool:
+        return self.violation(result) == 0.0
+
+
 class NoFeasiblePlanError(RuntimeError):
-    """Reparo terminou sem plano viável; não é prova de inviabilidade da instância."""
+    """Falha do reparo, com esforço medido; não prova inviabilidade."""
+
+    def __init__(self, message: str, evaluations: int = 0, seconds: float = 0.0):
+        super().__init__(message)
+        self.evaluations = evaluations
+        self.seconds = seconds
 
 
 def load_case(path: Path) -> Case:
@@ -358,13 +379,27 @@ def neighbor(case: Case, plan: list[list[int]], kind: int,
 
 def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
           base_seed: int = BASE_SEED) -> Run:
+    """Interface mono-objetivo; usa a mesma GVNS da Entrega 2."""
+    if objective not in (0, 1, 2):
+        raise ValueError("objetivo deve ser 0, 1 ou 2")
+    criterion = Criterion(
+        f"f{objective + 1}, execução {number}",
+        lambda result: result.objectives[objective],
+        lambda result: result.violation)
+    run = solve_scalar(case, criterion, base_seed + objective * 10000 + number, iterations)
+    run.objective, run.number = objective, number
+    return run
+
+
+def solve_scalar(case: Case, criterion: Criterion, seed: int,
+                 iterations: int = ITERATIONS,
+                 initial_plan: list[list[int]] | None = None) -> Run:
     """Repara a construção e executa um número fixo de ciclos da GVNS."""
     if iterations <= 0:
         raise ValueError("iteracoes deve ser positivo")
     started = time.perf_counter()
-    seed = base_seed + objective * 10000 + number
     rng = random.Random(seed)
-    current = construct(case)
+    current = construct(case) if initial_plan is None else [row.copy() for row in initial_plan]
     current_result = evaluate(case, current)
     evaluations = 1
     best_plan = best_result = None
@@ -374,11 +409,11 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         nonlocal evaluations, best_plan, best_result
         result = evaluate(case, plan)
         evaluations += 1
-        if result.feasible and (best_result is None or
-                result.objectives[objective] < best_result.objectives[objective] - 1e-10):
+        if criterion.feasible(result) and (best_result is None or
+                criterion.value(result) < criterion.value(best_result) - 1e-10):
             best_plan = [row.copy() for row in plan]
             best_result = result
-            trace.append((evaluations, result.objectives[objective]))
+            trace.append((evaluations, criterion.value(result)))
         return result
 
     def local_search(plan: list[list[int]], result: Evaluation, repairing: bool):
@@ -389,13 +424,13 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
             improved = False
             for candidate in neighbors(case, plan, level, rng):
                 candidate_result = consider(candidate)
-                if repairing and candidate_result.feasible:
+                if repairing and criterion.feasible(candidate_result):
                     return candidate, candidate_result
-                if not repairing and not candidate_result.feasible:
+                if not repairing and not criterion.feasible(candidate_result):
                     continue  # política da GVNS: rejeitar o movimento inviável
-                before = result.violation if repairing else result.objectives[objective]
-                after = (candidate_result.violation if repairing else
-                         candidate_result.objectives[objective])
+                before = criterion.violation(result) if repairing else criterion.value(result)
+                after = (criterion.violation(candidate_result) if repairing else
+                         criterion.value(candidate_result))
                 if after < before - 1e-12:
                     plan, result = candidate, candidate_result
                     level = 1
@@ -405,10 +440,10 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
                 level += 1
         return plan, result
 
-    if current_result.feasible:
+    if criterion.feasible(current_result):
         best_plan = [row.copy() for row in current]
         best_result = current_result
-        trace.append((1, current_result.objectives[objective]))
+        trace.append((1, criterion.value(current_result)))
 
     # A construção do PDF pode violar qualidade. O reparo procura uma
     # primeira solução factível; seus planos provisórios não entram na GVNS.
@@ -427,7 +462,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=True)
         if best_plan is not None:
             break
-        if shaken_result.violation < current_result.violation - 1e-12:
+        if criterion.violation(shaken_result) < criterion.violation(current_result) - 1e-12:
             current, current_result = shaken, shaken_result
             level = 1
         else:
@@ -435,12 +470,13 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     if best_plan is None:
         raise NoFeasiblePlanError(
             f"Reparo esgotou {REPAIR_STEPS} ciclos sem encontrar solução viável "
-            f"(f{objective + 1}, execução {number}, semente {seed}). "
+            f"({criterion.name}, semente {seed}). "
             "Isso não prova que a instância seja inviável. "
-            "A otimização GVNS desta execução não foi iniciada.")
+            "A otimização GVNS desta execução não foi iniciada.",
+            evaluations, time.perf_counter() - started)
     current = [row.copy() for row in best_plan]
     current_result = best_result
-    assert current_result.feasible
+    assert criterion.feasible(current_result)
 
     level = 1
     for _ in range(iterations):
@@ -448,18 +484,18 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         for _ in range(level):
             for moved in neighbors(case, shaken, level, rng):
                 moved_result = consider(moved)
-                if moved_result.feasible:
+                if criterion.feasible(moved_result):
                     shaken = moved
                     break
         shaken_result = consider(shaken)
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=False)
-        assert shaken_result.feasible
-        if shaken_result.objectives[objective] < current_result.objectives[objective] - 1e-12:
+        assert criterion.feasible(shaken_result)
+        if criterion.value(shaken_result) < criterion.value(current_result) - 1e-12:
             current, current_result = shaken, shaken_result
             level = 1
         else:
             level = level % 3 + 1
-    return Run(objective, number, seed, evaluations, iterations,
+    return Run(-1, 0, seed, evaluations, iterations,
                time.perf_counter() - started, best_plan, best_result, trace)
 
 
