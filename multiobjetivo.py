@@ -19,8 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from figuras import write_projections
-from mono_objetivo import (BASE_SEED, ITERATIONS, REPAIR_STEPS, RUNS, Case,
-                          Criterion, Evaluation, NoFeasiblePlanError, evaluate,
+from mono_objetivo import (BASE_SEED, ITERATIONS, RUNS, Case,
+                          Criterion, Evaluation, evaluate,
                           load_case, solve_scalar)
 
 ROOT = Path(__file__).resolve().parent
@@ -159,11 +159,7 @@ def execute_job(job) -> dict:
     record = {"metodo": method, "configuracao": config["id"], "parametros": config,
               "rodada": round_number, "semente": seed, "iteracoes": iterations,
               "partida": "construcao"}
-    try:
-        run = solve_scalar(case, criterion, seed, iterations)
-    except NoFeasiblePlanError as exc:
-        return {**record, "status": "falha_reparo", "mensagem": str(exc),
-                "avaliacoes": exc.evaluations, "segundos": exc.seconds}
+    run = solve_scalar(case, criterion, seed, iterations)
     result = evaluate(case, run.best_plan)
     if not criterion.feasible(result):
         raise RuntimeError("GVNS retornou plano que viola as restrições ativas")
@@ -267,7 +263,7 @@ def main() -> None:
                     "configuracoes": configs, "rodadas": args.rodadas,
                     "iteracoes": args.iteracoes, "semente_base": args.semente_base,
                     "metodos": methods, "selecao": sorted(selected_ids),
-                    "reparo_ciclos": REPAIR_STEPS, "teto_n3": None,
+                    "reparo_ciclos": None, "teto_n3": None,
                     "tolerancia_epsilon": EPS_TOL, "tolerancias_dominancia": DOM_TOL,
                     "politica_partida": "construção original da Entrega 1 em todas as chamadas; reparo segundo as restrições ativas",
                     "semente": "base + 100000 (soma) ou 200000 (epsilon) + 1000*rodada + índice_configuração (1..n)"}

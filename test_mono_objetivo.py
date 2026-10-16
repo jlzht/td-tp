@@ -7,7 +7,7 @@ from itertools import islice
 from pathlib import Path
 from unittest.mock import patch
 
-from mono_objetivo import (Case, NoFeasiblePlanError, Ore, Sinter,
+from mono_objetivo import (Case, Ore, Sinter,
                           construct, evaluate, load_case, neighbor, neighbors, solve)
 
 
@@ -117,14 +117,39 @@ class MonoObjectiveTests(unittest.TestCase):
                         for move in moves}
         self.assertEqual(len(moves), len(compositions))
 
-    def test_reparo_esgotado_nao_devolve_plano_inviavel(self):
-        # Toda mistura tem Si=8%, acima de 6%: o reparo deve sinalizar falha.
+    def test_reparo_continua_depois_de_cem_ciclos(self):
+        # Movimento controlado: a primeira solução viável só surge no ciclo 101.
         case = Case(2, (2,), (1,),
-                    (Ore(100, 8, 1.5, 0, 2, {1}), Ore(200, 8, 1.5, 0, 2, {1})),
+                    (Ore(100, 8, 1.5, 0, 2, {1}), Ore(200, 5, 1.5, 0, 2, {1})),
                     {1: Sinter(4, 5, 6, 1, 1.5, 2)})
-        with patch("mono_objetivo.REPAIR_STEPS", 100):
-            with self.assertRaisesRegex(NoFeasiblePlanError,
-                                        r"100 ciclos.*f1, execução 1, semente 2027"):
+        cycles = 0
+        successful_cycle = None
+
+        def shake(case, plan, kind, rng):
+            nonlocal successful_cycle
+            if cycles == 100:
+                successful_cycle = cycles + 1
+                return [[1, 1]]
+            return None
+
+        def empty_local_search(case, plan, kind, rng):
+            nonlocal cycles
+            if kind == 1:
+                cycles += 1
+            return ()
+
+        with patch("mono_objetivo.neighbor", shake), \
+             patch("mono_objetivo.neighbors", empty_local_search):
+            run = solve(case, 0, 1, iterations=1)
+        self.assertEqual(successful_cycle, 101)
+        self.assertTrue(run.best_evaluation.feasible)
+        self.assertEqual(run.best_plan, [[1, 1]])
+
+    def test_reparo_pode_ser_interrompido_sem_devolver_inviavel(self):
+        case = Case(2, (2,), (1,), (Ore(100, 8, 1.5, 0, 2, {1}),),
+                    {1: Sinter(4, 5, 6, 1, 1.5, 2)})
+        with patch("mono_objetivo.neighbor", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
                 solve(case, 0, 1, iterations=1)
 
     def test_n3_examina_mais_de_dois_mil_sem_melhora(self):

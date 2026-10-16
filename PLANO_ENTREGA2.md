@@ -41,7 +41,7 @@ O lote levou 47min39s com três processos em paralelo. A duração média de uma
 - N1: substituição de um minério; N2: troca entre pilhas; N3: reconstrução de uma pilha, com pelo menos metade dos caminhões alterados.
 - GVNS com VND de primeira melhora; 50 ciclos globais por execução como configuração inicial.
 - **N3 sem teto de candidatos, nós ou tempo.** Primeira melhora e esgotamento são regras da busca, não uma trava de amostragem.
-- Reparo com até 100 ciclos; falha explícita se não encontrar solução viável, sem prova de inviabilidade.
+- Reparo sem teto de ciclos, avaliações ou tempo: repetir até encontrar solução admissível ou interrupção manual, sem garantia de término.
 - Objetivos calculados por `evaluate`: f1 em reais; f2 e f3 em pp². Mantemos essas fórmulas.
 
 O texto da Entrega 1 precisa refletir a retirada do teto e os resultados atualizados. As tabelas antigas de 2.000 candidatos devem ser identificadas como comparação histórica, e não como execução da versão atual.
@@ -136,7 +136,7 @@ V_\varepsilon(x)=V_{\mathrm{fis}}(x)
 +\max(0,\bar f_3(x)-\varepsilon_3).
 \]
 
-Não somar Vε ao custo otimizado. Todas as chamadas usam a construção original da Entrega 1. As referências servem exclusivamente à normalização. O reparo considera as restrições ativas, incluindo ε quando aplicável; sua saída pode diferir apesar de a construção bruta ser igual. Se o reparo falhar em 100 ciclos, registrar **configuração sem solução encontrada**, tempo e semente; não exportar uma solução que viole ε como resultado válido.
+Não somar Vε ao custo otimizado. Todas as chamadas usam a construção original da Entrega 1. As referências servem exclusivamente à normalização. O reparo considera as restrições ativas, incluindo ε quando aplicável; sua saída pode diferir apesar de a construção bruta ser igual. O reparo não encerra por esgotamento de ciclos: pode continuar indefinidamente sem encontrar solução. A interrupção manual preserva chamadas concluídas, mas não exporta o plano provisório nem prova inviabilidade da configuração.
 
 ## 7. O que significa “cinco execuções” nesta proposta
 
@@ -273,3 +273,13 @@ Os pilotos e as 28 chamadas oficiais anteriores são históricos com a política
 e os hashes originais. O lote da política atual deve usar uma nova pasta,
 `resultados_entrega2/oficial_construcao_comum`, sem misturar manifestos.
 Apenas a verificação rápida limitada é executada nesta revisão.
+
+## Decisão vigente: reparo sem teto
+
+O antigo limite de 100 ciclos foi retirado por decisão do grupo. Os movimentos
+e a aceitação por redução da violação permanecem iguais. Não há novo limite
+de tempo, avaliações ou estagnação. O reparo termina ao avaliar um plano
+admissível; a interrupção manual é possível, sem certificado de inviabilidade.
+Os 50 ciclos globais continuam restritos à fase de otimização. Os resultados
+anteriores preservam seus manifestos: foram obtidos na versão com teto de
+reparo, e não são novas execuções desta versão.

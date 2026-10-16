@@ -37,7 +37,7 @@ para cada objetivo f1, f2, f3:
         salvar o melhor plano viável encontrado
 ```
 
-`--iteracoes` limita os **ciclos globais** por execução, e não 50 visitas a cada vizinhança. O valor padrão é **50**, escolhido para os experimentos; o PDF não fixa esse número. Cada ciclo pode visitar as três vizinhanças durante a VND. **N1, N2 e N3 são examinadas até a primeira melhora ou o esgotamento dos vizinhos distintos, sem teto de candidatos e sem limite de tempo.** O reparo tem limite de 100 ciclos e avisa se não encontrar uma solução viável. O tempo em segundos é apenas medido e registrado; ele não encerra a busca.
+`--iteracoes` limita os **ciclos globais** por execução, e não 50 visitas a cada vizinhança. O valor padrão é **50**, escolhido para os experimentos; o PDF não fixa esse número. Cada ciclo pode visitar as três vizinhanças durante a VND. **N1, N2 e N3 são examinadas até a primeira melhora ou o esgotamento dos vizinhos distintos, sem teto de candidatos e sem limite de tempo.** O reparo não tem teto de ciclos, avaliações ou tempo: repete até encontrar uma solução admissível ou ser interrompido manualmente. O tempo em segundos é apenas medido e registrado; ele não encerra a busca.
 
 ### N3 sem teto de candidatos
 
@@ -49,13 +49,20 @@ A enumeração é finita nesta representação inteira, mas pode ser muito grand
 
 Os resultados históricos obtidos com teto de 2.000 não devem ser apresentados como resultados desta versão sem teto. Alterar o teto muda a sequência de sorteios consumidos e a trajetória da busca: mais candidatos não garantem melhor resultado final para um número fixo de ciclos. Dentro de uma mesma execução, a melhor solução registrada nunca piora.
 
-### Se o reparo não encontrar uma solução viável
+### Reparo sem teto
 
-O reparo termina na primeira solução viável avaliada ou após **100 ciclos de perturbação e VND**. Esses 100 ciclos não são 100 candidatos nem um limite de tempo.
+O reparo repete os ciclos de perturbação e VND até avaliar a primeira solução
+admissível. Foi removido o antigo limite de 100 ciclos. A lógica dos movimentos,
+a aceitação por redução da violação e a mudança de vizinhança permanecem iguais.
+Não há parada automática por estagnação, avaliações ou tempo.
 
-Se esgotar os ciclos, `solve` lança `NoFeasiblePlanError`, com objetivo, número da execução e semente. **Isso significa falha da heurística em encontrar uma solução dentro do limite, não prova de que a instância seja inviável.** A GVNS daquela execução não começa e nenhuma solução inviável é devolvida como resultado.
-
-Na execução pelo terminal, essa falha encerra o programa com código de saída **2** e uma mensagem legível. O lote de 15 execuções é interrompido; a exportação só acontece quando todas terminam com sucesso, então não são exportados novos CSVs, planos ou figuras daquele lote. Arquivos de uma execução anterior na pasta de saída não são apagados e não representam o lote que falhou. Não há reinício automático ou aumento automático do limite.
+**O reparo não tem garantia de término:** ele pode revisitar planos, inclusive
+quando uma configuração ε-restrita não admite solução ou a heurística não a
+encontra. Use `Ctrl+C` para interromper. Isso não prova inviabilidade e não
+transforma um plano provisório em resultado válido. No lote multiobjetivo,
+chamadas concluídas são preservadas; a chamada interrompida recomeça ao retomar.
+No lote mono-objetivo, a exportação ocorre somente após concluir as 15 chamadas.
+Os 50 ciclos globais contam apenas a otimização após o reparo.
 
 ## Instalação e execução
 
@@ -128,9 +135,10 @@ elegibilidade e disponibilidade continuam obrigatórias.
 
 No reparo de ε-restrito, a medida é `violacao_fisica + excesso_eps2 +
 excesso_eps3`. Excessos normalizados de até `1e-10` são desprezados apenas como
-arredondamento. O limite continua sendo 100 ciclos. Uma falha fica registrada
-como `falha_reparo`; não prova que o problema seja impossível e não entra nos
-gráficos como solução válida. O lote continua com as outras configurações.
+arredondamento. O reparo não tem teto: só termina automaticamente ao encontrar
+um plano admissível. Uma configuração não resolvida pode ficar em execução
+indefinidamente; `Ctrl+C` interrompe o lote e preserva as chamadas concluídas.
+Não se registra falha automática por esgotamento de ciclos.
 
 ### Política obrigatória de partida: construção original em todas as abordagens
 
@@ -226,8 +234,8 @@ em dados diferentes. Veja `python3 multiobjetivo.py --help`.
 em `chamadas/` e executa apenas as pendentes. É permitido mudar `--processos`.
 Se dados, versão do Python, código, normalização, seleção ou parâmetros mudarem,
 o programa exige outra pasta de saída. Não mistura versões de experimentos.
-Falhas de reparo concluídas também são retomadas como resultados de falha, sem
-repetição silenciosa. `Ctrl+C` preserva chamadas concluídas; a chamada em andamento
+Resultados antigos com `falha_reparo` pertencem às versões com teto. A versão
+atual não gera essa falha automaticamente. `Ctrl+C` preserva chamadas concluídas; a chamada em andamento
 será refeita ao retomar. Não há teto de tempo dentro de uma chamada.
 
 ### Pseudocódigo multiobjetivo
@@ -239,12 +247,9 @@ para abordagem em {Soma Ponderada, ε-restrito}:
         para configuração da grade:
             fixar semente, valor escalar e restrições ativas
             construir com construct(case), igual à Entrega 1 em todas as chamadas
-            reparar até obter plano admissível ou esgotar 100 ciclos
-            se o reparo falhou:
-                salvar falha; seguir para a próxima chamada
-            senão:
-                executar a mesma GVNS por 50 ciclos globais
-                salvar melhor receita admissível, curva, tempo e avaliações
+            reparar sem teto até obter plano admissível (Ctrl+C pode interromper)
+            executar a mesma GVNS por 50 ciclos globais
+            salvar melhor receita admissível, curva, tempo e avaliações
     reunir receitas finais das cinco rodadas
     unir composições idênticas preservando suas origens
     retirar receitas dominadas nos três objetivos

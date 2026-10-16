@@ -25,7 +25,6 @@ from figuras import write_convergence, write_solution
 # reproduzíveis desta implementação, não parâmetros fornecidos no case.
 RUNS = 5
 ITERATIONS = 50          # ciclos globais de perturbação + VND por execução
-REPAIR_STEPS = 100       # ciclos de reparo; falha explícita se não achar plano viável
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
 
 
@@ -96,15 +95,6 @@ class Criterion:
 
     def feasible(self, result: Evaluation) -> bool:
         return self.violation(result) == 0.0
-
-
-class NoFeasiblePlanError(RuntimeError):
-    """Falha do reparo, com esforço medido; não prova inviabilidade."""
-
-    def __init__(self, message: str, evaluations: int = 0, seconds: float = 0.0):
-        super().__init__(message)
-        self.evaluations = evaluations
-        self.seconds = seconds
 
 
 def load_case(path: Path) -> Case:
@@ -447,9 +437,8 @@ def solve_scalar(case: Case, criterion: Criterion, seed: int,
     # A construção do PDF pode violar qualidade. O reparo procura uma
     # primeira solução factível; seus planos provisórios não entram na GVNS.
     level = 1
-    for _ in range(REPAIR_STEPS):
-        if best_plan is not None:
-            break
+    # Sem teto de ciclos, avaliações ou tempo; Ctrl+C permite interromper.
+    while best_plan is None:
         shaken = [row.copy() for row in current]
         for _ in range(level):
             moved = neighbor(case, shaken, level, rng)
@@ -466,13 +455,6 @@ def solve_scalar(case: Case, criterion: Criterion, seed: int,
             level = 1
         else:
             level = level % 3 + 1
-    if best_plan is None:
-        raise NoFeasiblePlanError(
-            f"Reparo esgotou {REPAIR_STEPS} ciclos sem encontrar solução viável "
-            f"({criterion.name}, semente {seed}). "
-            "Isso não prova que a instância seja inviável. "
-            "A otimização GVNS desta execução não foi iniciada.",
-            evaluations, time.perf_counter() - started)
     current = [row.copy() for row in best_plan]
     current_result = best_result
     assert criterion.feasible(current_result)
@@ -510,7 +492,7 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         "python": sys.version.split()[0],
         "limite_iteracoes_gvns": iterations,
         "limite_candidatos_n3_por_visita": None,
-        "limite_passos_reparo": REPAIR_STEPS,
+        "limite_passos_reparo": None,
         "politica_inviabilidade": "reparo inicial; rejeição de candidatos inviáveis na GVNS",
         "semente_base": base_seed,
         "construcao": "mínimos em rodízio; completar por preço crescente",
@@ -590,10 +572,7 @@ def main() -> None:
         parser.error("--iteracoes deve ser positivo")
     case = load_case(args.dados)
     directory = args.saida or Path(__file__).with_name("resultados")
-    try:
-        runs = run_method(case, args.iteracoes, args.semente_base)
-    except NoFeasiblePlanError as exc:
-        parser.exit(2, f"Erro: {exc}\nNenhum resultado deste lote foi exportado.\n")
+    runs = run_method(case, args.iteracoes, args.semente_base)
     write_outputs(case, runs, directory, args.dados,
                   args.iteracoes, args.semente_base)
     print(f"Resultados em {directory.resolve()}")

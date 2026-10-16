@@ -274,7 +274,7 @@ v_{ki} &= \max\{0,\, L_{k,s(i)}^{\min} - L_{ki}\} \nonumber \\
 V(x)   &= \sum_{i \in I} \sum_{k \in K}
           \frac{v_{ki}}{L_{k,s(i)}^{\max} - L_{k,s(i)}^{\min}} + V_D(x),
 \end{align}
-em que $v_{ki}$ é o quanto o teor da substância $k$ na pilha $i$ está fora dos limites do seu sinter e $V_D(x)$ é a violação dos limites de disponibilidade, calculada de forma análoga. Cada violação é dividida pela amplitude do intervalo permitido, para que substâncias e minérios com escalas diferentes contribuam de forma comparável. O reparo termina assim que qualquer solução viável é avaliada, ou após $R=100$ ciclos de perturbação e VND. Se esgotar esse limite, sinaliza falha: a GVNS daquela execução não começa e não devolve um plano inviável como resultado. Isso indica que a heurística não encontrou solução dentro do limite, e não prova inviabilidade da instância. Na execução pelo terminal, a mensagem identifica objetivo, execução e semente, e o lote é interrompido antes da exportação. A violação $V$ é usada apenas no reparo e nunca é somada aos objetivos. Nas 15 execuções deste lote, o reparo encontrou uma solução viável no primeiro ciclo.
+em que $v_{ki}$ é o quanto o teor da substância $k$ na pilha $i$ está fora dos limites do seu sinter e $V_D(x)$ é a violação dos limites de disponibilidade, calculada de forma análoga. Cada violação é dividida pela amplitude do intervalo permitido, para que substâncias e minérios com escalas diferentes contribuam de forma comparável. O reparo termina assim que qualquer solução admissível é avaliada. A versão atual não impõe teto de ciclos, avaliações ou tempo, nem parada automática por estagnação. Pode revisitar planos e não há garantia de término; uma interrupção manual não prova inviabilidade e não devolve o plano provisório como resultado. No lote multiobjetivo, preservam-se as chamadas já concluídas. A fase de otimização só começa após o reparo. A violação $V$ é usada apenas no reparo e nunca é somada aos objetivos. Nas 15 execuções deste lote, o reparo encontrou uma solução viável no primeiro ciclo.
 
 \section{Metaheurística GVNS}\label{sec:gvns}
 
@@ -329,7 +329,7 @@ Após a VND, a nova solução substitui a solução corrente somente se tiver va
 
 \subsection{Critério de Parada}
 
-A GVNS termina após $C=50$ ciclos globais, cada um composto por perturbação e VND. Esse valor é parametrizável e foi mantido para comparar a versão atual com os experimentos anteriores. Não é um limite por vizinhança nem um número de avaliações; o tempo de cada ciclo depende da enumeração e das melhorias encontradas. O reparo termina ao encontrar uma solução viável ou após $R=100$ ciclos, com falha explícita se o limite for esgotado. Nenhum limite de tempo interrompe a busca.
+A GVNS termina após $C=50$ ciclos globais, cada um composto por perturbação e VND. Esse valor é parametrizável e foi mantido para comparar a versão atual com os experimentos anteriores. Não é um limite por vizinhança nem um número de avaliações; o tempo de cada ciclo depende da enumeração e das melhorias encontradas. O reparo não tem teto e termina automaticamente apenas ao encontrar uma solução admissível; pode ser interrompido manualmente. Nenhum limite de tempo interrompe a busca.
 
 \subsection{Pseudocódigo}
 
@@ -339,7 +339,7 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
 \caption{Metaheurística GVNS}
 \label{alg:gvns}
 \begin{algorithmic}[1]
-\Require critério $f$, violação ativa $V$, ciclos $C$, reparo $R$, semente
+\Require critério $f$, violação ativa $V$, ciclos $C$, semente
 \Ensure melhor solução viável $x^*$
 \State $x \gets \Call{Construir}{\,}$
 \Comment{mínimos + menor preço}
@@ -348,7 +348,7 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
 \Else
     \State $k \gets 1$
     \Comment{reparo}
-    \For{$t = 1$ \textbf{até} $R$ \textbf{enquanto} não há $x^*$}
+    \While{não há $x^*$}
         \State $x' \gets$ perturbar $x$ em $N_k$, até $k$ movimentos existentes
         \State avaliar $x'$ e atualizar $x^*$ se viável
         \If{há $x^*$} \State \textbf{interrompe o laço} \EndIf
@@ -358,8 +358,7 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
         \Else
             \State $k \gets (k \bmod 3) + 1$
         \EndIf
-    \EndFor
-    \If{não há $x^*$} \State \textbf{encerre com erro de reparo} \EndIf
+    \EndWhile
 \EndIf
 \State $x \gets x^*$;\ $k \gets 1$
 \Comment{GVNS}
@@ -430,14 +429,14 @@ A Tabela~\ref{tab:parametros_alg} resume os parâmetros da implementação. Nenh
 \midrule
 Ciclos da GVNS por execução (critério de parada) & 50 \\
 Teto de candidatos de $N_3$ & Sem teto \\
-Ciclos máximos do reparo inicial & 100 \\
+Ciclos máximos do reparo inicial & Sem teto \\
 Semente base & 2026 \\
 \bottomrule
 \end{tabular}
 \label{tab:parametros_alg}
 \end{table}
 
-A versão atual retirou o teto de enumeração de $N_3$, mantendo 50 ciclos globais e 100 ciclos de reparo. O esforço completo de uma visita pode incluir muitas combinações parciais antes de gerar uma receita. Por isso, o número de avaliações não representa todo o trabalho de enumeração e não fixa o tempo da execução.
+A versão atual não possui teto em $N_3$ nem no reparo, mantendo 50 ciclos globais de otimização. O lote mono-objetivo apresentado foi executado na versão anterior, com teto de 100 ciclos de reparo; todas as suas chamadas encontraram solução viável no primeiro ciclo. Seus resultados e manifestos são preservados e não representam uma nova execução após essa mudança. O esforço completo de uma visita pode incluir muitas combinações parciais antes de gerar uma receita. Por isso, o número de avaliações não representa todo o trabalho de enumeração e não fixa o tempo da execução.
 
 Os 15 experimentos foram executados com três processos em paralelo, em lotes independentes por objetivo e semente. O tempo total de parede foi 47 minutos e 39 segundos. A duração média por execução foi de 20 minutos e 51 segundos para $f_1$, 1 minuto e 52 segundos para $f_2$ e 2 minutos e 2 segundos para $f_3$. Os tempos individuais refletem a concorrência entre processos e não estimam precisamente a duração de uma execução sequencial. Esses resultados substituem as tabelas e figuras da versão anterior com enumeração limitada.
 
@@ -721,9 +720,13 @@ Os registros identificam a partida como \texttt{construcao}.
 Essa política substitui a seleção anterior de referências para iniciar
 chamadas do $\varepsilon$-restrito.
 
-O reparo mantém o máximo de 100 ciclos; se falhar, registramos a falha,
-o esforço e a semente, sem exportar um ponto inviável e sem concluir
-que a configuração seja matematicamente impossível.
+O reparo não tem teto de ciclos, avaliações ou tempo. Uma configuração
+$\varepsilon$-restrita pode permanecer indefinidamente no reparo, seja por
+não admitir solução ou por a heurística não conseguir encontrá-la. Não há
+falta de melhora que encerre automaticamente essa fase. Uma interrupção
+manual preserva as chamadas concluídas; a chamada em andamento precisa
+recomeçar. Nenhum ponto inviável é exportado como solução, e a interrupção
+não prova impossibilidade matemática da configuração.
 
 \subsection{Rodadas, Configurações e Reprodução}
 Uma rodada de cada abordagem percorre toda a sua grade. Cinco rodadas
@@ -767,7 +770,7 @@ da fronteira exata.
 \subsection{Estado dos Experimentos}
 A implementação utiliza a política de construção comum em todas as
 abordagens. A revisão adicionou um teste que verifica a chamada da construção
-original nos dois métodos. Os 19 testes automatizados passaram nesta revisão;
+original nos dois métodos. Os testes automatizados verificam também a continuação do reparo além de 100 ciclos e sua interrupção manual;
 a verificação com os dados do case usa o roteiro rápido limitado.
 
 O piloto anterior usou uma rodada e dois ciclos globais: sete configurações
@@ -779,7 +782,8 @@ política de partida comum.
 Os testes rápidos limitam apenas seu próprio processo a cinco visitas de
 $N_3$, com até 25 candidatos completos por visita. Seus resultados são
 identificados como limitados e não certificam ótimo local em $N_3$.
-A produção mantém $N_3$ sem teto.
+A produção mantém $N_3$ e reparo sem teto. Os testes de casos sem solução
+utilizam interrupção simulada para não permanecer indefinidamente em execução.
 
 O lote oficial anterior foi interrompido com 28 chamadas de Soma Ponderada
 concluídas, todas admissíveis e iniciadas pela construção. Nenhuma chamada

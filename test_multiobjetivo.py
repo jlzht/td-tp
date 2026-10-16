@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import multiobjetivo as multi
-from mono_objetivo import (Case, Ore, Sinter, NoFeasiblePlanError, evaluate,
+from mono_objetivo import (Case, Ore, Sinter, evaluate,
                           construct, load_case, neighbors, solve_scalar)
 
 ROOT = Path(__file__).resolve().parent
@@ -83,15 +83,13 @@ class MultiObjectiveTests(unittest.TestCase):
             self.assertEqual(record["partida"], "construcao")
             self.assertEqual(record["caminhoes_por_pilha_e_minerio"], [[2, 0, 0]])
 
-    def test_falha_epsilon_e_registrada(self):
-        # Sem minério B, o mínimo de alumina é 1.8%; ε3=.1 não é encontrado.
+    def test_epsilon_sem_solucao_pode_ser_interrompido(self):
+        # A configuração não admite as receitas disponíveis: não exportar ponto inválido.
         case = small_case()
         case.ores = (case.ores[0], case.ores[2])
-        with patch("mono_objetivo.REPAIR_STEPS", 2):
-            record = multi.execute_job((case, self.normal, "epsilon", self.config, 1, 42, 1))
-        self.assertEqual(record["status"], "falha_reparo")
-        self.assertNotIn("objetivos", record)
-        self.assertGreater(record["avaliacoes"], 0)
+        with patch("mono_objetivo.neighbor", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                multi.execute_job((case, self.normal, "epsilon", self.config, 1, 42, 1))
 
     def test_dominancia_em_tres_objetivos(self):
         self.assertTrue(multi.dominates((60, 3, 2), (61, 4, 2)))
