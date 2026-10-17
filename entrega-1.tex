@@ -771,7 +771,8 @@ da fronteira exata.
 A implementação utiliza a política de construção comum em todas as
 abordagens. A revisão adicionou um teste que verifica a chamada da construção
 original nos dois métodos. Os testes automatizados verificam também a continuação do reparo além de 100 ciclos e sua interrupção manual;
-a verificação com os dados do case usa o roteiro rápido limitado.
+as verificações limitadas anteriores com os dados do case são preservadas
+como histórico; seu roteiro auxiliar foi removido da versão distribuída.
 
 O piloto anterior usou uma rodada e dois ciclos globais: sete configurações
 ponderadas e nove pares de $\varepsilon$ encontraram soluções admissíveis.
@@ -779,7 +780,7 @@ Esse piloto pertence à versão anterior, que admitia selecionar referências
 como partida no $\varepsilon$-restrito; não valida experimentalmente a nova
 política de partida comum.
 
-Os testes rápidos limitam apenas seu próprio processo a cinco visitas de
+Os testes automatizados que usam enumeração real limitam apenas seu próprio processo a cinco visitas de
 $N_3$, com até 25 candidatos completos por visita. Seus resultados são
 identificados como limitados e não certificam ótimo local em $N_3$.
 A produção mantém $N_3$ e reparo sem teto. Os testes de casos sem solução

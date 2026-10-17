@@ -244,7 +244,7 @@ As pessoas 2 e 3 precisam combinar a interface da GVNS antes de editar o mesmo t
 - Após o crash, quatro chamadas oficiais completas foram preservadas. O lote
   foi retomado com dois processos e ambiente local `.venv`, mantendo Python
   3.14.7 e Matplotlib 3.11.2.
-- A pedido do grupo, `teste_rapido.py` limita N3 a cinco visitas de até 25
+- No desenvolvimento, um roteiro auxiliar (posteriormente removido) limitou N3 a cinco visitas de até 25
   candidatos completos por visita; esses resultados são rotulados como teste,
   não como experimentos oficiais. Os smoke tests automatizados reais também
   usam essas travas; produção e lote oficial continuam sem teto.

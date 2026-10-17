@@ -96,7 +96,6 @@ As sementes são fixadas por objetivo e número da execução para facilitar com
 | `multiobjetivo.py` | Normalização, critérios escalares, rodadas, dominância e exportação multiobjetivo. |
 | `normalizacao.json` | Três receitas de referência da Entrega 1, matriz cruzada, escalas e hash dos dados. |
 | `configuracoes_multi.json` | Sete vetores de pesos e nove pares de ε. |
-| `teste_rapido.py` | Três chamadas de um ciclo, com N3 limitada apenas para verificar funcionamento. |
 | `test_multiobjetivo.py` | Testes das escalas, ε no reparo/otimização, dominância e retomada. |
 | `entrega-1.tex` | Relatório cumulativo das duas etapas. |
 | `figuras.py` | Gráficos PDF com Matplotlib. |
@@ -181,33 +180,28 @@ semente de cada chamada; tempos medidos dependem da carga da máquina.
 
 ### Como executar
 
-Faça primeiro os testes de funcionamento. O roteiro rápido limita N3 a cinco
-visitas e 25 candidatos completos por visita, por chamada; faz somente três
-chamadas de um ciclo. Não altera a GVNS de produção e seus resultados não são
-experimentos oficiais nem certificados de ótimo local em N3:
+Prepare o ambiente e execute os testes automatizados:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -r requirements.txt
-python3 teste_rapido.py
+python3 -m unittest -q
 ```
 
-Os limites do teste podem ser alterados com `--visitas-n3` e `--candidatos-n3`.
-O resultado identificado como limitado fica em `resultados_entrega2/teste_rapido_construcao_comum/teste_rapido.json`.
-O teto de candidatos conta receitas completas; não limita nós parciais anteriores
-a elas. A trava de visitas impede novas enumerações depois do número definido.
+Os testes automatizados limitam os casos que usam N3 real a cinco visitas de
+até 25 candidatos completos. O teste de retirada do teto usa um gerador
+controlado com 3.001 candidatos baratos. Essas limitações pertencem somente
+aos testes; a execução normal mantém N3 e reparo sem teto.
 
-Os testes automatizados também limitam os smoke tests que usam N3 real a cinco
-visitas e 25 candidatos. O teste de retirada do teto usa um gerador controlado
-com 3.001 candidatos baratos, sem enumeração real. Para rodar os testes e,
-se necessário, repetir o piloto da grade completa **sem as travas do teste rápido**:
+Para um piloto da grade completa com uma rodada e dois ciclos globais:
 
 ```sh
-python3 -m pip install -r requirements.txt
-python3 -m unittest -q
 python3 multiobjetivo.py --rodadas 1 --iteracoes 2 --processos 3 --saida meu_piloto
 ```
+
+Esse piloto usa a GVNS normal, sem limitar N3 ou reparo; poucos ciclos globais
+não garantem execução curta.
 
 Execute as cinco rodadas completas:
 
@@ -299,4 +293,6 @@ O programa rejeita a retomada automática desses manifestos com o código novo.
 Para os experimentos da política atual, use `oficial_construcao_comum/`.
 Um reaproveitamento das chamadas ponderadas anteriores exige uma migração
 verificada e com proveniência registrada; essa migração não foi realizada.
-O teste rápido atual é separado e não substitui o lote oficial.
+Os resultados de verificações limitadas em `teste_rapido_construcao_comum/`
+são históricos de desenvolvimento, não substituem o lote oficial e foram
+gerados por um roteiro auxiliar posteriormente removido.

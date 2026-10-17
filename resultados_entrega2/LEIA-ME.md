@@ -75,5 +75,6 @@ e **zero** das 45 de ε-restrito. Restam 52 chamadas. `resumo.json` informa
 Os PDFs gerados com dados parciais estão em `oficial/graficos_parciais/`
 e não representam a entrega final. Na versão histórica correspondente, repetir o comando com a mesma configuração
 retoma só as chamadas pendentes. A análise final do relatório depende desse
-lote completo. Use `teste_rapido.py` para verificar funcionamento sem iniciar
-as 80 chamadas.
+lote completo. Use `python3 -m unittest -q` para verificar funcionamento sem
+iniciar as 80 chamadas. O roteiro auxiliar das verificações rápidas anteriores
+foi removido; seus resultados permanecem apenas como histórico.
