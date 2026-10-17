@@ -161,10 +161,60 @@ como partida no ε-restrito.
 
 ### Configurações e rodadas
 
-`configuracoes_multi.json` define:
+`configuracoes_multi.json` define as combinações abaixo. A ordem dos pesos é
+**custo, desvio de sílica, desvio de alumina**. Todos são aplicados aos
+objetivos normalizados.
 
-- 7 pesos: equilíbrio, três prioridades individuais e três compromissos entre pares;
-- 9 pares de ε: produto cartesiano de `{0.25, 0.50, 1.00}`.
+#### Soma Ponderada — sete configurações por rodada
+
+| Configuração | Peso do custo | Peso da sílica | Peso da alumina |
+| --- | ---: | ---: | ---: |
+| `equilibrada` | 1/3 | 1/3 | 1/3 |
+| `custo` | 0.6 | 0.2 | 0.2 |
+| `silica` | 0.2 | 0.6 | 0.2 |
+| `alumina` | 0.2 | 0.2 | 0.6 |
+| `custo_silica` | 0.5 | 0.5 | 0 |
+| `custo_alumina` | 0.5 | 0 | 0.5 |
+| `silica_alumina` | 0 | 0.5 | 0.5 |
+
+#### ε-restrito — nove configurações por rodada
+
+Em todas elas minimizamos o custo normalizado e limitamos os dois desvios
+normalizados. Os ε abaixo não são percentuais químicos por pilha.
+
+| Configuração | ε₂ — sílica | ε₃ — alumina |
+| --- | ---: | ---: |
+| `eps_025_025` | 0.25 | 0.25 |
+| `eps_025_050` | 0.25 | 0.50 |
+| `eps_025_100` | 0.25 | 1.00 |
+| `eps_050_025` | 0.50 | 0.25 |
+| `eps_050_050` | 0.50 | 0.50 |
+| `eps_050_100` | 0.50 | 1.00 |
+| `eps_100_025` | 1.00 | 0.25 |
+| `eps_100_050` | 1.00 | 0.50 |
+| `eps_100_100` | 1.00 | 1.00 |
+
+#### O que cada rodada executa
+
+| Rodada | Soma Ponderada | ε-restrito |
+| --- | --- | --- |
+| 1 | As mesmas 7 configurações da tabela | Os mesmos 9 pares da tabela |
+| 2 | As mesmas 7 configurações da tabela | Os mesmos 9 pares da tabela |
+| 3 | As mesmas 7 configurações da tabela | Os mesmos 9 pares da tabela |
+| 4 | As mesmas 7 configurações da tabela | Os mesmos 9 pares da tabela |
+| 5 | As mesmas 7 configurações da tabela | Os mesmos 9 pares da tabela |
+
+**Os pesos e os ε ficam fixos durante cada chamada da GVNS.** Ao terminar
+uma chamada, guardamos sua solução final e iniciamos outra com a próxima
+configuração. Entre as rodadas repetimos a mesma grade, mudando as sementes;
+não sorteamos novos pesos ou ε. Assim, uma rodada contém sete chamadas
+ponderadas ou nove chamadas ε-restritas, e não uma única chamada que muda
+seus parâmetros no meio da busca.
+
+Estas são configurações propostas para os experimentos, não resultados
+já obtidos. As tabelas não significam que o lote oficial atual esteja
+concluído. Pesos, ε e quantidade de configurações são escolhas do grupo,
+não valores determinados pelo enunciado.
 
 Uma **rodada** percorre toda a grade da abordagem. Cinco rodadas fazem
 **35 chamadas** para Soma Ponderada e **45 chamadas** para ε-restrito, 80 no total.
