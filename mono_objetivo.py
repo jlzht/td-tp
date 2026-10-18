@@ -10,6 +10,7 @@ import csv
 import hashlib
 import json
 import math
+import multiprocessing
 import random
 import statistics
 import sys
@@ -25,7 +26,7 @@ from figuras import write_convergence, write_solution
 # Cinco execuções são exigidas pelo PDF. Os demais valores são escolhas
 # reproduzíveis desta implementação, não parâmetros fornecidos no case.
 RUNS = 5
-ITERATIONS = 50          # ciclos por execução, somando reparo e GVNS
+ITERATIONS = 300         # ciclos por execução, somando reparo e GVNS
 REPAIR_STEPS = 100       # ciclos de reparo sem solução viável antes de recomeçar
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
 N3_MIN_FRACTION = 0.25   # fração mínima de caminhões que a N3 altera na pilha
@@ -722,26 +723,40 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
                    indent=2), encoding="utf-8")
 
 
+def _solve_job(arguments: tuple) -> Run:
+    """Uma execução; função de módulo para o Pool poder serializá-la."""
+    return solve(*arguments)
+
+
 def run_method(case: Case, iterations: int = ITERATIONS,
                base_seed: int = BASE_SEED,
-               n3_min_fraction: float = N3_MIN_FRACTION) -> list[Run]:
+               n3_min_fraction: float = N3_MIN_FRACTION,
+               processes: int = 1) -> list[Run]:
+    """Executa as 15 execuções; a semente de cada uma não depende do paralelismo."""
+    jobs = [(case, objective, number, iterations, base_seed, n3_min_fraction)
+            for objective in range(3) for number in range(1, RUNS + 1)]
+    if processes == 1:
+        results = map(_solve_job, jobs)
+    else:
+        pool = multiprocessing.get_context("spawn").Pool(processes)
+        results = pool.imap(_solve_job, jobs)
     runs = []
-    for objective in range(3):
-        for number in range(1, RUNS + 1):
-            run = solve(case, objective, number, iterations, base_seed,
-                        n3_min_fraction)
-            runs.append(run)
-            value = ("sem solução viável" if run.failed
-                     else run.best_evaluation.objectives[objective])
-            print(f"GVNS, f{objective + 1}, execução {number}: {value}",
-                  flush=True)
+    for run in results:
+        runs.append(run)
+        value = ("sem solução viável" if run.failed
+                 else run.best_evaluation.objectives[run.objective])
+        print(f"GVNS, f{run.objective + 1}, execução {run.number}: {value}",
+              flush=True)
+    if processes != 1:
+        pool.close()
+        pool.join()
     return runs
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--iteracoes", type=int, default=ITERATIONS,
-                        help="ciclos por execução, somando reparo e GVNS (padrão: 50)")
+                        help="ciclos por execução, somando reparo e GVNS (padrão: 300)")
     parser.add_argument("--semente-base", type=int, default=BASE_SEED,
                         help="ponto de partida dos sorteios reproduzíveis")
     parser.add_argument("--n3-fracao-minima", type=float, default=N3_MIN_FRACTION,
@@ -749,6 +764,8 @@ def main() -> None:
                              "o mínimo absoluto é 2 (padrão: 0.25)")
     parser.add_argument("--dados", type=Path,
                         default=Path(__file__).with_name("dados_exemplo.json"))
+    parser.add_argument("--processos", type=int, default=1,
+                        help="execuções simultâneas (padrão: 1)")
     parser.add_argument("--saida", type=Path,
                         help="pasta de saída; padrão: resultados")
     args = parser.parse_args()
@@ -758,7 +775,8 @@ def main() -> None:
         parser.error("--n3-fracao-minima deve estar entre 0 e 1")
     case = load_case(args.dados)
     directory = args.saida or Path(__file__).with_name("resultados")
-    runs = run_method(case, args.iteracoes, args.semente_base, args.n3_fracao_minima)
+    runs = run_method(case, args.iteracoes, args.semente_base, args.n3_fracao_minima,
+                      args.processos)
     write_outputs(case, runs, directory, args.dados,
                   args.iteracoes, args.semente_base, args.n3_fracao_minima)
     print(f"Resultados em {directory.resolve()}")
