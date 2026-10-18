@@ -28,7 +28,7 @@
 \graphicspath{{imagens/}}
 
 % Valores que dependem dos experimentos finais (critério de parada e lotes oficiais).
-\newcommand{\Cparada}{\textbf{??}}
+\newcommand{\Cparada}{300}
 
 % Permite até 3 figuras/tabelas de largura dupla no topo de uma mesma página
 % (o padrão é 1, o que empurra as figuras largas para o fim do documento).
@@ -314,6 +314,7 @@ A vizinhança $N_2$ também segue o enunciado: escolhem-se duas pilhas $p_1$ e $
 A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e reconstrói a composição inteira da décima, exigindo que pelo menos
 \begin{equation}
 m_i=\max\{2,\ \lceil \phi\, n_i\rceil\}
+\label{eq:n3min}
 \end{equation}
 dos seus $n_i$ caminhões mudem de minério, com $\phi=0{,}25$. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento de $N_1$.
 
@@ -535,7 +536,7 @@ O código-fonte, os dados de entrada e as instruções para executar os experime
 
 \subsection{Escolha da Fração Mínima de $N_3$}
 
-Para escolher $\phi$, a GVNS foi executada com oito regras: mínimo fixo de dois caminhões ($\phi=0$) e $\phi\in\{0{,}20;0{,}25;0{,}30;0{,}40;0{,}50;0{,}60;0{,}75\}$, sempre com o arredondamento para cima da Equação de $m_i$. Para cada regra e cada objetivo, foram feitas 30 execuções de 50 ciclos com as mesmas sementes, totalizando 720 execuções. A Tabela~\ref{tab:n3_fracoes} resume as médias e a Figura~\ref{fig:n3_fracoes} mostra a distribuição dos valores finais.
+Para escolher $\phi$, a GVNS foi executada com oito regras: mínimo fixo de dois caminhões ($\phi=0$) e $\phi\in\{0{,}20;0{,}25;0{,}30;0{,}40;0{,}50;0{,}60;0{,}75\}$, sempre com o arredondamento para cima da Equação~(\ref{eq:n3min}). Para cada regra e cada objetivo, foram feitas 30 execuções de 50 ciclos com as mesmas sementes, totalizando 720 execuções. O experimento foi feito antes da escolha de $C$ e do sorteio uniforme dos pares de $N_2$; essas mudanças são posteriores e valem igualmente para todas as regras comparadas. A Tabela~\ref{tab:n3_fracoes} resume as médias e a Figura~\ref{fig:n3_fracoes} mostra a distribuição dos valores finais.
 
 \begin{table}[htbp]
 \caption{Média do valor final em 30 execuções por regra de $N_3$}
@@ -582,9 +583,35 @@ O mínimo fixo de dois caminhões teve o melhor custo médio, mas permite recons
 
 \subsection{Escolha do Critério de Parada}
 
-% PENDENTE: preencher com os resultados de resultados_criterio_parada
-% (30 execuções de 500 ciclos por objetivo, phi = 0,25).
-\textbf{[Pendente: execuções longas para a escolha de $C$.]}
+Para escolher $C$, cada objetivo foi otimizado em 30 execuções longas, de 500 ciclos, com $\phi=0{,}25$. Com a mesma semente, os primeiros $c$ ciclos de uma execução longa são idênticos a uma execução com orçamento $c$; por isso, o melhor valor registrado ao fim de cada ciclo mostra exatamente o que cada critério de parada teria devolvido. A Figura~\ref{fig:parada} mostra a distância relativa ao melhor valor encontrado nessas 90 execuções, e a Tabela~\ref{tab:parada} resume alguns orçamentos. Nenhuma execução falhou no reparo.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{parada_convergencia.pdf}
+\caption{Distância relativa ao melhor valor encontrado em função dos ciclos, em 30 execuções de 500 ciclos por objetivo: mediana, média e faixa entre o primeiro e o terceiro quartis. Eixo vertical em escala logarítmica, com trecho linear junto ao zero.}
+\label{fig:parada}
+\end{figure*}
+
+\begin{table}[htbp]
+\caption{Distância relativa média ao melhor valor encontrado e fração das execuções que o atingem, por orçamento de ciclos}
+\centering
+\begin{tabular}{r r r r r}
+\toprule
+\textbf{$C$} & \textbf{$f_1$} & \textbf{$f_2$} & \textbf{$f_3$} & \textbf{$f_3$ no melhor} \\
+\midrule
+50 & $1{,}14\%$ & $7{,}0\times10^{-5}$ & $2{,}6\times10^{-3}$ & 7\% \\
+100 & $0{,}88\%$ & $4{,}5\times10^{-5}$ & $5{,}9\times10^{-4}$ & 20\% \\
+200 & $0{,}65\%$ & $3{,}2\times10^{-5}$ & $7{,}4\times10^{-5}$ & 57\% \\
+300 & $0{,}55\%$ & $2{,}2\times10^{-5}$ & $6{,}1\times10^{-6}$ & 80\% \\
+500 & $0{,}42\%$ & $1{,}7\times10^{-5}$ & $4{,}0\times10^{-6}$ & 87\% \\
+\bottomrule
+\end{tabular}
+\label{tab:parada}
+\end{table}
+
+Os três objetivos convergem em ritmos diferentes. Em $f_3$, a maior parte das execuções atinge o melhor valor entre 150 e 300 ciclos; com 50 ciclos, só 7\% o atingiam. Em $f_2$, a curva forma um patamar a partir de cerca de 300 ciclos. Em $f_1$, a melhora continua até 500 ciclos, mas em ritmo decrescente: de 300 para 500 ciclos, a distância média cai apenas 0{,}13 ponto percentual, com cerca de 67\% a mais de esforço. Também foi avaliada a parada após $K$ ciclos consecutivos sem melhora, com $K$ de 10 a 150. Para o mesmo número médio de ciclos, ela ficou ligeiramente pior que o orçamento fixo em $f_1$ e equivalente em $f_2$ e $f_3$; como também torna o esforço de cada execução variável, o que dificulta comparar configurações e abordagens, foi mantido o orçamento fixo. Adotou-se, portanto, $C=300$ ciclos, ponto em que $f_2$ e $f_3$ já estão no patamar e o ganho adicional em $f_1$ não compensa o custo, considerando também as 115 chamadas do lote multiobjetivo.
+
+O melhor valor encontrado nessas execuções foi R\$~59{,}36 milhões para $f_1$, 2{,}3726305~pp$^2$ para $f_2$ e 1{,}4199714~pp$^2$ para $f_3$. Na comparação com a referência exata, $f_1$ tem ótimo provado de R\$~59{,}34 milhões, a 0{,}03\% do melhor valor da GVNS. Em $f_2$ e $f_3$, o Gurobi não provou a otimalidade em cerca de quatro horas, mas sua melhor solução coincide com a melhor da GVNS, com intervalo de otimalidade final de $3{,}8\times10^{-5}$ e $4{,}8\times10^{-5}$, respectivamente.
 
 \subsection{Resultados para $f_1$}
 
@@ -778,8 +805,8 @@ mantendo o custo como objetivo e limitando os dois desvios agregados:
 \text{sujeito a}\quad &\bar f_2(x)\leq\varepsilon_2,\\
 &\bar f_3(x)\leq\varepsilon_3.
 \end{align}
-A grade é o produto cartesiano $\{0{,}25;0{,}50;1{,}00\}^2$, totalizando
-nove pares. Por exemplo, $\varepsilon_2=0{,}25$ impõe
+A grade é o produto cartesiano $\{0{,}10;0{,}25;0{,}50;1{,}00\}^2$, totalizando
+16 pares, escolhida como descrito adiante. Por exemplo, $\varepsilon_2=0{,}25$ impõe
 $f_2\leq a_2+0{,}25(b_2-a_2)$; não significa um teor de 0,25\%.
 Para $\varepsilon_q=1$, o limite adicional é $b_q$, o máximo empírico
 da coluna de referência. Mantêm-se também os limites físicos de cada pilha.
@@ -843,7 +870,7 @@ prossegue. A falha não prova impossibilidade matemática da configuração.
 
 \subsection{Rodadas, Configurações e Reprodução}
 Uma rodada de cada abordagem percorre toda a sua grade. Cinco rodadas
-correspondem a 35 chamadas escalares para Soma Ponderada e 45 para
+correspondem a 35 chamadas escalares para Soma Ponderada e 80 para
 $\varepsilon$-restrito. Cada chamada reinicia a GVNS e utiliza o mesmo orçamento de
 $C=\Cparada$ ciclos da Entrega~1, sem teto de candidatos, nós ou tempo em $N_3$.
 Essa organização operacional das cinco execuções deve ser distinguida dos
@@ -881,8 +908,9 @@ São conjuntos não dominados entre as soluções encontradas, não uma prova
 da fronteira exata.
 
 \subsection{Escolha das Grades}
-% PENDENTE: piloto com a grade de epsilon ampliada (resultados_entrega2/piloto_grade).
-\textbf{[Pendente: piloto de uma rodada com a grade de $\varepsilon$ ampliada para $\{0{,}05;0{,}10;0{,}25;0{,}50;1{,}00\}^2$, usado para decidir a grade final.]}
+A grade inicial de $\varepsilon$ do grupo, $\{0{,}25;0{,}50;1{,}00\}^2$, não permitia desvios normalizados abaixo de 0{,}25, isto é, deixava sem exploração o trecho da fronteira entre o melhor desvio isolado e um quarto da faixa de cada desvio, justamente o de melhor qualidade. Para decidir a grade final, foi feito um piloto de uma rodada e 100 ciclos com a grade ampliada $\{0{,}05;0{,}10;0{,}25;0{,}50;1{,}00\}^2$ e os sete pesos da Soma Ponderada, usando as referências de normalização da versão anterior.
+
+No piloto, os pares com $\varepsilon=0{,}05$ ou $0{,}10$ alcançaram soluções que nenhuma configuração da grade inicial atinge, por exemplo $f_2\approx2{,}58$~pp$^2$ com custo de R\$~63{,}7 milhões e $f_3\approx1{,}66$~pp$^2$ com R\$~64{,}8 milhões. Os pares $(0{,}05;0{,}05)$, $(0{,}05;0{,}10)$ e $(0{,}10;0{,}05)$, que restringem os dois desvios ao mesmo tempo, esgotaram o orçamento no reparo sem solução admissível. Adotou-se, por isso, a grade $\{0{,}10;0{,}25;0{,}50;1{,}00\}^2$, com 16 pares, que inclui a região de alta qualidade sem os pares que falharam no piloto. Os sete pesos da Soma Ponderada foram mantidos. O lote oficial tem, assim, 35 chamadas de Soma Ponderada e 80 de $\varepsilon$-restrito.
 
 \subsection{Resultados da Soma Ponderada}
 % PENDENTE: lote oficial (5 rodadas), projeções soma_f1_f2/f1_f3/f2_f3.

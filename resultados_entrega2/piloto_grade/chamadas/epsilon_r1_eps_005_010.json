@@ -1,0 +1,21 @@
+{
+  "metodo": "epsilon",
+  "configuracao": "eps_005_010",
+  "parametros": {
+    "id": "eps_005_010",
+    "epsilons": [
+      0.05,
+      0.1
+    ]
+  },
+  "rodada": 1,
+  "semente": 203028,
+  "iteracoes": 100,
+  "partida": "construcao",
+  "status": "falha_reparo",
+  "avaliacoes": 4098458,
+  "segundos": 490.03316220000124,
+  "ciclos_reparo": 100,
+  "reinicios_reparo": 0,
+  "nos_n3": 2665112
+}

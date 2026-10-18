@@ -6,3 +6,5 @@ __pycache__/
 *.log
 *.out
 *.tmp
+*_progresso.txt
+*_erros.txt

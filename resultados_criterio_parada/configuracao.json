@@ -1,0 +1,10 @@
+{
+  "fracoes": [
+    0.25
+  ],
+  "execucoes_por_objetivo": 30,
+  "iteracoes_gvns": 500,
+  "semente_base": 2026,
+  "dados": "dados_exemplo.json",
+  "regra": "N3 altera ao menos max(2, ceil(fracao * caminhoes da pilha))"
+}
