@@ -1,35 +1,15 @@
 """Checagens das fórmulas, da construção e da busca nos dados do anexo."""
+import math
 import random
 import unittest
 from collections import Counter
-from contextlib import contextmanager
-from itertools import islice
+from dataclasses import replace
 from pathlib import Path
-from unittest.mock import patch
 
-from mono_objetivo import (Case, Ore, Sinter,
-                          construct, evaluate, load_case, neighbor, neighbors, solve)
+from mono_objetivo import N3_MIN_FRACTION, construct, evaluate, load_case, neighbor, neighbors, solve
 
 
 DATA = Path(__file__).with_name("dados_exemplo.json")
-
-
-@contextmanager
-def short_search():
-    """Smoke tests: só 5 visitas de até 25 candidatos reais de N3."""
-    visits = 0
-
-    def limited(case, plan, kind, rng):
-        nonlocal visits
-        if kind != 3:
-            yield from neighbors(case, plan, kind, rng)
-            return
-        visits += 1
-        if visits <= 5:
-            yield from islice(neighbors(case, plan, kind, rng), 25)
-
-    with patch("mono_objetivo.neighbors", limited):
-        yield
 
 
 class MonoObjectiveTests(unittest.TestCase):
@@ -78,7 +58,7 @@ class MonoObjectiveTests(unittest.TestCase):
                 p = changed[0]
                 common = sum((Counter(plan[p]) & Counter(moved[p])).values())
                 self.assertGreaterEqual(len(plan[p]) - common,
-                                        (len(plan[p]) + 1) // 2)
+                                        max(2, math.ceil(N3_MIN_FRACTION * len(plan[p]))))
                 for ore, count in zip(case.ores, result.usage):
                     self.assertLessEqual(ore.minimum, count)
                     self.assertLessEqual(count, ore.maximum)
@@ -91,8 +71,7 @@ class MonoObjectiveTests(unittest.TestCase):
     def test_gvns_devolve_planos_viaveis(self):
         case = self.case
         for objective in range(3):
-            with short_search():
-                run = solve(case, objective, 1, iterations=1)
+            run = solve(case, objective, 1, iterations=1)
             self.assertGreater(run.evaluations, 0)
             self.assertEqual(run.iterations, 1)
             self.assertGreater(run.seconds, 0)
@@ -104,11 +83,64 @@ class MonoObjectiveTests(unittest.TestCase):
                 self.assertTrue(evaluate(case, rebuilt).feasible)
 
     def test_parametros_do_experimento_sao_aplicados(self):
-        with short_search():
-            run = solve(self.case, 0, 1, iterations=1, base_seed=314)
+        run = solve(self.case, 0, 1, iterations=1, base_seed=314)
         self.assertEqual(run.seed, 315)
         self.assertGreater(run.evaluations, 0)
         self.assertTrue(evaluate(self.case, run.best_plan).feasible)
+
+    def test_avaliacao_incremental_igual_a_completa(self):
+        case = self.case
+        rng = random.Random(7)
+        plan = construct(case)
+        result = evaluate(case, plan)
+        for step in range(60):
+            kind = step % 3 + 1
+            for candidate in neighbors(case, plan, kind, rng):
+                incremental = evaluate(case, candidate, result)
+                full = evaluate(case, [row.copy() for row in candidate])
+                self.assertEqual(incremental, full)
+                plan, result = candidate, incremental
+                break
+
+    def test_cortes_da_n3_preservam_todos_os_vizinhos_que_melhoram(self):
+        # Pilhas de quatro caminhões deixam a N3 sem cortes pequena o bastante
+        # para enumerar inteira e comparar com a versão com cortes.
+        small = replace(self.case, trucks=(4,) * len(self.case.trucks))
+        # A construção já é a mais barata; partir de uma receita sorteada
+        # garante que existam vizinhos que melhoram cada objetivo.
+        start = construct(small)
+        plan = random.Random(3).choice(
+            list(neighbors(small, start, 3, random.Random(0))))
+        base = evaluate(small, plan)
+
+        def recipes(moves):
+            return {tuple(tuple(sorted(Counter(row).items())) for row in move)
+                    for move in moves}
+
+        everything = list(neighbors(small, plan, 3, random.Random(1)))
+        # Os três objetivos isolados e uma combinação como a da Soma Ponderada.
+        for weights in ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0),
+                        (1e-7, 0.3, 0.5)):
+            def scalar(result):
+                return sum(w * f for w, f in zip(weights, result.objectives))
+            improving = recipes(
+                move for move in everything
+                if scalar(evaluate(small, move)) < scalar(base) - 1e-12)
+            pruned = recipes(neighbors(small, plan, 3, random.Random(2), weights))
+            self.assertTrue(improving)
+            self.assertLessEqual(improving, pruned)
+            self.assertLessEqual(pruned, recipes(everything))
+
+    def test_reparo_recomeca_e_registra_falha_ao_esgotar_ciclos(self):
+        # Nenhum minério tem SiO2 acima de 9 %, então a faixa 9,5-9,6 % é
+        # inatingível e o reparo só pode terminar pelo orçamento de ciclos.
+        impossible = replace(self.case.sinters[1], si_min=9.5, si_target=9.55, si_max=9.6)
+        small = replace(self.case, trucks=(4,) * len(self.case.trucks),
+                        sinters={1: impossible, 2: self.case.sinters[2]})
+        run = solve(small, 0, 1, iterations=250)
+        self.assertTrue(run.failed)
+        self.assertEqual(run.repair_cycles, 250)
+        self.assertEqual(run.restarts, 2)
 
     def test_enumeracao_n1_nao_repete_composicoes(self):
         plan = construct(self.case)
@@ -116,59 +148,6 @@ class MonoObjectiveTests(unittest.TestCase):
         compositions = {tuple(tuple(sorted(Counter(row).items())) for row in move)
                         for move in moves}
         self.assertEqual(len(moves), len(compositions))
-
-    def test_reparo_continua_depois_de_cem_ciclos(self):
-        # Movimento controlado: a primeira solução viável só surge no ciclo 101.
-        case = Case(2, (2,), (1,),
-                    (Ore(100, 8, 1.5, 0, 2, {1}), Ore(200, 5, 1.5, 0, 2, {1})),
-                    {1: Sinter(4, 5, 6, 1, 1.5, 2)})
-        cycles = 0
-        successful_cycle = None
-
-        def shake(case, plan, kind, rng):
-            nonlocal successful_cycle
-            if cycles == 100:
-                successful_cycle = cycles + 1
-                return [[1, 1]]
-            return None
-
-        def empty_local_search(case, plan, kind, rng):
-            nonlocal cycles
-            if kind == 1:
-                cycles += 1
-            return ()
-
-        with patch("mono_objetivo.neighbor", shake), \
-             patch("mono_objetivo.neighbors", empty_local_search):
-            run = solve(case, 0, 1, iterations=1)
-        self.assertEqual(successful_cycle, 101)
-        self.assertTrue(run.best_evaluation.feasible)
-        self.assertEqual(run.best_plan, [[1, 1]])
-
-    def test_reparo_pode_ser_interrompido_sem_devolver_inviavel(self):
-        case = Case(2, (2,), (1,), (Ore(100, 8, 1.5, 0, 2, {1}),),
-                    {1: Sinter(4, 5, 6, 1, 1.5, 2)})
-        with patch("mono_objetivo.neighbor", side_effect=KeyboardInterrupt):
-            with self.assertRaises(KeyboardInterrupt):
-                solve(case, 0, 1, iterations=1)
-
-    def test_n3_examina_mais_de_dois_mil_sem_melhora(self):
-        # Gerador controlado para verificar o consumo além do antigo teto.
-        case = Case(2, (1,), (1,), (Ore(100, 5, 1.5, 0, 1, {1}),),
-                    {1: Sinter(4, 5, 6, 1, 1.5, 2)})
-        examined = 0
-
-        def generated(case, plan, kind, rng):
-            nonlocal examined
-            if kind == 3:
-                for _ in range(3001):
-                    examined += 1
-                    yield [row.copy() for row in plan]
-
-        with patch("mono_objetivo.neighbors", generated):
-            run = solve(case, 0, 1, iterations=1)
-        self.assertEqual(examined, 3001)
-        self.assertTrue(run.best_evaluation.feasible)
 
 
 if __name__ == "__main__":

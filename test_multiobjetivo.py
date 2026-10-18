@@ -137,7 +137,7 @@ class MultiObjectiveTests(unittest.TestCase):
                                        "f3_pp2": e.objectives[2], "caminhoes_por_pilha_e_minerio":
                                        [[plan[0].count(j) for j in range(3)]]}
                 payoff.append({"values": e.objectives})
-            normal_source = {"data_sha256": hashlib.sha256(data_path.read_bytes()).hexdigest(),
+            normal_source = {"data_sha256": multi.data_digest(data_path),
                              "references": references, "payoff_table": payoff,
                              "a": [min(p["values"][q] for p in payoff) for q in range(3)],
                              "b": [max(p["values"][q] for p in payoff) for q in range(3)]}

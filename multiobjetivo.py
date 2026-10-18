@@ -19,8 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from figuras import write_projections
-from mono_objetivo import (BASE_SEED, ITERATIONS, RUNS, Case,
-                          Criterion, Evaluation, evaluate,
+from mono_objetivo import (BASE_SEED, ITERATIONS, N3_MIN_FRACTION, REPAIR_STEPS,
+                          RUNS, Case, Criterion, Evaluation, evaluate,
                           load_case, solve_scalar)
 
 ROOT = Path(__file__).resolve().parent
@@ -55,10 +55,19 @@ def plan_from_counts(case: Case, counts) -> list[list[int]]:
     return [[j for j, count in enumerate(row) for _ in range(count)] for row in counts]
 
 
+def data_digest(path: Path) -> str:
+    """SHA-256 do arquivo com quebras de linha LF.
+
+    O git no Windows (core.autocrlf) troca LF por CRLF no checkout; sem
+    normalizar, o mesmo arquivo de dados teria hashes diferentes por sistema.
+    """
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def load_normalization(path: Path, data_path: Path, case: Case):
     """Confere hash, receitas, objetivos e extremos da matriz de referência."""
     source = json.loads(path.read_text(encoding="utf-8"))
-    if source["data_sha256"] != hashlib.sha256(data_path.read_bytes()).hexdigest():
+    if source["data_sha256"] != data_digest(data_path):
         raise ValueError("normalização pertence a outro arquivo de dados")
     values, plans = [], []
     for q in ("f1", "f2", "f3"):
@@ -106,12 +115,16 @@ def load_configurations(path: Path):
 
 def make_criterion(method: str, config: dict, normalization: Normalization) -> Criterion:
     """Restrição de ε entra na admissibilidade e na medida de reparo."""
+    # Pesos sobre os objetivos brutos: (f - a) / (b - a) é afim em f, então o
+    # valor escalar é sum(w / (b - a) * f) mais uma constante.
+    spans = [high - low for low, high in zip(normalization.a, normalization.b)]
     if method == "soma":
         weights = config["pesos"]
         return Criterion(config["id"],
                          lambda e: sum(w*f for w, f in
                                        zip(weights, normalization.apply(e.objectives))),
-                         lambda e: e.violation)
+                         lambda e: e.violation,
+                         tuple(w / span for w, span in zip(weights, spans)))
     if method != "epsilon":
         raise ValueError("abordagem deve ser soma ou epsilon")
     eps2, eps3 = config["epsilons"]
@@ -122,7 +135,8 @@ def make_criterion(method: str, config: dict, normalization: Normalization) -> C
         extra = sum(excess for excess in (f2-eps2, f3-eps3) if excess > EPS_TOL)
         return result.violation + extra
 
-    return Criterion(config["id"], lambda e: normalization.apply(e.objectives)[0], violation)
+    return Criterion(config["id"], lambda e: normalization.apply(e.objectives)[0], violation,
+                     (1 / spans[0], 0.0, 0.0))
 
 
 def dominates(a, b) -> bool:
@@ -160,17 +174,22 @@ def execute_job(job) -> dict:
               "rodada": round_number, "semente": seed, "iteracoes": iterations,
               "partida": "construcao"}
     run = solve_scalar(case, criterion, seed, iterations)
+    effort = {"avaliacoes": run.evaluations, "segundos": run.seconds,
+              "ciclos_reparo": run.repair_cycles, "reinicios_reparo": run.restarts,
+              "nos_n3": run.n3_nodes}
+    if run.failed:
+        # Orçamento esgotado sem solução admissível: fica registrado, sem receita.
+        return {**record, "status": "falha_reparo", **effort}
     result = evaluate(case, run.best_plan)
     if not criterion.feasible(result):
         raise RuntimeError("GVNS retornou plano que viola as restrições ativas")
-    return {**record, "status": "ok", "avaliacoes": run.evaluations,
-            "segundos": run.seconds, "objetivos": result.objectives,
+    return {**record, "status": "ok", **effort, "objetivos": result.objectives,
             "normalizados": normalization.apply(result.objectives),
             "valor_escalar": criterion.value(result), "violacao_fisica": result.violation,
             "si_por_pilha": result.si, "al_por_pilha": result.al,
             "caminhoes_por_pilha_e_minerio": [[row.count(j) for j in range(len(case.ores))]
                                              for row in run.best_plan],
-            "convergencia": run.trace}
+            "convergencia": run.trace, "convergencia_ciclos": run.cycle_trace}
 
 
 def write_json(path: Path, data) -> None:
@@ -185,7 +204,8 @@ def export_results(directory: Path, records: list[dict], methods: list[str], rou
                    expected: int) -> None:
     """Exporta também falhas; gráficos usam apenas resultados admissíveis."""
     fields = ["metodo", "rodada", "configuracao", "status", "semente", "iteracoes",
-              "partida", "avaliacoes", "segundos", "f1_rs", "f2_pp2", "f3_pp2",
+              "partida", "avaliacoes", "segundos", "ciclos_reparo", "reinicios_reparo",
+              "nos_n3", "f1_rs", "f2_pp2", "f3_pp2",
               "f1_normalizado", "f2_normalizado", "f3_normalizado", "valor_escalar"]
     with (directory/"execucoes.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fields, lineterminator="\n")
@@ -193,8 +213,8 @@ def export_results(directory: Path, records: list[dict], methods: list[str], rou
         for record in records:
             row = {key: record.get(key, "") for key in fields}
             if record["status"] == "ok":
-                row.update(zip(fields[9:12], record["objetivos"]))
-                row.update(zip(fields[12:15], record["normalizados"]))
+                row.update(zip(fields[12:15], record["objetivos"]))
+                row.update(zip(fields[15:18], record["normalizados"]))
             writer.writerow(row)
     summary = {"completo": len(records) == expected, "chamadas_previstas": expected,
                "chamadas_concluidas": len(records), "abordagens": {}}
@@ -228,7 +248,8 @@ def main() -> None:
     parser.add_argument("--metodo", choices=("todos", "soma", "epsilon"), default="todos")
     parser.add_argument("--configuracao", action="append", help="ID para piloto; pode repetir a opção")
     parser.add_argument("--rodadas", type=int, default=RUNS, help="padrão: 5; piloto: 1")
-    parser.add_argument("--iteracoes", type=int, default=ITERATIONS, help="ciclos globais, padrão: 50")
+    parser.add_argument("--iteracoes", type=int, default=ITERATIONS,
+                        help=f"ciclos por chamada, somando reparo e GVNS (padrão: {ITERATIONS})")
     parser.add_argument("--semente-base", type=int, default=BASE_SEED)
     parser.add_argument("--processos", type=int, default=1, help="chamadas simultâneas, padrão: 1")
     parser.add_argument("--saida", type=Path, default=ROOT/"resultados_multiobjetivo")
@@ -263,7 +284,8 @@ def main() -> None:
                     "configuracoes": configs, "rodadas": args.rodadas,
                     "iteracoes": args.iteracoes, "semente_base": args.semente_base,
                     "metodos": methods, "selecao": sorted(selected_ids),
-                    "reparo_ciclos": None, "teto_n3": None,
+                    "reparo": f"recomeça da construção a cada {REPAIR_STEPS} ciclos sem solução admissível, dentro do orçamento de ciclos",
+                    "n3_fracao_minima": N3_MIN_FRACTION, "teto_n3": None,
                     "tolerancia_epsilon": EPS_TOL, "tolerancias_dominancia": DOM_TOL,
                     "politica_partida": "construção original da Entrega 1 em todas as chamadas; reparo segundo as restrições ativas",
                     "semente": "base + 100000 (soma) ou 200000 (epsilon) + 1000*rodada + índice_configuração (1..n)"}
@@ -272,7 +294,7 @@ def main() -> None:
         manifest_path = directory/"configuracoes.json"
         # JSON normaliza tuplas em listas; permite comparar a retomada literalmente.
         manifest = json.loads(json.dumps(manifest))
-        if manifest_path.exists() and json.loads(manifest_path.read_text()) != manifest:
+        if manifest_path.exists() and json.loads(manifest_path.read_text(encoding="utf-8")) != manifest:
             raise ValueError("pasta contém outro experimento/versão; escolha outra --saida")
         write_json(manifest_path, manifest)
         write_json(directory/"normalizacao.json", normal_source)
@@ -283,7 +305,7 @@ def main() -> None:
             method, config, n, seed = job[2:6]
             path = checkpoints/f"{method}_r{n}_{config['id']}.json"
             if path.exists():
-                record = json.loads(path.read_text())
+                record = json.loads(path.read_text(encoding="utf-8"))
                 if (record["metodo"], record["configuracao"], record["rodada"], record["semente"]) != (method, config["id"], n, seed):
                     raise ValueError("checkpoint não corresponde à chamada planejada")
                 if record["status"] == "ok":
@@ -302,7 +324,7 @@ def main() -> None:
 
     def save_timing(interrupted: bool):
         path = directory/"historico_lote.json"
-        history = json.loads(path.read_text()) if path.exists() else []
+        history = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
         history.append({"inicio_utc": started_at,
                         "segundos_relogio": time.perf_counter()-started,
                         "processos": args.processos, "chamadas_pendentes_no_inicio": len(pending),
