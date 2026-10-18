@@ -1,0 +1,2 @@
+objetivo_otimizado,status,valor_objetivo,limitante_inferior,gap_relativo,gap_absoluto,segundos,nos_explorados,iteracoes_simplex,solucoes_encontradas,f1_rs,f2_pp2,f3_pp2,inicio,fim,tempo_limite_s,mip_gap_alvo,threads,gurobi,cpu,dados
+f2,limite_tempo,2.372630495742044,2.3725400457668115,3.8122234117219086e-05,9.044997523233178e-05,14920.06500005722,43030522.0,170478526.0,10,63440000.0,2.3726304957422766,4.404846600632107,2026-10-18T09:46:20,2026-10-18T13:56:05,14920.0,0.0,4,13.0.1,"Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",dados_exemplo.json
