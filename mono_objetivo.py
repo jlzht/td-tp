@@ -14,7 +14,7 @@ import statistics
 import sys
 import time
 from dataclasses import dataclass, field
-from itertools import combinations, islice, product
+from itertools import combinations, product
 from pathlib import Path
 
 from figuras import write_convergence, write_solution
@@ -24,7 +24,6 @@ from figuras import write_convergence, write_solution
 # reproduzíveis desta implementação, não parâmetros fornecidos no case.
 RUNS = 5
 ITERATIONS = 50          # ciclos globais de perturbação + VND por execução
-N3_CANDIDATES = 2000     # limite por visita à N3, cuja enumeração pode ser enorme
 REPAIR_STEPS = 100       # evita laço infinito se o reparo não achar plano viável
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
 
@@ -278,8 +277,13 @@ def construct(case: Case) -> list[list[int]]:
 
 
 def neighbors(case: Case, plan: list[list[int]], kind: int,
-              rng: random.Random):
+              rng: random.Random, improve: int | None = None):
     """Percorre vizinhos de N1, N2 ou N3 em ordem sorteada.
+
+    Com ``improve`` (índice do objetivo), a N3 descarta os ramos da enumeração
+    que não conseguem melhorar esse objetivo. Como as outras nove pilhas ficam
+    fixas, melhorar o plano equivale a melhorar a parcela da pilha reconstruída,
+    e o limitante dessa parcela é exato: nenhum vizinho que melhora é perdido.
 
     Cada vizinho copia apenas as pilhas que altera e compartilha as demais
     listas com ``plan``; ``evaluate`` usa esse compartilhamento para não
@@ -335,8 +339,14 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
             min_al, max_al = n * group.al_min, n * group.al_max
             si_values = [case.ores[j].si for j in eligible]
             al_values = [case.ores[j].al for j in eligible]
+            price_values = [case.ores[j].price for j in eligible]
             counts = [0] * len(eligible)
             min_changes = (n + 1) // 2
+            old_price = sum(case.ores[j].price for j in plan[p])
+            old_si_error = (sum(case.ores[j].si for j in plan[p]) / n
+                            - group.si_target) ** 2
+            old_al_error = (sum(case.ores[j].al for j in plan[p]) / n
+                            - group.al_target) ** 2
 
             def quality_range(values: list[float], start: int, remaining: int):
                 """Menor e maior teor ainda possíveis nas posições restantes."""
@@ -357,7 +367,27 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
                     bounds.append(total)
                 return bounds[0], bounds[1]
 
-            def rebuild(index: int, remaining: int, si: float, al: float):
+            def least_error(low: float, high: float, target: float) -> float:
+                """Menor desvio quadrático possível com soma de teor em [low, high]."""
+                nearest = min(max(n * target, low), high)
+                return (nearest / n - target) ** 2
+
+            def cannot_improve(index: int, remaining: int, price: float,
+                               si_range: tuple[float, float],
+                               al_range: tuple[float, float]) -> bool:
+                # A margem só evita descartar empate por arredondamento; ela
+                # deixa passar candidatos que a busca local depois rejeita.
+                if improve == 0:
+                    low, _ = quality_range(price_values, index, remaining)
+                    return price + low >= old_price + 1e-9
+                if improve == 1:
+                    return least_error(*si_range, group.si_target) >= old_si_error + 1e-12
+                if improve == 2:
+                    return least_error(*al_range, group.al_target) >= old_al_error + 1e-12
+                return False
+
+            def rebuild(index: int, remaining: int, si: float, al: float,
+                        price: float):
                 if not sum(lower[index:]) <= remaining <= sum(upper[index:]):
                     return
                 si_low, si_high = quality_range(si_values, index, remaining)
@@ -366,6 +396,10 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
                         si + si_high < min_si - 1e-10 or
                         al + al_low > max_al + 1e-10 or
                         al + al_high < min_al - 1e-10):
+                    return
+                if cannot_improve(index, remaining, price,
+                                  (si + si_low, si + si_high),
+                                  (al + al_low, al + al_high)):
                     return
                 if index == len(eligible):
                     changed = n - sum(min(counts[t], old_count[eligible[t]])
@@ -383,10 +417,11 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
                     counts[index] = count
                     yield from rebuild(index + 1, remaining - count,
                                        si + count * case.ores[j].si,
-                                       al + count * case.ores[j].al)
+                                       al + count * case.ores[j].al,
+                                       price + count * case.ores[j].price)
                 counts[index] = 0
 
-            yield from rebuild(0, n, 0.0, 0.0)
+            yield from rebuild(0, n, 0.0, 0.0, 0.0)
         return
 
     if kind != 2:
@@ -434,9 +469,9 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
             trace.append((evaluations, result.objectives[objective]))
         return result
 
-    def candidates(plan: list[list[int]], level: int):
-        generated = neighbors(case, plan, level, rng)
-        return islice(generated, N3_CANDIDATES) if level == 3 else generated
+    def candidates(plan: list[list[int]], level: int, improving: bool = False):
+        return neighbors(case, plan, level, rng,
+                         objective if improving else None)
 
     def local_search(plan: list[list[int]], result: Evaluation, repairing: bool):
         level = 1
@@ -444,7 +479,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         last_level = 3
         while level <= last_level:
             improved = False
-            for candidate in candidates(plan, level):
+            for candidate in candidates(plan, level, improving=not repairing):
                 candidate_result = consider(candidate, result)
                 if repairing and candidate_result.feasible:
                     return candidate, candidate_result
@@ -527,13 +562,12 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         "execucoes_por_objetivo": RUNS,
         "python": sys.version.split()[0],
         "limite_iteracoes_gvns": iterations,
-        "limite_candidatos_n3_por_visita": N3_CANDIDATES,
         "limite_passos_reparo": REPAIR_STEPS,
         "politica_inviabilidade": "reparo inicial; rejeição de candidatos inviáveis na GVNS",
         "semente_base": base_seed,
         "construcao": "mínimos em rodízio; completar por preço crescente",
         "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, com ao menos metade dos caminhões alterados",
-        "busca_local": "N1 e N2 até primeira melhora ou exaustão; N3 até primeira melhora ou 2000 candidatos por visita",
+        "busca_local": "N1, N2 e N3 até primeira melhora ou exaustão; na N3, ramos que não podem melhorar o objetivo são descartados",
     }
     (directory / "configuracao.json").write_text(
         json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")

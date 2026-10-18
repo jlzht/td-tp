@@ -2,6 +2,7 @@
 import random
 import unittest
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 from mono_objetivo import construct, evaluate, load_case, neighbor, neighbors, solve
@@ -99,6 +100,32 @@ class MonoObjectiveTests(unittest.TestCase):
                 self.assertEqual(incremental, full)
                 plan, result = candidate, incremental
                 break
+
+    def test_cortes_da_n3_preservam_todos_os_vizinhos_que_melhoram(self):
+        # Pilhas de quatro caminhões deixam a N3 sem cortes pequena o bastante
+        # para enumerar inteira e comparar com a versão com cortes.
+        small = replace(self.case, trucks=(4,) * len(self.case.trucks))
+        # A construção já é a mais barata; partir de uma receita sorteada
+        # garante que existam vizinhos que melhoram cada objetivo.
+        start = construct(small)
+        plan = random.Random(3).choice(
+            list(neighbors(small, start, 3, random.Random(0))))
+        base = evaluate(small, plan)
+
+        def recipes(moves):
+            return {tuple(tuple(sorted(Counter(row).items())) for row in move)
+                    for move in moves}
+
+        everything = list(neighbors(small, plan, 3, random.Random(1)))
+        for objective in range(3):
+            improving = recipes(
+                move for move in everything
+                if evaluate(small, move).objectives[objective]
+                < base.objectives[objective] - 1e-12)
+            pruned = recipes(neighbors(small, plan, 3, random.Random(2), objective))
+            self.assertTrue(improving)
+            self.assertLessEqual(improving, pruned)
+            self.assertLessEqual(pruned, recipes(everything))
 
     def test_enumeracao_n1_nao_repete_composicoes(self):
         plan = construct(self.case)
