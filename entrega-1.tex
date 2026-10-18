@@ -27,6 +27,9 @@
 
 \graphicspath{{imagens/}}
 
+% Valores que dependem dos experimentos finais (critério de parada e lotes oficiais).
+\newcommand{\Cparada}{\textbf{??}}
+
 % Permite até 3 figuras/tabelas de largura dupla no topo de uma mesma página
 % (o padrão é 1, o que empurra as figuras largas para o fim do documento).
 \setcounter{dbltopnumber}{3}
@@ -249,6 +252,18 @@ a admissibilidade exige violação física zero. No método $\varepsilon$-restri
 exige adicionalmente o atendimento dos dois limites agregados definidos
 na Seção~\ref{sec:multi}.
 
+\subsection{Avaliação Incremental}
+Todos os objetivos e restrições são somas de parcelas por pilha, mais o uso
+global de cada minério. Cada vizinho copia apenas as pilhas que altera
+(uma em $N_1$ e $N_3$, duas em $N_2$) e compartilha as demais com a solução
+de origem. A avaliação reaproveita as parcelas das pilhas não alteradas e
+recalcula só as alteradas, atualizando o uso dos minérios pela diferença.
+A ordem das somas é a mesma da avaliação completa, de modo que os valores
+são idênticos em ponto flutuante; um teste automatizado confere essa
+igualdade. A mudança não altera a busca: com as mesmas sementes, as
+trajetórias são idênticas às da avaliação completa, e o tempo por execução
+caiu cerca de 2,7 vezes em um teste com $f_3$.
+
 \section{Heurística Construtiva}\label{sec:construtiva}
 
 \subsection{Geração da Solução Inicial}
@@ -274,7 +289,9 @@ v_{ki} &= \max\{0,\, L_{k,s(i)}^{\min} - L_{ki}\} \nonumber \\
 V(x)   &= \sum_{i \in I} \sum_{k \in K}
           \frac{v_{ki}}{L_{k,s(i)}^{\max} - L_{k,s(i)}^{\min}} + V_D(x),
 \end{align}
-em que $v_{ki}$ é o quanto o teor da substância $k$ na pilha $i$ está fora dos limites do seu sinter e $V_D(x)$ é a violação dos limites de disponibilidade, calculada de forma análoga. Cada violação é dividida pela amplitude do intervalo permitido, para que substâncias e minérios com escalas diferentes contribuam de forma comparável. O reparo termina assim que qualquer solução admissível é avaliada. A versão atual não impõe teto de ciclos, avaliações ou tempo, nem parada automática por estagnação. Pode revisitar planos e não há garantia de término; uma interrupção manual não prova inviabilidade e não devolve o plano provisório como resultado. No lote multiobjetivo, preservam-se as chamadas já concluídas. A fase de otimização só começa após o reparo. A violação $V$ é usada apenas no reparo e nunca é somada aos objetivos. Nas 15 execuções deste lote, o reparo encontrou uma solução viável no primeiro ciclo.
+em que $v_{ki}$ é o quanto o teor da substância $k$ na pilha $i$ está fora dos limites do seu sinter e $V_D(x)$ é a violação dos limites de disponibilidade, calculada de forma análoga. Cada violação é dividida pela amplitude do intervalo permitido, para que substâncias e minérios com escalas diferentes contribuam de forma comparável. O reparo termina assim que qualquer solução admissível é avaliada. Cada ciclo de reparo (perturbação seguida de VND) consome um ciclo do mesmo orçamento $C$ da GVNS, descrito na Seção~\ref{sec:gvns}. Se o reparo completar $R=100$ ciclos sem encontrar solução admissível, ele recomeça a partir da construção. Como o gerador pseudoaleatório já avançou, a nova tentativa percorre outra sequência de perturbações e vizinhos. Esse reinício se repete até que uma solução admissível seja encontrada ou até que o orçamento de $C$ ciclos se esgote. No segundo caso, a execução é registrada como falha de reparo, sem solução exportada, e o lote prossegue com a execução seguinte; a falha não prova que a configuração seja inviável. Cada execução registra quantos ciclos de reparo e quantos reinícios utilizou. A fase de otimização só começa após o reparo e usa os ciclos restantes do orçamento. A violação $V$ é usada apenas no reparo e nunca é somada aos objetivos.
+
+Na versão entregue anteriormente, o esgotamento das 100 tentativas interrompia todo o lote de execuções com erro. O reinício dentro do orçamento substitui esse comportamento, que não chegou a ocorrer em nenhum experimento: em todas as execuções mono-objetivo realizadas, o reparo encontrou uma solução viável no primeiro ciclo.
 
 \section{Metaheurística GVNS}\label{sec:gvns}
 
@@ -290,17 +307,25 @@ Como a composição, os objetivos e as restrições dependem apenas de quantos c
 
 \subsection{Vizinhança $N_2$}
 
-A vizinhança $N_2$ também segue o enunciado: escolhem-se duas pilhas $p_1$ e $p_2$ e um minério de cada uma; se o minério de $p_1$ for elegível para o sinter de $p_2$ e vice-versa, os dois caminhões são trocados. O movimento preserva a massa das pilhas e o uso total de cada minério, portanto nunca viola a disponibilidade; pode, porém, violar a qualidade de uma das duas pilhas. Assim como em $N_1$, trocas entre posições equivalentes são geradas uma única vez.
+A vizinhança $N_2$ também segue o enunciado: escolhem-se duas pilhas $p_1$ e $p_2$ e um minério de cada uma; se o minério de $p_1$ for elegível para o sinter de $p_2$ e vice-versa, os dois caminhões são trocados. O movimento preserva a massa das pilhas e o uso total de cada minério, portanto nunca viola a disponibilidade; pode, porém, violar a qualidade de uma das duas pilhas. Assim como em $N_1$, trocas entre posições equivalentes são geradas uma única vez. A ordem de exploração sorteia diretamente os pares de pilhas, e não apenas as pilhas, para que todo par tenha a mesma chance de ser examinado primeiro; percorrer os pares a partir de uma única pilha sorteada esgotaria os pares dessa pilha antes dos demais e concentraria a perturbação e a primeira melhora nela.
 
 \subsection{Vizinhança $N_3$}
 
-A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e reconstrói a composição inteira da décima, exigindo que pelo menos metade dos seus caminhões mude de minério. Por exemplo, em uma pilha de 10 caminhões, uma única aplicação de $N_3$ pode substituir cinco ou mais caminhões de uma vez.
+A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e reconstrói a composição inteira da décima, exigindo que pelo menos
+\begin{equation}
+m_i=\max\{2,\ \lceil \phi\, n_i\rceil\}
+\end{equation}
+dos seus $n_i$ caminhões mudem de minério, com $\phi=0{,}25$. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento de $N_1$.
 
 A nova composição é gerada diretamente como contagens de caminhões por minério, e não como permutações de posições. Durante a enumeração, o número de caminhões de cada minério é limitado pela disponibilidade que resta após o uso nas outras nove pilhas, e combinações que não podem atingir os limites de qualidade da pilha são descartadas antecipadamente. Assim, a pilha reconstruída sempre respeita massa, compatibilidade, disponibilidade e qualidade; se as outras nove pilhas já forem viáveis, o vizinho inteiro é viável. Durante a GVNS, em que a solução corrente é sempre viável, $N_3$ funciona, portanto, como um operador que preserva a viabilidade.
 
-As vizinhanças são complementares: $N_1$ ajusta uma receita, $N_2$ redistribui minérios entre pilhas sem alterar seu uso total, e $N_3$ avalia uma mudança maior e coordenada. A reconstrução permite avaliar diretamente a nova receita, sem exigir que cada alteração intermediária seja viável ou melhore o objetivo; isso pode contornar bloqueios dos movimentos pequenos. Não se afirma que a mesma receita só possa ser alcançada por $N_3$. A exigência de mudar ao menos metade dos caminhões distingue esse movimento de uma substituição isolada ou de uma troca entre pilhas.
+As vizinhanças são complementares: $N_1$ ajusta uma receita, $N_2$ redistribui minérios entre pilhas sem alterar seu uso total, e $N_3$ avalia uma mudança maior e coordenada. A reconstrução permite avaliar diretamente a nova receita, sem exigir que cada alteração intermediária seja viável ou melhore o objetivo; isso pode contornar bloqueios dos movimentos pequenos. Não se afirma que a mesma receita só possa ser alcançada por $N_3$. A exigência de mudar uma fração mínima dos caminhões distingue esse movimento de uma substituição isolada ou de uma troca entre pilhas, e faz de $N_3$ a vizinhança de maior alteração, coerente com a ordem $N_1$, $N_2$, $N_3$ da VND e da perturbação.
 
-Na versão atual, $N_3$ não possui teto de candidatos completos, nós de enumeração ou tempo. A VND percorre seus vizinhos em ordem sorteada até a primeira melhora ou o esgotamento das reconstruções possíveis. A enumeração é finita, pois trabalha com contagens inteiras limitadas pela massa e pelas disponibilidades, mas seu esforço pode ser elevado. Antes de gerar cada receita, são percorridos ramos parciais e calculados limites de qualidade; esses cálculos não entram no contador de avaliações de soluções completas.
+Na versão entregue anteriormente, a fração era $\phi=0{,}5$, isto é, ao menos metade da pilha. Essa regra excluía todos os movimentos intermediários, entre dois caminhões e metade da pilha, que nenhuma das outras vizinhanças cobre. O valor $\phi=0{,}25$ foi escolhido por um experimento com oito regras, descrito na Seção~\ref{sec:resultados}. O experimento mostrou também que, para $\phi\geq0{,}4$, a vizinhança fica praticamente vazia perto de boas soluções de $f_2$ e $f_3$: com as outras nove pilhas fixas e os limites de disponibilidade, quase não existe receita que respeite a qualidade e altere tantos caminhões. Com a regra anterior, portanto, $N_3$ deixava de contribuir para esses dois objetivos depois do início da busca.
+
+Na versão atual, $N_3$ não possui teto de candidatos completos, nós de enumeração ou tempo. A VND percorre seus vizinhos em ordem sorteada até a primeira melhora ou o esgotamento das reconstruções possíveis. A enumeração é finita, pois trabalha com contagens inteiras limitadas pela massa e pelas disponibilidades. Para que a enumeração completa seja viável, a VND descarta, além dos ramos que não atingem os limites de qualidade, os ramos que não podem melhorar o critério ativo. Como as outras nove pilhas ficam fixas e cada objetivo é uma soma de parcelas por pilha, a variação do critério é a variação ponderada das parcelas da pilha reconstruída. Em cada ramo parcial, calcula-se um limitante inferior para essa variação: o custo mínimo de completar a pilha com os caminhões restantes e o menor desvio quadrático possível dentro da faixa de teor ainda alcançável. Se o limitante indica que nenhuma receita do ramo melhora o critério, o ramo é descartado. Esse corte não altera a vizinhança nem a regra de primeira melhora, pois só elimina receitas que a VND rejeitaria. Na perturbação e no reparo, os cortes por critério não são aplicados.
+
+Na versão entregue anteriormente, cada visita a $N_3$ examinava no máximo 2.000 receitas completas. Esse teto limitava as receitas avaliadas, mas não o esforço de enumeração: antes de cada receita completa, podiam ser visitadas muitas combinações parciais. Com os cortes, o teto foi removido e a vizinhança é examinada por completo. O esforço da enumeração passou a ser registrado à parte, como número de nós visitados, pois esses cálculos não entram no contador de avaliações de soluções completas.
 
 \subsection{Busca Local}
 
@@ -310,7 +335,7 @@ A primeira melhora foi preferida à melhor melhora porque $N_2$ e $N_3$ têm mui
 
 \subsection{Perturbação}
 
-A perturbação (\textit{shaking}) tenta até $k$ movimentos sucessivos da vizinhança $N_k$, com $k \in \{1,2,3\}$. Em cada tentativa, escolhe o primeiro vizinho viável na ordem sorteada, mesmo que piore o objetivo. Se nenhum existir, a solução permanece igual naquela tentativa. Assim, tenta uma substituição em $N_1$, até duas trocas em $N_2$ ou até três reconstruções em $N_3$; uma mesma pilha pode ser reconstruída mais de uma vez. Depois das tentativas, aplica uma VND. Seu resultado é comparado com a solução anterior à perturbação: se melhorar, é aceito e $k$ volta a 1; caso contrário, a solução anterior é mantida e $k$ avança circularmente.
+A perturbação (\textit{shaking}) tenta até $k$ movimentos sucessivos da vizinhança $N_k$, com $k \in \{1,2,3\}$. Em cada tentativa, escolhe o primeiro vizinho viável na ordem sorteada, mesmo que piore o objetivo. Se nenhum existir, a solução permanece igual naquela tentativa. Assim, tenta uma substituição em $N_1$, até duas trocas em $N_2$ ou até três reconstruções em $N_3$; uma mesma pilha pode ser reconstruída mais de uma vez. A intensidade cresce, portanto, tanto pela vizinhança quanto pelo número de movimentos, o que produz perturbações progressivamente mais fortes quando a busca não encontra melhora. Depois das tentativas, aplica uma VND. Seu resultado é comparado com a solução anterior à perturbação: se melhorar, é aceito e $k$ volta a 1; caso contrário, a solução anterior é mantida e $k$ avança circularmente.
 
 \subsection{Tratamento de Soluções Inviáveis}
 
@@ -325,11 +350,13 @@ A alternativa de aceitar soluções inviáveis com penalização~\cite{aula04} f
 
 \subsection{Critério de Aceitação}
 
-Após a VND, a nova solução substitui a solução corrente somente se tiver valor do objetivo estritamente menor; nesse caso, $k$ volta a 1. Caso contrário, a solução corrente é mantida e $k$ avança. Independentemente da aceitação, a melhor solução viável avaliada ao longo de toda a execução, incluindo as avaliadas no reparo, na perturbação e na busca local, é armazenada e é a solução retornada.
+Após a VND, a nova solução substitui a solução corrente somente se tiver valor do objetivo estritamente menor; nesse caso, $k$ volta a 1. Em todas as comparações (viabilidade, melhora na VND, aceitação e registro da melhor solução), diferenças de até $10^{-10}$ são tratadas como erro de arredondamento, com a mesma tolerância em todos os pontos do algoritmo. Caso contrário, a solução corrente é mantida e $k$ avança. Independentemente da aceitação, a melhor solução viável avaliada ao longo de toda a execução, incluindo as avaliadas no reparo, na perturbação e na busca local, é armazenada e é a solução retornada.
 
 \subsection{Critério de Parada}
 
-A GVNS termina após $C=50$ ciclos globais, cada um composto por perturbação e VND. Esse valor é parametrizável e foi mantido para comparar a versão atual com os experimentos anteriores. Não é um limite por vizinhança nem um número de avaliações; o tempo de cada ciclo depende da enumeração e das melhorias encontradas. O reparo não tem teto e termina automaticamente apenas ao encontrar uma solução admissível; pode ser interrompido manualmente. Nenhum limite de tempo interrompe a busca.
+Cada execução dispõe de um orçamento de $C=\Cparada$ ciclos, somando os ciclos de reparo e os ciclos globais da GVNS, cada um composto por perturbação e VND. Não é um limite por vizinhança nem um número de avaliações; o tempo de cada ciclo depende da enumeração e das melhorias encontradas. Nenhum limite de tempo interrompe a busca.
+
+Na versão entregue anteriormente, a GVNS usava 50 ciclos. Com o algoritmo revisado, execuções com 200 ciclos e as mesmas sementes melhoraram o resultado de 50 ciclos em todos os objetivos, o que mostrou que 50 ciclos interrompiam a busca antes da convergência. O valor de $C$ foi escolhido a partir de execuções longas, descritas na Seção~\ref{sec:resultados}.
 
 \subsection{Pseudocódigo}
 
@@ -339,16 +366,22 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
 \caption{Metaheurística GVNS}
 \label{alg:gvns}
 \begin{algorithmic}[1]
-\Require critério $f$, violação ativa $V$, ciclos $C$, semente
-\Ensure melhor solução viável $x^*$
+\Require critério $f$, violação ativa $V$, ciclos $C$, reinício $R$, semente
+\Ensure melhor solução viável $x^*$, ou falha de reparo
 \State $x \gets \Call{Construir}{\,}$
 \Comment{mínimos + menor preço}
+\State $c \gets 0$
 \If{$V(x) = 0$}
     \State $x^* \gets x$
 \Else
     \State $k \gets 1$
     \Comment{reparo}
-    \While{não há $x^*$}
+    \While{não há $x^*$ \textbf{e} $c < C$}
+        \If{$R$ ciclos de reparo desde o último início}
+            \State $x \gets \Call{Construir}{\,}$;\ $k \gets 1$
+            \Comment{reinício}
+        \EndIf
+        \State $c \gets c + 1$
         \State $x' \gets$ perturbar $x$ em $N_k$, até $k$ movimentos existentes
         \State avaliar $x'$ e atualizar $x^*$ se viável
         \If{há $x^*$} \State \textbf{interrompe o laço} \EndIf
@@ -360,9 +393,10 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
         \EndIf
     \EndWhile
 \EndIf
+\If{não há $x^*$} \State \Return falha de reparo \EndIf
 \State $x \gets x^*$;\ $k \gets 1$
 \Comment{GVNS}
-\For{$c = 1$ \textbf{até} $C$}
+\For{$c \gets c+1$ \textbf{até} $C$}
     \State $x' \gets x$
     \Comment{perturbação}
     \For{até $k$ tentativas}
@@ -414,7 +448,7 @@ O Algoritmo~\ref{alg:gvns} apresenta a metaheurística completa, e o Algoritmo~\
 
 \subsection{Configuração dos Experimentos}
 
-Os experimentos utilizam a instância de exemplo do anexo do case, com 20 minérios, 10 pilhas (P1--P5 no Sinter~1 e P6--P10 no Sinter~2) e caminhões de 2~kt. O algoritmo foi implementado em Python~3.14, sem bibliotecas de otimização; o Matplotlib é usado apenas para gerar as figuras. Cada um dos três objetivos é otimizado separadamente, sempre com o mesmo conjunto de restrições.
+Os experimentos utilizam a instância de exemplo do anexo do case, com 20 minérios, 10 pilhas (P1--P5 no Sinter~1 e P6--P10 no Sinter~2) e caminhões de 2~kt. O algoritmo foi implementado em Python~3.14, sem bibliotecas de otimização; o Matplotlib é usado apenas para gerar as figuras e o SciPy apenas para os testes estatísticos. Cada um dos três objetivos é otimizado separadamente, sempre com o mesmo conjunto de restrições.
 
 \subsection{Parâmetros do Algoritmo}
 
@@ -427,18 +461,23 @@ A Tabela~\ref{tab:parametros_alg} resume os parâmetros da implementação. Nenh
 \toprule
 \textbf{Parâmetro} & \textbf{Valor} \\
 \midrule
-Ciclos da GVNS por execução (critério de parada) & 50 \\
+Orçamento de ciclos por execução, $C$ (reparo + GVNS) & \Cparada \\
+Fração mínima alterada por $N_3$, $\phi$ & 0{,}25 \\
+Ciclos de reparo antes de reiniciar, $R$ & 100 \\
 Teto de candidatos de $N_3$ & Sem teto \\
-Ciclos máximos do reparo inicial & Sem teto \\
+Tolerância numérica das comparações & $10^{-10}$ \\
 Semente base & 2026 \\
 \bottomrule
 \end{tabular}
 \label{tab:parametros_alg}
 \end{table}
 
-A versão atual não possui teto em $N_3$ nem no reparo, mantendo 50 ciclos globais de otimização. O lote mono-objetivo apresentado foi executado na versão anterior, com teto de 100 ciclos de reparo; todas as suas chamadas encontraram solução viável no primeiro ciclo. Seus resultados e manifestos são preservados e não representam uma nova execução após essa mudança. O esforço completo de uma visita pode incluir muitas combinações parciais antes de gerar uma receita. Por isso, o número de avaliações não representa todo o trabalho de enumeração e não fixa o tempo da execução.
+Os valores de $\phi$ e de $C$ foram escolhidos por experimentos próprios, apresentados na Seção~\ref{sec:resultados}. O valor de $R$ não foi calibrado, pois o reparo encontrou solução viável no primeiro ciclo em todas as execuções realizadas; ele apenas define quando uma tentativa de reparo sem sucesso é abandonada. O esforço completo de uma visita a $N_3$ pode incluir muitas combinações parciais antes de gerar uma receita. Por isso, além das avaliações, registra-se o número de nós visitados na enumeração.
 
-Os 15 experimentos foram executados com três processos em paralelo, em lotes independentes por objetivo e semente. O tempo total de parede foi 47 minutos e 39 segundos. A duração média por execução foi de 20 minutos e 51 segundos para $f_1$, 1 minuto e 52 segundos para $f_2$ e 2 minutos e 2 segundos para $f_3$. Os tempos individuais refletem a concorrência entre processos e não estimam precisamente a duração de uma execução sequencial. Esses resultados substituem as tabelas e figuras da versão anterior com enumeração limitada.
+Os resultados mono-objetivo apresentados nesta versão do relatório foram obtidos com o algoritmo revisado e substituem os da versão entregue anteriormente. Os tempos medidos refletem a concorrência entre processos executados em paralelo e não estimam precisamente a duração de uma execução sequencial.
+
+\subsection{Referência Exata}
+Para medir a distância entre a GVNS e o ótimo global, os três problemas mono-objetivo também foram resolvidos pelo solver Gurobi~13 com a formulação da Seção~\ref{sec:formulacao}: $f_1$ como programa linear inteiro e $f_2$ e $f_3$ como programas quadráticos inteiros convexos. Esses valores servem apenas de comparação; não são usados na GVNS, na normalização nem em nenhuma outra etapa do trabalho.
 
 \subsection{Número de Execuções}
 
@@ -454,7 +493,9 @@ Para cada objetivo, são registrados o valor da melhor solução viável de cada
 
 \subsection{Critério de Comparação}
 
-As execuções e as configurações do algoritmo são comparadas pelo valor final do objetivo otimizado. O mínimo indica a melhor solução encontrada; a média e o desvio padrão indicam a qualidade típica e a sensibilidade do método à semente. Também são registrados o número de avaliações e o tempo medido. As avaliações são uma contagem independente da máquina, mas não incluem os cálculos internos da enumeração de $N_3$.
+As execuções e as configurações do algoritmo são comparadas pelo valor final do objetivo otimizado. O mínimo indica a melhor solução encontrada; a média e o desvio padrão indicam a qualidade típica e a sensibilidade do método à semente. Também são registrados o número de avaliações, o número de nós da enumeração de $N_3$ e o tempo medido. As avaliações são uma contagem independente da máquina, mas não incluem os cálculos internos da enumeração de $N_3$, contados à parte.
+
+Na escolha de parâmetros, as alternativas são comparadas com as mesmas sementes, execução a execução. Usa-se o teste de Friedman para verificar se há diferença entre todas as alternativas e o teste de postos sinalizados de Wilcoxon para comparar pares; ambos são não paramétricos e pareados, adequados a amostras pequenas sem suposição de normalidade.
 
 \subsection{Código-fonte e reprodutibilidade}
 
@@ -485,8 +526,69 @@ O código-fonte, os dados de entrada e as instruções para executar os experime
 \label{fig:melhor_f3}
 \end{figure*}
 
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{n3_fracoes.pdf}
+\caption{Valor final de 30 execuções (50 ciclos) de cada objetivo para cada regra de mínimo alterado por $N_3$. Caixas: quartis; traço: mediana; triângulo: média; círculos: valores atípicos.}
+\label{fig:n3_fracoes}
+\end{figure*}
+
+\subsection{Escolha da Fração Mínima de $N_3$}
+
+Para escolher $\phi$, a GVNS foi executada com oito regras: mínimo fixo de dois caminhões ($\phi=0$) e $\phi\in\{0{,}20;0{,}25;0{,}30;0{,}40;0{,}50;0{,}60;0{,}75\}$, sempre com o arredondamento para cima da Equação de $m_i$. Para cada regra e cada objetivo, foram feitas 30 execuções de 50 ciclos com as mesmas sementes, totalizando 720 execuções. A Tabela~\ref{tab:n3_fracoes} resume as médias e a Figura~\ref{fig:n3_fracoes} mostra a distribuição dos valores finais.
+
+\begin{table}[htbp]
+\caption{Média do valor final em 30 execuções por regra de $N_3$}
+\centering
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Regra} & \textbf{$f_1$ (R\$ mi)} & \textbf{$f_2$ (pp$^2$)} & \textbf{$f_3$ (pp$^2$)} \\
+\midrule
+2 caminhões & \textbf{59{,}88} & 2{,}37280 & \textbf{1{,}42131} \\
+$\phi=0{,}20$ & 59{,}94 & 2{,}37388 & 1{,}42387 \\
+$\phi=0{,}25$ & 60{,}01 & 2{,}37281 & 1{,}42179 \\
+$\phi=0{,}30$ & 60{,}00 & \textbf{2{,}37278} & 1{,}42261 \\
+$\phi=0{,}40$ & 60{,}08 & 2{,}37499 & 1{,}42372 \\
+$\phi=0{,}50$ & 60{,}18 & 2{,}37501 & 1{,}42251 \\
+$\phi=0{,}60$ & 60{,}21 & 2{,}37501 & 1{,}42251 \\
+$\phi=0{,}75$ & 60{,}50 & 2{,}37501 & 1{,}42251 \\
+\bottomrule
+\end{tabular}
+\label{tab:n3_fracoes}
+\end{table}
+
+Em $f_1$, o teste de Friedman indica diferença entre as regras ($p=2{,}6\times10^{-21}$), e o custo médio cresce com $\phi$. Na comparação pareada, $\phi=0{,}25$ foi melhor que $\phi=0{,}50$ em 23 das 30 execuções (Wilcoxon, $p=5{,}3\times10^{-5}$). Em $f_2$ ($p=0{,}16$) e $f_3$ ($p=0{,}76$), o teste de Friedman não indica diferença; as médias mais altas de algumas regras se devem a poucas execuções que terminaram em um mesmo valor ruim, visíveis como pontos isolados na Figura~\ref{fig:n3_fracoes}.
+
+Em $f_2$ e $f_3$, as regras $\phi=0{,}50$, $0{,}60$ e $0{,}75$ produziram resultados idênticos em todas as 30 execuções, inclusive no número de avaliações. A causa foi verificada contando os vizinhos de $N_3$ a partir de uma solução obtida após três ciclos (Tabela~\ref{tab:n3_vazia}): nesses objetivos, a vizinhança fica vazia para $\phi\geq0{,}5$. Como a enumeração percorre os mesmos ramos e só rejeita as receitas completas que mudam poucos caminhões, a busca consome os mesmos sorteios e segue a mesma trajetória, sem que $N_3$ contribua. Com a regra da versão anterior ($\phi=0{,}5$), portanto, a busca de $f_2$ e $f_3$ dependia apenas de $N_1$ e $N_2$ depois do início.
+
+\begin{table}[htbp]
+\caption{Vizinhos de $N_3$ a partir de uma solução após três ciclos}
+\centering
+\begin{tabular}{l r r r}
+\toprule
+\textbf{Regra} & \textbf{$f_1$} & \textbf{$f_2$} & \textbf{$f_3$} \\
+\midrule
+2 caminhões & 183\,642 & 2\,197 & 1\,684 \\
+$\phi=0{,}25$ & 174\,499 & 461 & 501 \\
+$\phi=0{,}40$ & 122\,507 & 0 & 4 \\
+$\phi=0{,}50$ & 89\,723 & 0 & 0 \\
+$\phi=0{,}75$ & 9\,554 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\label{tab:n3_vazia}
+\end{table}
+
+O mínimo fixo de dois caminhões teve o melhor custo médio, mas permite reconstruções que alteram apenas dois caminhões de uma pilha, equivalentes a duas aplicações de $N_1$, o que contraria a exigência de que $N_3$ tenha lógica distinta das demais vizinhanças~\cite{case_cassotis}. Entre as frações que nunca geram esse movimento nas pilhas da instância, de 10 a 19 caminhões, $\phi=0{,}25$ é a menor. Ela não difere significativamente de $\phi=0{,}30$ em nenhum objetivo (Wilcoxon, $p=0{,}90$ em $f_1$, $0{,}87$ em $f_2$ e $0{,}39$ em $f_3$) e é melhor que $\phi=0{,}50$ em $f_1$. Por isso, adotou-se $\phi=0{,}25$.
+
+\subsection{Escolha do Critério de Parada}
+
+% PENDENTE: preencher com os resultados de resultados_criterio_parada
+% (30 execuções de 500 ciclos por objetivo, phi = 0,25).
+\textbf{[Pendente: execuções longas para a escolha de $C$.]}
+
 \subsection{Resultados para $f_1$}
 
+% PENDENTE: tabelas f1, f2 e f3 a substituir pelo lote oficial com a versão final.
 A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida em cada uma das cinco execuções, com o número de avaliações de soluções candidatas e o tempo medido. Todas as execuções terminaram com soluções viáveis.
 
 \begin{table}[htbp]
@@ -632,7 +734,8 @@ originais. Utilizamos as melhores soluções das cinco execuções isoladas
 para formar a matriz de resultados cruzados da Tabela~\ref{tab:payoff}.
 \begin{table}[htbp]
 \centering\small
-\caption{Referências empíricas da Entrega 1 sem teto de $N_3$.}
+% PENDENTE: atualizar com o lote oficial da Entrega 1 com a versão final.
+\caption{Referências empíricas da Entrega 1.}
 \label{tab:payoff}
 \begin{tabular}{lrrr}\toprule
 Referência & $f_1$ (R\$ mi) & $f_2$ (pp$^2$) & $f_3$ (pp$^2$)\\\midrule
@@ -702,6 +805,16 @@ O atendimento dos $\varepsilon$ é verificado no registro da melhor solução,
 na perturbação e na VND. A reconstrução $N_3$ mantém sua definição física,
 mas não garante, por si só, os dois limites agregados.
 
+Os cortes de $N_3$ descritos na Seção~\ref{sec:gvns} valem para qualquer
+critério que seja uma combinação com pesos não negativos dos três objetivos.
+Como $\bar f_q$ é afim em $f_q$, a Soma Ponderada equivale, a menos de uma
+constante, a minimizar $\sum_q w_q f_q/(b_q-a_q)$; no $\varepsilon$-restrito,
+o critério é $f_1/(b_1-a_1)$ mais uma constante. Em ambos os casos, o
+limitante da variação do critério na pilha reconstruída é a soma ponderada
+dos limitantes de cada objetivo. No $\varepsilon$-restrito, o corte usa só o
+custo: receitas que não reduzem o custo são descartadas, e o atendimento dos
+$\varepsilon$ continua verificado na avaliação de cada vizinho.
+
 \paragraph{Política única e obrigatória de partida}
 Todas as chamadas mono-objetivo, Soma Ponderada e $\varepsilon$-restrito
 executam a mesma função \texttt{construct(case)} da Entrega 1: distribuição
@@ -720,19 +833,19 @@ Os registros identificam a partida como \texttt{construcao}.
 Essa política substitui a seleção anterior de referências para iniciar
 chamadas do $\varepsilon$-restrito.
 
-O reparo não tem teto de ciclos, avaliações ou tempo. Uma configuração
-$\varepsilon$-restrita pode permanecer indefinidamente no reparo, seja por
-não admitir solução ou por a heurística não conseguir encontrá-la. Não há
-falta de melhora que encerre automaticamente essa fase. Uma interrupção
-manual preserva as chamadas concluídas; a chamada em andamento precisa
-recomeçar. Nenhum ponto inviável é exportado como solução, e a interrupção
-não prova impossibilidade matemática da configuração.
+O reparo segue a política da Seção~\ref{sec:construtiva}: recomeça da
+construção a cada $R=100$ ciclos sem solução admissível e divide com a GVNS
+o orçamento de $C$ ciclos da chamada. Uma configuração $\varepsilon$-restrita
+pode esgotar o orçamento no reparo, seja por não admitir solução ou por a
+heurística não conseguir encontrá-la. Nesse caso, a chamada é registrada como
+falha de reparo, nenhum ponto inviável é exportado como solução e o lote
+prossegue. A falha não prova impossibilidade matemática da configuração.
 
 \subsection{Rodadas, Configurações e Reprodução}
 Uma rodada de cada abordagem percorre toda a sua grade. Cinco rodadas
 correspondem a 35 chamadas escalares para Soma Ponderada e 45 para
-$\varepsilon$-restrito. Cada chamada reinicia a GVNS e utiliza, por padrão,
-50 ciclos globais, sem teto de candidatos, nós ou tempo em $N_3$.
+$\varepsilon$-restrito. Cada chamada reinicia a GVNS e utiliza o mesmo orçamento de
+$C=\Cparada$ ciclos da Entrega~1, sem teto de candidatos, nós ou tempo em $N_3$.
 Essa organização operacional das cinco execuções deve ser distinguida dos
 valores da grade, que não são fixados pelo PDF.
 
@@ -767,36 +880,21 @@ A filtragem é feita em três dimensões, nunca novamente em cada projeção.
 São conjuntos não dominados entre as soluções encontradas, não uma prova
 da fronteira exata.
 
-\subsection{Estado dos Experimentos}
-A implementação utiliza a política de construção comum em todas as
-abordagens. A revisão adicionou um teste que verifica a chamada da construção
-original nos dois métodos. Os testes automatizados verificam também a continuação do reparo além de 100 ciclos e sua interrupção manual;
-as verificações limitadas anteriores com os dados do case são preservadas
-como histórico; seu roteiro auxiliar foi removido da versão distribuída.
+\subsection{Escolha das Grades}
+% PENDENTE: piloto com a grade de epsilon ampliada (resultados_entrega2/piloto_grade).
+\textbf{[Pendente: piloto de uma rodada com a grade de $\varepsilon$ ampliada para $\{0{,}05;0{,}10;0{,}25;0{,}50;1{,}00\}^2$, usado para decidir a grade final.]}
 
-O piloto anterior usou uma rodada e dois ciclos globais: sete configurações
-ponderadas e nove pares de $\varepsilon$ encontraram soluções admissíveis.
-Esse piloto pertence à versão anterior, que admitia selecionar referências
-como partida no $\varepsilon$-restrito; não valida experimentalmente a nova
-política de partida comum.
+\subsection{Resultados da Soma Ponderada}
+% PENDENTE: lote oficial (5 rodadas), projeções soma_f1_f2/f1_f3/f2_f3.
+\textbf{[Pendente: lote oficial.]}
 
-Os testes automatizados que usam enumeração real limitam apenas seu próprio processo a cinco visitas de
-$N_3$, com até 25 candidatos completos por visita. Seus resultados são
-identificados como limitados e não certificam ótimo local em $N_3$.
-A produção mantém $N_3$ e reparo sem teto. Os testes de casos sem solução
-utilizam interrupção simulada para não permanecer indefinidamente em execução.
+\subsection{Resultados do Método $\varepsilon$-restrito}
+% PENDENTE: lote oficial (5 rodadas), projeções epsilon_f1_f2/f1_f3/f2_f3.
+\textbf{[Pendente: lote oficial.]}
 
-O lote oficial anterior foi interrompido com 28 chamadas de Soma Ponderada
-concluídas, todas admissíveis e iniciadas pela construção. Nenhuma chamada
-oficial $\varepsilon$-restrito foi executada. Esses resultados são preservados
-com os manifestos e hashes originais; sua reutilização na versão atual exige
-uma migração verificada e documentada. A retomada automática rejeita a mudança
-de código e política. Os novos experimentos devem usar uma pasta própria.
-
-A conclusão experimental da Entrega 2 requer o lote completo com a política
-vigente, os conjuntos não dominados das cinco rodadas por abordagem, as seis
-projeções oficiais e a análise dos compromissos e da variabilidade. As grades
-continuam com 35 chamadas ponderadas e 45 de $\varepsilon$-restrito.
+\subsection{Comparação entre as Abordagens}
+% PENDENTE: comparação, compromissos entre objetivos e variabilidade entre rodadas.
+\textbf{[Pendente: lote oficial.]}
 
 \section{Conclusão}\label{sec:conclusao}
 
