@@ -28,6 +28,9 @@ ITERATIONS = 50          # ciclos por execução, somando reparo e GVNS
 REPAIR_STEPS = 100       # ciclos de reparo sem solução viável antes de recomeçar
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
 N3_MIN_FRACTION = 0.25   # fração mínima de caminhões que a N3 altera na pilha
+# Diferenças menores que isto são tratadas como erro de arredondamento em
+# todas as comparações: viabilidade, aceitação de melhora e melhor solução.
+TOLERANCE = 1e-10
 
 
 @dataclass
@@ -88,6 +91,12 @@ class Evaluation:
 
 
 @dataclass
+class SearchStats:
+    """Esforço de busca que o contador de avaliações não captura."""
+    n3_nodes: int = 0  # nós visitados na enumeração da N3, gerem ou não receita
+
+
+@dataclass
 class Run:
     objective: int
     number: int
@@ -102,6 +111,7 @@ class Run:
     cycle_trace: list[tuple[int, int, float]] = field(default_factory=list)
     repair_cycles: int = 0
     restarts: int = 0
+    n3_nodes: int = 0
 
     @property
     def failed(self) -> bool:
@@ -212,7 +222,7 @@ def evaluate(case: Case, plan: list[list[int]],
     for ore, count in zip(case.ores, usage):
         violation += (max(0, ore.minimum - count) +
                       max(0, count - ore.maximum)) / max(1, ore.maximum - ore.minimum)
-    if violation <= 1e-10:  # despreza apenas erro numérico de arredondamento
+    if violation <= TOLERANCE:
         violation = 0.0
     return Evaluation((cost, si_error, al_error), violation,
                       tuple(t.si for t in terms), tuple(t.al for t in terms),
@@ -285,7 +295,8 @@ def construct(case: Case) -> list[list[int]]:
 
 def neighbors(case: Case, plan: list[list[int]], kind: int,
               rng: random.Random, improve: int | None = None,
-              min_fraction: float = N3_MIN_FRACTION):
+              min_fraction: float = N3_MIN_FRACTION,
+              stats: SearchStats | None = None):
     """Percorre vizinhos de N1, N2 ou N3 em ordem sorteada.
 
     Com ``improve`` (índice do objetivo), a N3 descarta os ramos da enumeração
@@ -401,14 +412,16 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
 
             def rebuild(index: int, remaining: int, si: float, al: float,
                         price: float):
+                if stats is not None:
+                    stats.n3_nodes += 1
                 if not sum(lower[index:]) <= remaining <= sum(upper[index:]):
                     return
                 si_low, si_high = quality_range(si_values, index, remaining)
                 al_low, al_high = quality_range(al_values, index, remaining)
-                if (si + si_low > max_si + 1e-10 or
-                        si + si_high < min_si - 1e-10 or
-                        al + al_low > max_al + 1e-10 or
-                        al + al_high < min_al - 1e-10):
+                if (si + si_low > max_si + TOLERANCE or
+                        si + si_high < min_si - TOLERANCE or
+                        al + al_low > max_al + TOLERANCE or
+                        al + al_high < min_al - TOLERANCE):
                     return
                 if cannot_improve(index, remaining, price,
                                   (si + si_low, si + si_high),
@@ -457,9 +470,11 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
 
 def neighbor(case: Case, plan: list[list[int]], kind: int,
              rng: random.Random,
-             min_fraction: float = N3_MIN_FRACTION) -> list[list[int]] | None:
+             min_fraction: float = N3_MIN_FRACTION,
+             stats: SearchStats | None = None) -> list[list[int]] | None:
     """Primeiro vizinho na ordem sorteada; útil para a perturbação inicial."""
-    return next(neighbors(case, plan, kind, rng, min_fraction=min_fraction), None)
+    return next(neighbors(case, plan, kind, rng, min_fraction=min_fraction,
+                          stats=stats), None)
 
 
 def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
@@ -476,13 +491,14 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     evaluations = 1
     best_plan = best_result = None
     trace = []
+    stats = SearchStats()
 
     def consider(plan: list[list[int]], parent: Evaluation | None) -> Evaluation:
         nonlocal evaluations, best_plan, best_result
         result = evaluate(case, plan, parent)
         evaluations += 1
         if result.feasible and (best_result is None or
-                result.objectives[objective] < best_result.objectives[objective] - 1e-10):
+                result.objectives[objective] < best_result.objectives[objective] - TOLERANCE):
             best_plan = [row.copy() for row in plan]
             best_result = result
             trace.append((evaluations, result.objectives[objective]))
@@ -490,7 +506,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
 
     def candidates(plan: list[list[int]], level: int, improving: bool = False):
         return neighbors(case, plan, level, rng,
-                         objective if improving else None, n3_min_fraction)
+                         objective if improving else None, n3_min_fraction, stats)
 
     def local_search(plan: list[list[int]], result: Evaluation, repairing: bool):
         level = 1
@@ -507,7 +523,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
                 before = result.violation if repairing else result.objectives[objective]
                 after = (candidate_result.violation if repairing else
                          candidate_result.objectives[objective])
-                if after < before - 1e-12:
+                if after < before - TOLERANCE:
                     plan, result = candidate, candidate_result
                     level = 1
                     improved = True
@@ -538,7 +554,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         since_restart += 1
         shaken = current
         for _ in range(level):
-            moved = neighbor(case, shaken, level, rng, n3_min_fraction)
+            moved = neighbor(case, shaken, level, rng, n3_min_fraction, stats)
             if moved is not None:
                 shaken = moved
         shaken_result = consider(shaken, current_result)
@@ -547,7 +563,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=True)
         if best_plan is not None:
             break
-        if shaken_result.violation < current_result.violation - 1e-12:
+        if shaken_result.violation < current_result.violation - TOLERANCE:
             current, current_result = shaken, shaken_result
             level = 1
         else:
@@ -555,7 +571,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     if best_plan is None:
         return Run(objective, number, seed, evaluations, iterations,
                    time.perf_counter() - started, None, None, trace, [],
-                   repair_cycles, restarts)
+                   repair_cycles, restarts, stats.n3_nodes)
     current = [row.copy() for row in best_plan]
     current_result = best_result
     assert current_result.feasible
@@ -570,10 +586,11 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
                 if moved_result.feasible:
                     shaken, shaken_parent = moved, moved_result
                     break
-        shaken_result = consider(shaken, shaken_parent)
+        # shaken já foi avaliado: é a solução corrente ou o último vizinho aceito.
+        shaken_result = shaken_parent
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=False)
         assert shaken_result.feasible
-        if shaken_result.objectives[objective] < current_result.objectives[objective] - 1e-12:
+        if shaken_result.objectives[objective] < current_result.objectives[objective] - TOLERANCE:
             current, current_result = shaken, shaken_result
             level = 1
         else:
@@ -581,7 +598,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         cycle_trace.append((cycle, evaluations, best_result.objectives[objective]))
     return Run(objective, number, seed, evaluations, iterations,
                time.perf_counter() - started, best_plan, best_result, trace,
-               cycle_trace, repair_cycles, restarts)
+               cycle_trace, repair_cycles, restarts, stats.n3_nodes)
 
 
 def write_outputs(case: Case, runs: list[Run], directory: Path,
@@ -611,7 +628,7 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         writer = csv.writer(file, lineterminator="\n")
         writer.writerow(["objetivo", "execucao", "semente", "ciclos_totais",
                          "ciclos_reparo", "reinicios_reparo", "status",
-                         "avaliacoes", "segundos_medidos",
+                         "avaliacoes", "nos_n3", "segundos_medidos",
                          "f1_rs", "f2_pp2", "f3_pp2", "violacao"])
         for run in runs:
             # Execução sem solução viável fica registrada, mas fora das estatísticas.
@@ -620,7 +637,7 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
             writer.writerow([f"f{run.objective + 1}", run.number, run.seed,
                              run.iterations, run.repair_cycles, run.restarts,
                              "falha_reparo" if run.failed else "viavel",
-                             run.evaluations, run.seconds, *values])
+                             run.evaluations, run.n3_nodes, run.seconds, *values])
     summary, solutions = [], {}
     for objective in range(3):
         selected = [r for r in runs if r.objective == objective and not r.failed]

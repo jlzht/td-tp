@@ -27,7 +27,7 @@ from mono_objetivo import ITERATIONS, BASE_SEED, load_case, solve  # noqa: E402
 FRACTIONS = (0.0, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75)
 FIELDS = ["fracao", "objetivo", "execucao", "semente", "iteracoes", "avaliacoes",
           "segundos", "f1_rs", "f2_pp2", "f3_pp2", "valor", "ciclos_reparo",
-          "reinicios_reparo"]
+          "reinicios_reparo", "nos_n3"]
 UNITS = ("R$ mi", "pp²", "pp²")
 
 
@@ -168,7 +168,8 @@ def execute(arguments: tuple) -> tuple[list, list]:
     nan = float("nan")
     values = (nan, nan, nan) if run.failed else run.best_evaluation.objectives
     row = [fraction, objective, number, run.seed, run.iterations, run.evaluations,
-           run.seconds, *values, values[objective], run.repair_cycles, run.restarts]
+           run.seconds, *values, values[objective], run.repair_cycles, run.restarts,
+           run.n3_nodes]
     return row, {"avaliacoes": run.trace, "ciclos": run.cycle_trace}
 
 
