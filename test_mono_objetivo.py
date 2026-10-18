@@ -128,6 +128,17 @@ class MonoObjectiveTests(unittest.TestCase):
             self.assertLessEqual(improving, pruned)
             self.assertLessEqual(pruned, recipes(everything))
 
+    def test_reparo_recomeca_e_registra_falha_ao_esgotar_ciclos(self):
+        # Nenhum minério tem SiO2 acima de 9 %, então a faixa 9,5-9,6 % é
+        # inatingível e o reparo só pode terminar pelo orçamento de ciclos.
+        impossible = replace(self.case.sinters[1], si_min=9.5, si_target=9.55, si_max=9.6)
+        small = replace(self.case, trucks=(4,) * len(self.case.trucks),
+                        sinters={1: impossible, 2: self.case.sinters[2]})
+        run = solve(small, 0, 1, iterations=250)
+        self.assertTrue(run.failed)
+        self.assertEqual(run.repair_cycles, 250)
+        self.assertEqual(run.restarts, 2)
+
     def test_enumeracao_n1_nao_repete_composicoes(self):
         plan = construct(self.case)
         moves = list(neighbors(self.case, plan, 1, random.Random(42)))

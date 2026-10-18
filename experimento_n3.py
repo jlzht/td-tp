@@ -26,7 +26,8 @@ from mono_objetivo import ITERATIONS, BASE_SEED, load_case, solve  # noqa: E402
 
 FRACTIONS = (0.0, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75)
 FIELDS = ["fracao", "objetivo", "execucao", "semente", "iteracoes", "avaliacoes",
-          "segundos", "f1_rs", "f2_pp2", "f3_pp2", "valor"]
+          "segundos", "f1_rs", "f2_pp2", "f3_pp2", "valor", "ciclos_reparo",
+          "reinicios_reparo"]
 UNITS = ("R$ mi", "pp²", "pp²")
 
 
@@ -98,12 +99,14 @@ class N3Experiment:
                                               "execucao": row[2], "trace": trace}) + "\n")
                 traces_file.flush()
                 print(f"[{count}/{len(tasks)}] fração {row[0]}, f{row[1] + 1}, "
-                      f"execução {row[2]}: {row[-1]:.6g} ({row[6]:.0f} s)", flush=True)
+                      f"execução {row[2]}: {row[10]:.6g} ({row[6]:.0f} s)", flush=True)
 
     def analyze(self) -> None:
         """Gera resumo.csv, testes estatísticos e os gráficos comparativos."""
         with self.runs_path.open(encoding="utf-8") as file:
-            rows = list(csv.DictReader(file))
+            # Falhas do reparo têm valor NaN e ficam fora da análise.
+            rows = [r for r in csv.DictReader(file) if r["valor"] == r["valor"]
+                    and r["valor"].lower() != "nan"]
         fractions = sorted({float(r["fracao"]) for r in rows})
         summary, tests = [], []
         figure, axes = plt.subplots(1, 3, figsize=(15, 4.5))
@@ -162,9 +165,10 @@ def execute(arguments: tuple) -> tuple[list, list]:
     data_path, iterations, base_seed, fraction, objective, number = arguments
     case = load_case(data_path)
     run = solve(case, objective, number, iterations, base_seed, fraction)
-    values = run.best_evaluation.objectives
+    nan = float("nan")
+    values = (nan, nan, nan) if run.failed else run.best_evaluation.objectives
     row = [fraction, objective, number, run.seed, run.iterations, run.evaluations,
-           run.seconds, *values, values[objective]]
+           run.seconds, *values, values[objective], run.repair_cycles, run.restarts]
     return row, {"avaliacoes": run.trace, "ciclos": run.cycle_trace}
 
 

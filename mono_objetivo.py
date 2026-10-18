@@ -24,8 +24,8 @@ from figuras import write_convergence, write_solution
 # Cinco execuções são exigidas pelo PDF. Os demais valores são escolhas
 # reproduzíveis desta implementação, não parâmetros fornecidos no case.
 RUNS = 5
-ITERATIONS = 50          # ciclos globais de perturbação + VND por execução
-REPAIR_STEPS = 100       # evita laço infinito se o reparo não achar plano viável
+ITERATIONS = 50          # ciclos por execução, somando reparo e GVNS
+REPAIR_STEPS = 100       # ciclos de reparo sem solução viável antes de recomeçar
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
 N3_MIN_FRACTION = 0.25   # fração mínima de caminhões que a N3 altera na pilha
 
@@ -98,12 +98,15 @@ class Run:
     best_plan: list[list[int]] | None
     best_evaluation: Evaluation | None
     trace: list[tuple[int, float]]
-    # (ciclo, avaliações acumuladas, melhor valor); o ciclo 0 é o fim do reparo.
+    # (ciclo, avaliações acumuladas, melhor valor), a partir do fim do reparo.
     cycle_trace: list[tuple[int, int, float]] = field(default_factory=list)
+    repair_cycles: int = 0
+    restarts: int = 0
 
-
-class NoFeasiblePlanError(RuntimeError):
-    """Reparo terminou sem encontrar um plano viável."""
+    @property
+    def failed(self) -> bool:
+        """Verdadeiro se o orçamento de ciclos acabou sem solução viável."""
+        return self.best_evaluation is None
 
 
 def load_case(path: Path) -> Case:
@@ -474,7 +477,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     best_plan = best_result = None
     trace = []
 
-    def consider(plan: list[list[int]], parent: Evaluation) -> Evaluation:
+    def consider(plan: list[list[int]], parent: Evaluation | None) -> Evaluation:
         nonlocal evaluations, best_plan, best_result
         result = evaluate(case, plan, parent)
         evaluations += 1
@@ -520,10 +523,19 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
 
     # A construção do PDF pode violar qualidade. O reparo procura uma
     # primeira solução factível; seus planos provisórios não entram na GVNS.
+    # Reparo e GVNS dividem o mesmo orçamento de ciclos. Após REPAIR_STEPS
+    # ciclos sem solução viável, o reparo recomeça da construção; como o
+    # gerador aleatório já avançou, a nova tentativa segue outra trajetória.
     level = 1
-    for _ in range(REPAIR_STEPS):
-        if best_plan is not None:
-            break
+    repair_cycles = restarts = since_restart = 0
+    while best_plan is None and repair_cycles < iterations:
+        if since_restart == REPAIR_STEPS:
+            current = construct(case)
+            current_result = consider(current, None)
+            level, since_restart = 1, 0
+            restarts += 1
+        repair_cycles += 1
+        since_restart += 1
         shaken = current
         for _ in range(level):
             moved = neighbor(case, shaken, level, rng, n3_min_fraction)
@@ -541,14 +553,16 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         else:
             level = level % 3 + 1
     if best_plan is None:
-        raise NoFeasiblePlanError("não foi possível reparar a construção")
+        return Run(objective, number, seed, evaluations, iterations,
+                   time.perf_counter() - started, None, None, trace, [],
+                   repair_cycles, restarts)
     current = [row.copy() for row in best_plan]
     current_result = best_result
     assert current_result.feasible
 
     level = 1
-    cycle_trace = [(0, evaluations, best_result.objectives[objective])]
-    for cycle in range(1, iterations + 1):
+    cycle_trace = [(repair_cycles, evaluations, best_result.objectives[objective])]
+    for cycle in range(repair_cycles + 1, iterations + 1):
         shaken, shaken_parent = current, current_result
         for _ in range(level):
             for moved in candidates(shaken, level):
@@ -567,7 +581,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         cycle_trace.append((cycle, evaluations, best_result.objectives[objective]))
     return Run(objective, number, seed, evaluations, iterations,
                time.perf_counter() - started, best_plan, best_result, trace,
-               cycle_trace)
+               cycle_trace, repair_cycles, restarts)
 
 
 def write_outputs(case: Case, runs: list[Run], directory: Path,
@@ -582,9 +596,10 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         "execucoes_por_objetivo": RUNS,
         "python": sys.version.split()[0],
         "limite_iteracoes_gvns": iterations,
-        "limite_passos_reparo": REPAIR_STEPS,
+        "ciclos_reparo_antes_de_recomecar": REPAIR_STEPS,
         "n3_fracao_minima_alterada": n3_min_fraction,
-        "politica_inviabilidade": "reparo inicial; rejeição de candidatos inviáveis na GVNS",
+        "politica_inviabilidade": "reparo inicial com recomeço a cada 100 ciclos sem solução viável, dentro do mesmo orçamento de ciclos; rejeição de candidatos inviáveis na GVNS",
+        "orcamento_ciclos": "reparo + GVNS",
         "semente_base": base_seed,
         "construcao": "mínimos em rodízio; completar por preço crescente",
         "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, alterando ao menos max(2, ceil(fração * caminhões))",
@@ -594,19 +609,23 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
     with (directory / "execucoes.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, lineterminator="\n")
-        writer.writerow(["objetivo", "execucao", "semente", "iteracoes_gvns",
+        writer.writerow(["objetivo", "execucao", "semente", "ciclos_totais",
+                         "ciclos_reparo", "reinicios_reparo", "status",
                          "avaliacoes", "segundos_medidos",
                          "f1_rs", "f2_pp2", "f3_pp2", "violacao"])
         for run in runs:
-            if run.best_evaluation is None:
-                raise RuntimeError(f"f{run.objective + 1}, execução {run.number}: sem plano factível")
-            result = run.best_evaluation
+            # Execução sem solução viável fica registrada, mas fora das estatísticas.
+            values = (run.best_evaluation.objectives + (run.best_evaluation.violation,)
+                      if not run.failed else ("", "", "", ""))
             writer.writerow([f"f{run.objective + 1}", run.number, run.seed,
-                             run.iterations, run.evaluations, run.seconds,
-                             *result.objectives, result.violation])
+                             run.iterations, run.repair_cycles, run.restarts,
+                             "falha_reparo" if run.failed else "viavel",
+                             run.evaluations, run.seconds, *values])
     summary, solutions = [], {}
     for objective in range(3):
-        selected = [r for r in runs if r.objective == objective]
+        selected = [r for r in runs if r.objective == objective and not r.failed]
+        if len(selected) < 2:
+            continue
         values = [r.best_evaluation.objectives[objective] for r in selected]
         best = min(selected, key=lambda r: r.best_evaluation.objectives[objective])
         summary.append([f"f{objective + 1}", min(values), statistics.mean(values),
@@ -647,7 +666,8 @@ def run_method(case: Case, iterations: int = ITERATIONS,
             run = solve(case, objective, number, iterations, base_seed,
                         n3_min_fraction)
             runs.append(run)
-            value = run.best_evaluation.objectives[objective]
+            value = ("sem solução viável" if run.failed
+                     else run.best_evaluation.objectives[objective])
             print(f"GVNS, f{objective + 1}, execução {number}: {value}",
                   flush=True)
     return runs
@@ -656,7 +676,7 @@ def run_method(case: Case, iterations: int = ITERATIONS,
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--iteracoes", type=int, default=ITERATIONS,
-                        help="ciclos globais da GVNS por execução (padrão: 50)")
+                        help="ciclos por execução, somando reparo e GVNS (padrão: 50)")
     parser.add_argument("--semente-base", type=int, default=BASE_SEED,
                         help="ponto de partida dos sorteios reproduzíveis")
     parser.add_argument("--n3-fracao-minima", type=float, default=N3_MIN_FRACTION,
