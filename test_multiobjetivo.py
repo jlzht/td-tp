@@ -109,10 +109,10 @@ class MultiObjectiveTests(unittest.TestCase):
         self.assertEqual(len(points), 2)
         self.assertEqual(len(points[0]["origens"]), 2)
 
-    def test_grade_tem_16_configuracoes_e_valores_validos(self):
+    def test_grade_tem_23_configuracoes_e_valores_validos(self):
         configs = multi.load_configurations(ROOT/"configuracoes_multi.json")
         self.assertEqual(len(configs["soma"]), 7)
-        self.assertEqual(len(configs["epsilon"]), 9)
+        self.assertEqual(len(configs["epsilon"]), 16)
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder)/"bad.json"
             configs["soma"][0]["pesos"] = [1, 1, 1]
