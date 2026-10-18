@@ -436,7 +436,11 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
 
     if kind != 2:
         raise ValueError("vizinhança deve ser N1, N2 ou N3")
-    for p, q in combinations(piles, 2):
+    # Sortear os pares, e não só as pilhas, dá a todo par a mesma chance de
+    # vir primeiro; combinations(piles, 2) esgotaria a primeira pilha antes.
+    pairs = list(combinations(piles, 2))
+    rng.shuffle(pairs)
+    for p, q in pairs:
         for a, b in product(ore_ids[p], ore_ids[q]):
             if a == b or case.groups[q] not in case.ores[a].sinters or \
                     case.groups[p] not in case.ores[b].sinters:
