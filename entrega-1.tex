@@ -57,7 +57,7 @@ Belo Horizonte, Brasil
 
 O problema, proposto no case da disciplina~\cite{case_cassotis}, consiste na composição de pilhas de minério destinadas a dois equipamentos de sinterização. Cada pilha deve atingir uma massa final definida, respeitar limites de qualidade e utilizar apenas minérios compatíveis com o equipamento ao qual está associada. A decisão é realizada em unidades discretas de caminhões, cada um com capacidade fixa de 2 kt.
 
-Nesta primeira entrega, o problema é tratado de forma mono-objetivo. São consideradas separadamente três funções objetivo: minimização do custo total de aquisição dos minérios, minimização do desvio quadrático do teor de SiO$_2$ em relação ao valor-alvo e minimização do desvio quadrático do teor de Al$_2$O$_3$ em relação ao valor-alvo.
+Na primeira entrega, o problema é tratado de forma mono-objetivo. São consideradas separadamente três funções objetivo: minimização do custo total de aquisição dos minérios, minimização do desvio quadrático do teor de SiO$_2$ em relação ao valor-alvo e minimização do desvio quadrático do teor de Al$_2$O$_3$ em relação ao valor-alvo.
 
 A solução computacional é construída a partir de uma representação discreta das pilhas: cada pilha é um vetor em que cada posição corresponde a um caminhão e armazena o minério que ele transporta. Sobre essa representação, aplica-se a metaheurística GVNS (\textit{General Variable Neighborhood Search})~\cite{aula02}, com três estruturas de vizinhança e busca local do tipo VND. A solução inicial é gerada por uma heurística construtiva e, caso viole os limites de qualidade, é corrigida por um procedimento de reparo antes do início da busca. Como o método é estocástico, cada objetivo é otimizado em cinco execuções com sementes distintas. Na segunda etapa, os três objetivos são considerados conjuntamente pelas abordagens Soma Ponderada e $\varepsilon$-restrito, reutilizando a mesma GVNS.
 
@@ -905,6 +905,17 @@ A filtragem é feita em três dimensões, nunca novamente em cada projeção.
 São conjuntos não dominados entre as soluções encontradas, não uma prova
 da fronteira exata.
 
+Para comparar as abordagens, usamos duas medidas complementares de
+Zitzler e Thiele~\cite{zitzler1999}. O hipervolume é o volume do espaço
+normalizado dominado pelo conjunto e limitado pelo ponto de referência
+$(1{,}1;\,1{,}1;\,1{,}1)$, comum às duas abordagens; quanto maior, melhor a
+combinação de convergência e espalhamento. A cobertura $\mathcal{C}(A,B)$ é a
+fração dos pontos de $B$ dominados por algum ponto de $A$ ou iguais a ele nos
+três objetivos. Calculamos também quantos pontos de cada abordagem permanecem
+no conjunto não dominado da união das duas e, para avaliar a variabilidade,
+o hipervolume do conjunto de cada rodada. As duas abordagens têm números de
+chamadas diferentes (35 e 80), o que deve ser considerado na comparação.
+
 \subsection{Escolha das Grades}
 A grade inicial de $\varepsilon$ do grupo, $\{0{,}25;0{,}50;1{,}00\}^2$, não permitia desvios normalizados abaixo de 0{,}25, isto é, deixava sem exploração o trecho da fronteira entre o melhor desvio isolado e um quarto da faixa de cada desvio, justamente o de melhor qualidade. Para decidir a grade final, foi feito um piloto de uma rodada e 100 ciclos com a grade ampliada $\{0{,}05;0{,}10;0{,}25;0{,}50;1{,}00\}^2$ e os sete pesos da Soma Ponderada, usando as referências de normalização da versão anterior.
 
@@ -943,6 +954,11 @@ Cassotis Consulting, ``Otimização de custo e qualidade na formação de pilhas
 \bibitem{blank_deb2020}
 J.~Blank e K.~Deb, ``Pymoo: Multi-Objective Optimization in Python,''
 \textit{IEEE Access}, vol.~8, 2020. doi: 10.1109/ACCESS.2020.2990567.
+
+\bibitem{zitzler1999}
+E.~Zitzler e L.~Thiele, ``Multiobjective evolutionary algorithms: a comparative
+case study and the strength Pareto approach,'' \textit{IEEE Transactions on
+Evolutionary Computation}, vol.~3, n.~4, pp.~257--271, 1999.
 
 \bibitem{gams_eps}
 GAMS Development Corporation, ``epscm.gms: eps-Constraint Method for
