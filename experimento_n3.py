@@ -165,7 +165,7 @@ def execute(arguments: tuple) -> tuple[list, list]:
     values = run.best_evaluation.objectives
     row = [fraction, objective, number, run.seed, run.iterations, run.evaluations,
            run.seconds, *values, values[objective]]
-    return row, run.trace
+    return row, {"avaliacoes": run.trace, "ciclos": run.cycle_trace}
 
 
 def main() -> None:

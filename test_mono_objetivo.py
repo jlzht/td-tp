@@ -1,11 +1,12 @@
 """Checagens das fórmulas, da construção e da busca nos dados do anexo."""
+import math
 import random
 import unittest
 from collections import Counter
 from dataclasses import replace
 from pathlib import Path
 
-from mono_objetivo import construct, evaluate, load_case, neighbor, neighbors, solve
+from mono_objetivo import N3_MIN_FRACTION, construct, evaluate, load_case, neighbor, neighbors, solve
 
 
 DATA = Path(__file__).with_name("dados_exemplo.json")
@@ -57,7 +58,7 @@ class MonoObjectiveTests(unittest.TestCase):
                 p = changed[0]
                 common = sum((Counter(plan[p]) & Counter(moved[p])).values())
                 self.assertGreaterEqual(len(plan[p]) - common,
-                                        (len(plan[p]) + 1) // 2)
+                                        max(2, math.ceil(N3_MIN_FRACTION * len(plan[p]))))
                 for ore, count in zip(case.ores, result.usage):
                     self.assertLessEqual(ore.minimum, count)
                     self.assertLessEqual(count, ore.maximum)

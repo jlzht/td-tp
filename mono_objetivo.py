@@ -27,7 +27,7 @@ RUNS = 5
 ITERATIONS = 50          # ciclos globais de perturbação + VND por execução
 REPAIR_STEPS = 100       # evita laço infinito se o reparo não achar plano viável
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
-N3_MIN_FRACTION = 0.5    # fração mínima de caminhões que a N3 altera na pilha
+N3_MIN_FRACTION = 0.25   # fração mínima de caminhões que a N3 altera na pilha
 
 
 @dataclass
@@ -98,6 +98,8 @@ class Run:
     best_plan: list[list[int]] | None
     best_evaluation: Evaluation | None
     trace: list[tuple[int, float]]
+    # (ciclo, avaliações acumuladas, melhor valor); o ciclo 0 é o fim do reparo.
+    cycle_trace: list[tuple[int, int, float]] = field(default_factory=list)
 
 
 class NoFeasiblePlanError(RuntimeError):
@@ -541,7 +543,8 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     assert current_result.feasible
 
     level = 1
-    for _ in range(iterations):
+    cycle_trace = [(0, evaluations, best_result.objectives[objective])]
+    for cycle in range(1, iterations + 1):
         shaken, shaken_parent = current, current_result
         for _ in range(level):
             for moved in candidates(shaken, level):
@@ -557,8 +560,10 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
             level = 1
         else:
             level = level % 3 + 1
+        cycle_trace.append((cycle, evaluations, best_result.objectives[objective]))
     return Run(objective, number, seed, evaluations, iterations,
-               time.perf_counter() - started, best_plan, best_result, trace)
+               time.perf_counter() - started, best_plan, best_result, trace,
+               cycle_trace)
 
 
 def write_outputs(case: Case, runs: list[Run], directory: Path,
@@ -624,6 +629,9 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
     (directory / "convergencia.json").write_text(
         json.dumps({f"f{r.objective + 1}_exec{r.number}": r.trace for r in runs},
                    indent=2), encoding="utf-8")
+    (directory / "convergencia_ciclos.json").write_text(
+        json.dumps({f"f{r.objective + 1}_exec{r.number}": r.cycle_trace for r in runs},
+                   indent=2), encoding="utf-8")
 
 
 def run_method(case: Case, iterations: int = ITERATIONS,
@@ -649,7 +657,7 @@ def main() -> None:
                         help="ponto de partida dos sorteios reproduzíveis")
     parser.add_argument("--n3-fracao-minima", type=float, default=N3_MIN_FRACTION,
                         help="fração mínima de caminhões alterados pela N3; "
-                             "o mínimo absoluto é 2 (padrão: 0.5)")
+                             "o mínimo absoluto é 2 (padrão: 0.25)")
     parser.add_argument("--dados", type=Path,
                         default=Path(__file__).with_name("dados_exemplo.json"))
     parser.add_argument("--saida", type=Path,
