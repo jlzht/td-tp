@@ -509,21 +509,21 @@ O código-fonte, os dados de entrada e as instruções para executar os experime
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.85\textwidth]{melhor_f1.pdf}
-\caption{Melhor solução encontrada para $f_1$ (execução 5), sem teto de $N_3$.}
+\caption{Melhor solução encontrada para $f_1$ (execução 5).}
 \label{fig:melhor_f1}
 \end{figure*}
 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.85\textwidth]{melhor_f2.pdf}
-\caption{Melhor solução encontrada para $f_2$ (execução 3).}
+\caption{Melhor solução encontrada para $f_2$ (execução 1).}
 \label{fig:melhor_f2}
 \end{figure*}
 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.85\textwidth]{melhor_f3.pdf}
-\caption{Melhor solução encontrada para $f_3$ (execução 3).}
+\caption{Melhor solução encontrada para $f_3$ (execução 4).}
 \label{fig:melhor_f3}
 \end{figure*}
 
@@ -615,32 +615,31 @@ O melhor valor encontrado nessas execuções foi R\$~59{,}36 milhões para $f_1$
 
 \subsection{Resultados para $f_1$}
 
-% PENDENTE: tabelas f1, f2 e f3 a substituir pelo lote oficial com a versão final.
-A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida em cada uma das cinco execuções, com o número de avaliações de soluções candidatas e o tempo medido. Todas as execuções terminaram com soluções viáveis.
+A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida em cada uma das cinco execuções do lote oficial, com $C=300$ ciclos e $\phi=0{,}25$, além do número de avaliações, dos nós visitados na enumeração de $N_3$ e do tempo medido. Todas as execuções terminaram com soluções viáveis, e o reparo encontrou solução admissível no primeiro ciclo em todas elas.
 
 \begin{table}[htbp]
 \caption{Resultados das cinco execuções para $f_1$ (custo)}
 \centering
-\begin{tabular}{c c r r r}
+\begin{tabular}{c c r r r r}
 \toprule
-\textbf{Exec.} & \textbf{Semente} & \textbf{$f_1$ (R\$ mi)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
+\textbf{Exec.} & \textbf{Semente} & \textbf{$f_1$ (R\$ mi)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
 \midrule
-1 & 2027 & 59{,}90 & 6\,374\,387 & 1132{,}3 \\
-2 & 2028 & 60{,}32 & 6\,488\,737 & 1143{,}4 \\
-3 & 2029 & 60{,}54 & 7\,450\,070 & 1378{,}5 \\
-4 & 2030 & 60{,}32 & 9\,659\,800 & 1584{,}9 \\
-5 & 2031 & \textbf{59{,}86} & 5\,951\,121 & 1014{,}5 \\
+1 & 2027 & 59{,}90 & 2\,032\,952 & 9\,041\,275 & 576{,}1 \\
+2 & 2028 & 59{,}70 & 1\,781\,448 & 7\,197\,077 & 482{,}4 \\
+3 & 2029 & 60{,}00 & 1\,883\,803 & 10\,327\,626 & 611{,}8 \\
+4 & 2030 & 59{,}60 & 1\,636\,057 & 5\,279\,871 & 379{,}3 \\
+5 & 2031 & \textbf{59{,}44} & 1\,805\,648 & 6\,265\,072 & 442{,}6 \\
 \midrule
-\multicolumn{2}{l}{Mínimo} & 59{,}86 & & \\
-\multicolumn{2}{l}{Média} & 60{,}19 & & \\
-\multicolumn{2}{l}{Desvio padrão} & 0{,}30 & & \\
-\multicolumn{2}{l}{Máximo} & 60{,}54 & & \\
+\multicolumn{2}{l}{Mínimo} & 59{,}44 & & & \\
+\multicolumn{2}{l}{Média} & 59{,}73 & & & \\
+\multicolumn{2}{l}{Desvio padrão} & 0{,}23 & & & \\
+\multicolumn{2}{l}{Máximo} & 60{,}00 & & & \\
 \bottomrule
 \end{tabular}
 \label{tab:res_f1}
 \end{table}
 
-O menor custo encontrado foi R\$~59{,}86 milhões (execução 5). A diferença entre a melhor e a pior execução foi de R\$~680 mil, aproximadamente 1{,}1\% do menor custo. As sementes conduziram a soluções finais distintas, sem prova de ótimo global. A retirada do teto muda a trajetória da busca e não garante melhora para toda semente; dentro de uma mesma execução, a melhor solução registrada nunca piora.
+O menor custo encontrado foi R\$~59{,}44 milhões (execução 5), 0{,}17\% acima do ótimo provado de R\$~59{,}34 milhões; a média das cinco execuções ficou 0{,}65\% acima dele. A diferença entre a melhor e a pior execução foi de R\$~560 mil, cerca de 0{,}9\% do menor custo. Na versão entregue anteriormente, com 50 ciclos e $\phi=0{,}5$, o menor custo havia sido R\$~59{,}86 milhões e a média, R\$~60{,}19 milhões. Em $f_1$, o número de nós visitados em $N_3$ é várias vezes maior que o de avaliações: os cortes descartam a maior parte das receitas antes de completá-las, mas a vizinhança continua grande, porque muitas reconstruções preservam a viabilidade.
 
 \subsection{Resultados para $f_2$}
 
@@ -649,26 +648,26 @@ A Tabela~\ref{tab:res_f2} apresenta os resultados da minimização do desvio qua
 \begin{table}[htbp]
 \caption{Resultados das cinco execuções para $f_2$ (desvio de SiO$_2$)}
 \centering
-\begin{tabular}{c c r r r}
+\begin{tabular}{c c r r r r}
 \toprule
-\textbf{Exec.} & \textbf{Semente} & \textbf{$f_2$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
+\textbf{Exec.} & \textbf{Semente} & \textbf{$f_2$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
 \midrule
-1 & 12027 & 2{,}37288 & 1\,029\,251 & 117{,}4 \\
-2 & 12028 & 2{,}37282 & 876\,394 & 97{,}6 \\
-3 & 12029 & \textbf{2{,}37273} & 943\,499 & 99{,}5 \\
-4 & 12030 & 2{,}37277 & 1\,119\,337 & 106{,}0 \\
-5 & 12031 & 2{,}37287 & 1\,162\,191 & 140{,}4 \\
+1 & 12027 & \textbf{2{,}37267} & 9\,711\,306 & 273\,210 & 736{,}1 \\
+2 & 12028 & 2{,}37268 & 9\,142\,885 & 260\,640 & 708{,}7 \\
+3 & 12029 & 2{,}37271 & 8\,980\,555 & 227\,299 & 703{,}5 \\
+4 & 12030 & 2{,}37272 & 8\,210\,399 & 219\,872 & 663{,}5 \\
+5 & 12031 & 2{,}37269 & 8\,573\,662 & 228\,995 & 685{,}8 \\
 \midrule
-\multicolumn{2}{l}{Mínimo} & 2{,}37273 & & \\
-\multicolumn{2}{l}{Média} & 2{,}37282 & & \\
-\multicolumn{2}{l}{Desvio padrão} & $6{,}6\times10^{-5}$ & & \\
-\multicolumn{2}{l}{Máximo} & 2{,}37288 & & \\
+\multicolumn{2}{l}{Mínimo} & 2{,}37267 & & & \\
+\multicolumn{2}{l}{Média} & 2{,}37269 & & & \\
+\multicolumn{2}{l}{Desvio padrão} & $2{,}0\times10^{-5}$ & & & \\
+\multicolumn{2}{l}{Máximo} & 2{,}37272 & & & \\
 \bottomrule
 \end{tabular}
 \label{tab:res_f2}
 \end{table}
 
-As cinco execuções chegaram a valores praticamente iguais: a diferença entre a melhor e a pior é de $1{,}5\times10^{-4}$~pp$^2$. Esse comportamento indica que a busca é pouco sensível à semente para este objetivo. Nesta versão sem teto, as execuções de $f_1$ exigiram aproximadamente sete vezes mais avaliações, em média, que as de $f_2$, mostrando o maior esforço de exploração associado ao custo. Como o critério de parada é o número de ciclos da GVNS, e não o de avaliações, o esforço gasto em cada ciclo varia conforme o objetivo.
+As cinco execuções chegaram a valores praticamente iguais: a diferença entre a melhor e a pior é de $4{,}9\times10^{-5}$~pp$^2$, e a melhor fica a $1{,}7\times10^{-5}$ em termos relativos da melhor solução conhecida, 2{,}3726305~pp$^2$. Ao contrário de $f_1$, em $f_2$ o número de avaliações é muito maior que o de nós de $N_3$: perto de boas soluções de $f_2$ há poucas receitas que preservam a qualidade, e o esforço se concentra em $N_1$ e $N_2$.
 
 \subsection{Resultados para $f_3$}
 
@@ -677,26 +676,26 @@ A Tabela~\ref{tab:res_f3} apresenta os resultados da minimização do desvio qua
 \begin{table}[htbp]
 \caption{Resultados das cinco execuções para $f_3$ (desvio de Al$_2$O$_3$)}
 \centering
-\begin{tabular}{c c r r r}
+\begin{tabular}{c c r r r r}
 \toprule
-\textbf{Exec.} & \textbf{Semente} & \textbf{$f_3$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Tempo (s)} \\
+\textbf{Exec.} & \textbf{Semente} & \textbf{$f_3$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
 \midrule
-1 & 22027 & 1{,}41998 & 1\,330\,784 & 146{,}3 \\
-2 & 22028 & 1{,}42051 & 1\,222\,289 & 118{,}0 \\
-3 & 22029 & \textbf{1{,}41997} & 1\,012\,601 & 95{,}3 \\
-4 & 22030 & 1{,}41997 & 1\,180\,815 & 120{,}0 \\
-5 & 22031 & 1{,}42092 & 1\,292\,841 & 132{,}5 \\
+1 & 22027 & 1{,}42003 & 12\,617\,320 & 195\,551 & 823{,}6 \\
+2 & 22028 & 1{,}41997 & 11\,463\,115 & 179\,454 & 797{,}6 \\
+3 & 22029 & 1{,}41998 & 11\,156\,301 & 204\,246 & 779{,}1 \\
+4 & 22030 & \textbf{1{,}41997} & 12\,292\,628 & 192\,010 & 812{,}5 \\
+5 & 22031 & 1{,}41998 & 11\,806\,191 & 191\,298 & 800{,}7 \\
 \midrule
-\multicolumn{2}{l}{Mínimo} & 1{,}41997 & & \\
-\multicolumn{2}{l}{Média} & 1{,}42027 & & \\
-\multicolumn{2}{l}{Desvio padrão} & $4{,}3\times10^{-4}$ & & \\
-\multicolumn{2}{l}{Máximo} & 1{,}42092 & & \\
+\multicolumn{2}{l}{Mínimo} & 1{,}41997 & & & \\
+\multicolumn{2}{l}{Média} & 1{,}41999 & & & \\
+\multicolumn{2}{l}{Desvio padrão} & $2{,}4\times10^{-5}$ & & & \\
+\multicolumn{2}{l}{Máximo} & 1{,}42003 & & & \\
 \bottomrule
 \end{tabular}
 \label{tab:res_f3}
 \end{table}
 
-As execuções 3 e 4 atingiram o mesmo valor, 1{,}41997~pp$^2$, e as demais ficaram a menos de $10^{-3}$~pp$^2$ dele. Assim como em $f_2$, a variabilidade entre execuções é muito pequena.
+As execuções 2 e 4 atingiram 1{,}4199714~pp$^2$, o mesmo valor da melhor solução do Gurobi, e as demais ficaram a menos de $6\times10^{-5}$~pp$^2$ dele. Na versão anterior, com 50 ciclos, duas das cinco execuções haviam terminado até $9{,}5\times10^{-4}$~pp$^2$ acima desse valor.
 
 \subsection{Curvas de Convergência}
 
@@ -723,7 +722,7 @@ As Figuras~\ref{fig:conv_f1}, \ref{fig:conv_f2} e~\ref{fig:conv_f3} sobrepõem a
 \label{fig:conv_f3}
 \end{figure}
 
-Nos três objetivos, a maior parte da melhoria ocorre nas primeiras dezenas de milhares de avaliações. Em $f_1$, o custo cai de cerca de R\$~65 milhões para R\$~61 milhões nesse trecho inicial e, depois, passa a diminuir em saltos pequenos e espaçados, com as execuções terminando em patamares diferentes. Em $f_2$ e $f_3$, as curvas se estabilizam cedo e convergem para praticamente o mesmo valor; as melhorias após cerca de 200 mil avaliações são pequenas em relação à queda inicial.
+Nos três objetivos, a maior parte da melhoria ocorre no início da busca. Em $f_1$, as execuções continuam melhorando em saltos pequenos e espaçados até o fim do orçamento e terminam em patamares diferentes, como já indicava o estudo do critério de parada. Em $f_2$ e $f_3$, as curvas se estabilizam cedo e convergem para praticamente o mesmo valor.
 
 \subsection{Melhores Soluções Encontradas}
 
@@ -738,19 +737,19 @@ A Tabela~\ref{tab:comparacao} avalia cada uma dessas soluções nos três objeti
 \toprule
 \textbf{Otimizado} & \textbf{$f_1$ (R\$ mi)} & \textbf{$f_2$ (pp$^2$)} & \textbf{$f_3$ (pp$^2$)} \\
 \midrule
-$f_1$ & \textbf{59{,}86} & 6{,}673 & 6{,}260 \\
-$f_2$ & 63{,}44 & \textbf{2{,}373} & 3{,}947 \\
-$f_3$ & 65{,}82 & 6{,}292 & \textbf{1{,}420} \\
+$f_1$ & \textbf{59{,}44} & 6{,}801 & 6{,}762 \\
+$f_2$ & 63{,}44 & \textbf{2{,}373} & 3{,}763 \\
+$f_3$ & 65{,}82 & 6{,}271 & \textbf{1{,}420} \\
 \bottomrule
 \end{tabular}
 \label{tab:comparacao}
 \end{table}
 
-A tabela evidencia o conflito entre os objetivos. A solução de menor custo tem os maiores desvios de qualidade; reduzir o desvio de Al$_2$O$_3$ ao mínimo encontrado custa R\$~5{,}96 milhões a mais (10{,}0\%). Nenhuma das três soluções é melhor que as outras em todos os objetivos, o que motiva a abordagem multiobjetivo da próxima etapa.
+A tabela evidencia o conflito entre os objetivos. A solução de menor custo tem os maiores desvios de qualidade; reduzir o desvio de Al$_2$O$_3$ ao mínimo encontrado custa R\$~6{,}38 milhões a mais (10{,}7\%). Nenhuma das três soluções é melhor que as outras em todos os objetivos, o que motiva a abordagem multiobjetivo da Seção~\ref{sec:multi}.
 
-Na solução de menor custo (Figura~\ref{fig:melhor_f1}), o teor de SiO$_2$ de P2 é 6{,}200\%, no máximo permitido pelo Sinter~1. As pilhas do Sinter~2 ficam entre 6{,}419\% e 6{,}500\%, com P6 no limite superior. O custo baixo é acompanhado de misturas próximas dos limites de sílica, enquanto os alvos químicos continuam distantes.
+Na solução de menor custo (Figura~\ref{fig:melhor_f1}), o teor de SiO$_2$ de P2 e P4 é 6{,}200\%, no máximo permitido pelo Sinter~1, e as demais pilhas desse sinter ficam entre 6{,}180\% e 6{,}186\%. As pilhas do Sinter~2 ficam entre 6{,}453\% e 6{,}494\%, perto do máximo de 6{,}5\%. O custo baixo é acompanhado de misturas próximas dos limites de sílica, enquanto os alvos químicos continuam distantes.
 
-Nas soluções de $f_2$ e $f_3$ (Figuras~\ref{fig:melhor_f2} e~\ref{fig:melhor_f3}), os teores não atingem os valores-alvo. Na solução de $f_2$, o SiO$_2$ varia de 5{,}880\% a 6{,}121\%, acima dos alvos de 5{,}55\% (Sinter~1) e 5{,}50\% (Sinter~2). Na de $f_3$, o Al$_2$O$_3$ varia de 1{,}500\% a 1{,}607\% no Sinter~1 (alvo de 1{,}25\%) e de 1{,}880\% a 1{,}984\% no Sinter~2 (alvo de 1{,}5\%). Na solução de $f_2$, o desvio de sílica cresce com a massa dentro de cada sinter. Na solução de $f_3$, esse comportamento é observado para o indicador otimizado no Sinter~2, mas não é estritamente crescente no Sinter~1. A disponibilidade limitada e a ausência de ponderação por massa podem contribuir para essas diferenças, mas essa interpretação não constitui uma demonstração causal.
+Nas soluções de $f_2$ e $f_3$ (Figuras~\ref{fig:melhor_f2} e~\ref{fig:melhor_f3}), os teores não atingem os valores-alvo. Na solução de $f_2$, o SiO$_2$ varia de 5{,}880\% a 6{,}126\%, acima dos alvos de 5{,}55\% (Sinter~1) e 5{,}50\% (Sinter~2). Na de $f_3$, o Al$_2$O$_3$ varia de 1{,}500\% a 1{,}607\% no Sinter~1 (alvo de 1{,}25\%) e de 1{,}880\% a 1{,}984\% no Sinter~2 (alvo de 1{,}5\%), crescendo com a massa da pilha dentro de cada sinter. A disponibilidade limitada e a ausência de ponderação por massa podem contribuir para esse padrão, mas essa interpretação não constitui uma demonstração causal.
 
 
 \section{Otimização Multiobjetivo -- Entrega 2}\label{sec:multi}
@@ -761,14 +760,13 @@ originais. Utilizamos as melhores soluções das cinco execuções isoladas
 para formar a matriz de resultados cruzados da Tabela~\ref{tab:payoff}.
 \begin{table}[htbp]
 \centering\small
-% PENDENTE: atualizar com o lote oficial da Entrega 1 com a versão final.
 \caption{Referências empíricas da Entrega 1.}
 \label{tab:payoff}
 \begin{tabular}{lrrr}\toprule
 Referência & $f_1$ (R\$ mi) & $f_2$ (pp$^2$) & $f_3$ (pp$^2$)\\\midrule
-Menor custo & 59,86 & 6,67309640 & 6,26000512\\
-Menor SiO$_2$ & 63,44 & 2,37273078 & 3,94656760\\
-Menor Al$_2$O$_3$ & 65,82 & 6,29168750 & 1,41997141\\\bottomrule
+Menor custo & 59,44 & 6,80062097 & 6,76186898\\
+Menor SiO$_2$ & 63,44 & 2,37267124 & 3,76293269\\
+Menor Al$_2$O$_3$ & 65,82 & 6,27074879 & 1,41997141\\\bottomrule
 \end{tabular}
 \end{table}
 Para cada objetivo $q\in\{1,2,3\}$, definimos $a_q$ e $b_q$ como o menor
