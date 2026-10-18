@@ -86,6 +86,20 @@ class MonoObjectiveTests(unittest.TestCase):
         self.assertGreater(run.evaluations, 0)
         self.assertTrue(evaluate(self.case, run.best_plan).feasible)
 
+    def test_avaliacao_incremental_igual_a_completa(self):
+        case = self.case
+        rng = random.Random(7)
+        plan = construct(case)
+        result = evaluate(case, plan)
+        for step in range(60):
+            kind = step % 3 + 1
+            for candidate in neighbors(case, plan, kind, rng):
+                incremental = evaluate(case, candidate, result)
+                full = evaluate(case, [row.copy() for row in candidate])
+                self.assertEqual(incremental, full)
+                plan, result = candidate, incremental
+                break
+
     def test_enumeracao_n1_nao_repete_composicoes(self):
         plan = construct(self.case)
         moves = list(neighbors(self.case, plan, 1, random.Random(42)))

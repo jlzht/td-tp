@@ -13,7 +13,7 @@ import random
 import statistics
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import combinations, islice, product
 from pathlib import Path
 
@@ -57,6 +57,19 @@ class Case:
     ores: tuple[Ore, ...]
     sinters: dict[int, Sinter]
 
+@dataclass(frozen=True)
+class PileTerms:
+    """Parcelas de uma pilha que entram nos objetivos e na violação."""
+    cost: float
+    si: float
+    al: float
+    si_error: float
+    al_error: float
+    si_violation: float
+    al_violation: float
+    counts: tuple[tuple[int, int], ...]  # (minério, caminhões)
+
+
 @dataclass
 class Evaluation:
     objectives: tuple[float, float, float]  # R$, pp² SiO2, pp² Al2O3
@@ -64,6 +77,9 @@ class Evaluation:
     si: tuple[float, ...]
     al: tuple[float, ...]
     usage: tuple[int, ...]
+    # Linhas avaliadas e suas parcelas, para reaproveitar pilhas não alteradas.
+    rows: tuple[list[int], ...] = field(default=(), repr=False, compare=False)
+    piles: tuple[PileTerms, ...] = field(default=(), repr=False, compare=False)
 
     @property
     def feasible(self) -> bool:
@@ -127,44 +143,74 @@ def load_case(path: Path) -> Case:
     return Case(q, trucks, groups, ores, sinters)
 
 
-def evaluate(case: Case, plan: list[list[int]]) -> Evaluation:
-    """Calcula os três objetivos e as violações de qualidade/disponibilidade."""
+def pile_terms(case: Case, p: int, row: list[int]) -> PileTerms:
+    """Calcula as parcelas de custo, teor, desvio e violação de uma pilha."""
+    if len(row) != case.trucks[p]:
+        raise ValueError(f"massa incorreta na P{p + 1}")
+    counts: dict[int, int] = {}
+    cost = si_sum = al_sum = 0.0
+    for j in row:
+        if not isinstance(j, int) or not 0 <= j < len(case.ores):
+            raise ValueError(f"minério inválido na P{p + 1}")
+        ore = case.ores[j]
+        if case.groups[p] not in ore.sinters:
+            raise ValueError(f"minério inelegível na P{p + 1}")
+        counts[j] = counts.get(j, 0) + 1
+        cost += 1000 * case.truck_kt * ore.price
+        si_sum += ore.si
+        al_sum += ore.al
+    si, al = si_sum / len(row), al_sum / len(row)
+    group = case.sinters[case.groups[p]]
+    return PileTerms(
+        cost, si, al, (si - group.si_target) ** 2, (al - group.al_target) ** 2,
+        (max(0.0, group.si_min - si) +
+         max(0.0, si - group.si_max)) / (group.si_max - group.si_min),
+        (max(0.0, group.al_min - al) +
+         max(0.0, al - group.al_max)) / (group.al_max - group.al_min),
+        tuple(counts.items()))
+
+
+def evaluate(case: Case, plan: list[list[int]],
+             reference: Evaluation | None = None) -> Evaluation:
+    """Calcula os três objetivos e as violações de qualidade/disponibilidade.
+
+    Com ``reference``, as pilhas cuja lista é o mesmo objeto avaliado em
+    ``reference`` não são recalculadas. Os vizinhos copiam só as pilhas que
+    alteram, então uma avaliação custa uma ou duas pilhas em vez de dez. Isso
+    exige que nenhuma linha já avaliada seja modificada no lugar.
+    """
     if len(plan) != len(case.trucks):
         raise ValueError("número incorreto de pilhas")
-    usage = [0] * len(case.ores)
-    si_values, al_values = [], []
-    cost = si_error = al_error = violation = 0.0
+    usage = list(reference.usage) if reference is not None else [0] * len(case.ores)
+    terms = []
     for p, row in enumerate(plan):
-        if len(row) != case.trucks[p]:
-            raise ValueError(f"massa incorreta na P{p + 1}")
-        si_sum = al_sum = 0.0
-        for j in row:
-            if not isinstance(j, int) or not 0 <= j < len(case.ores):
-                raise ValueError(f"minério inválido na P{p + 1}")
-            ore = case.ores[j]
-            if case.groups[p] not in ore.sinters:
-                raise ValueError(f"minério inelegível na P{p + 1}")
-            usage[j] += 1
-            cost += 1000 * case.truck_kt * ore.price
-            si_sum += ore.si
-            al_sum += ore.al
-        si, al = si_sum / len(row), al_sum / len(row)
-        si_values.append(si)
-        al_values.append(al)
-        group = case.sinters[case.groups[p]]
-        si_error += (si - group.si_target) ** 2
-        al_error += (al - group.al_target) ** 2
-        violation += (max(0.0, group.si_min - si) +
-                      max(0.0, si - group.si_max)) / (group.si_max - group.si_min)
-        violation += (max(0.0, group.al_min - al) +
-                      max(0.0, al - group.al_max)) / (group.al_max - group.al_min)
+        if reference is not None and row is reference.rows[p]:
+            terms.append(reference.piles[p])
+            continue
+        term = pile_terms(case, p, row)
+        if reference is not None:
+            for j, count in reference.piles[p].counts:
+                usage[j] -= count
+        for j, count in term.counts:
+            usage[j] += count
+        terms.append(term)
+    # A ordem das somas repete a da avaliação pilha a pilha, para que o valor
+    # incremental seja idêntico em ponto flutuante ao recálculo completo.
+    cost = si_error = al_error = violation = 0.0
+    for term in terms:
+        cost += term.cost
+        si_error += term.si_error
+        al_error += term.al_error
+        violation += term.si_violation
+        violation += term.al_violation
     for ore, count in zip(case.ores, usage):
         violation += (max(0, ore.minimum - count) +
                       max(0, count - ore.maximum)) / max(1, ore.maximum - ore.minimum)
     if violation <= 1e-10:  # despreza apenas erro numérico de arredondamento
         violation = 0.0
     return Evaluation((cost, si_error, al_error), violation,
-                      tuple(si_values), tuple(al_values), tuple(usage))
+                      tuple(t.si for t in terms), tuple(t.al for t in terms),
+                      tuple(usage), tuple(plan), tuple(terms))
 
 
 def capacity_possible(case: Case, plan: list[list[int]], usage: list[int]) -> bool:
@@ -235,6 +281,10 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
               rng: random.Random):
     """Percorre vizinhos de N1, N2 ou N3 em ordem sorteada.
 
+    Cada vizinho copia apenas as pilhas que altera e compartilha as demais
+    listas com ``plan``; ``evaluate`` usa esse compartilhamento para não
+    recalcular pilhas iguais.
+
     Posições com o mesmo minério na mesma pilha são equivalentes: a composição,
     os objetivos e as restrições dependem das contagens, não da ordem do vetor.
     """
@@ -254,7 +304,8 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
                 for new in choices:
                     if new == old:
                         continue
-                    candidate = [row.copy() for row in plan]
+                    candidate = plan.copy()
+                    candidate[p] = plan[p].copy()
                     candidate[p][positions[p][old]] = new
                     yield candidate
         return
@@ -320,7 +371,7 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
                     changed = n - sum(min(counts[t], old_count[eligible[t]])
                                       for t in range(len(eligible)))
                     if changed >= min_changes:
-                        candidate = [row.copy() for row in plan]
+                        candidate = plan.copy()
                         candidate[p] = [j for t, j in enumerate(eligible)
                                         for _ in range(counts[t])]
                         yield candidate
@@ -345,7 +396,8 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
             if a == b or case.groups[q] not in case.ores[a].sinters or \
                     case.groups[p] not in case.ores[b].sinters:
                 continue
-            candidate = [row.copy() for row in plan]
+            candidate = plan.copy()
+            candidate[p], candidate[q] = plan[p].copy(), plan[q].copy()
             candidate[p][positions[p][a]] = b
             candidate[q][positions[q][b]] = a
             yield candidate
@@ -371,9 +423,9 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     best_plan = best_result = None
     trace = []
 
-    def consider(plan: list[list[int]]) -> Evaluation:
+    def consider(plan: list[list[int]], parent: Evaluation) -> Evaluation:
         nonlocal evaluations, best_plan, best_result
-        result = evaluate(case, plan)
+        result = evaluate(case, plan, parent)
         evaluations += 1
         if result.feasible and (best_result is None or
                 result.objectives[objective] < best_result.objectives[objective] - 1e-10):
@@ -393,7 +445,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
         while level <= last_level:
             improved = False
             for candidate in candidates(plan, level):
-                candidate_result = consider(candidate)
+                candidate_result = consider(candidate, result)
                 if repairing and candidate_result.feasible:
                     return candidate, candidate_result
                 if not repairing and not candidate_result.feasible:
@@ -421,12 +473,12 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
     for _ in range(REPAIR_STEPS):
         if best_plan is not None:
             break
-        shaken = [row.copy() for row in current]
+        shaken = current
         for _ in range(level):
             moved = neighbor(case, shaken, level, rng)
             if moved is not None:
                 shaken = moved
-        shaken_result = consider(shaken)
+        shaken_result = consider(shaken, current_result)
         if best_plan is not None:
             break
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=True)
@@ -445,14 +497,14 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
 
     level = 1
     for _ in range(iterations):
-        shaken = [row.copy() for row in current]
+        shaken, shaken_parent = current, current_result
         for _ in range(level):
             for moved in candidates(shaken, level):
-                moved_result = consider(moved)
+                moved_result = consider(moved, shaken_parent)
                 if moved_result.feasible:
-                    shaken = moved
+                    shaken, shaken_parent = moved, moved_result
                     break
-        shaken_result = consider(shaken)
+        shaken_result = consider(shaken, shaken_parent)
         shaken, shaken_result = local_search(shaken, shaken_result, repairing=False)
         assert shaken_result.feasible
         if shaken_result.objectives[objective] < current_result.objectives[objective] - 1e-12:
