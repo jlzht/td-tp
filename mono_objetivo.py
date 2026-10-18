@@ -9,6 +9,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import random
 import statistics
 import sys
@@ -26,6 +27,7 @@ RUNS = 5
 ITERATIONS = 50          # ciclos globais de perturbação + VND por execução
 REPAIR_STEPS = 100       # evita laço infinito se o reparo não achar plano viável
 BASE_SEED = 2026        # início da sequência de sementes aleatórias
+N3_MIN_FRACTION = 0.5    # fração mínima de caminhões que a N3 altera na pilha
 
 
 @dataclass
@@ -277,13 +279,17 @@ def construct(case: Case) -> list[list[int]]:
 
 
 def neighbors(case: Case, plan: list[list[int]], kind: int,
-              rng: random.Random, improve: int | None = None):
+              rng: random.Random, improve: int | None = None,
+              min_fraction: float = N3_MIN_FRACTION):
     """Percorre vizinhos de N1, N2 ou N3 em ordem sorteada.
 
     Com ``improve`` (índice do objetivo), a N3 descarta os ramos da enumeração
     que não conseguem melhorar esse objetivo. Como as outras nove pilhas ficam
     fixas, melhorar o plano equivale a melhorar a parcela da pilha reconstruída,
     e o limitante dessa parcela é exato: nenhum vizinho que melhora é perdido.
+
+    A N3 altera pelo menos ``max(2, ceil(min_fraction * n))`` caminhões de uma
+    pilha de ``n`` caminhões; o piso de 2 mantém a N3 disjunta da N1.
 
     Cada vizinho copia apenas as pilhas que altera e compartilha as demais
     listas com ``plan``; ``evaluate`` usa esse compartilhamento para não
@@ -341,7 +347,9 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
             al_values = [case.ores[j].al for j in eligible]
             price_values = [case.ores[j].price for j in eligible]
             counts = [0] * len(eligible)
-            min_changes = (n + 1) // 2
+            # Arredondar antes do teto evita que 0.3 * 10 = 3.0000000000000004
+            # vire 4 caminhões.
+            min_changes = max(2, math.ceil(round(min_fraction * n, 9)))
             old_price = sum(case.ores[j].price for j in plan[p])
             old_si_error = (sum(case.ores[j].si for j in plan[p]) / n
                             - group.si_target) ** 2
@@ -439,13 +447,15 @@ def neighbors(case: Case, plan: list[list[int]], kind: int,
 
 
 def neighbor(case: Case, plan: list[list[int]], kind: int,
-             rng: random.Random) -> list[list[int]] | None:
+             rng: random.Random,
+             min_fraction: float = N3_MIN_FRACTION) -> list[list[int]] | None:
     """Primeiro vizinho na ordem sorteada; útil para a perturbação inicial."""
-    return next(neighbors(case, plan, kind, rng), None)
+    return next(neighbors(case, plan, kind, rng, min_fraction=min_fraction), None)
 
 
 def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
-          base_seed: int = BASE_SEED) -> Run:
+          base_seed: int = BASE_SEED,
+          n3_min_fraction: float = N3_MIN_FRACTION) -> Run:
     """Repara a construção e executa um número fixo de ciclos da GVNS."""
     if iterations <= 0:
         raise ValueError("iteracoes deve ser positivo")
@@ -471,7 +481,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
 
     def candidates(plan: list[list[int]], level: int, improving: bool = False):
         return neighbors(case, plan, level, rng,
-                         objective if improving else None)
+                         objective if improving else None, n3_min_fraction)
 
     def local_search(plan: list[list[int]], result: Evaluation, repairing: bool):
         level = 1
@@ -510,7 +520,7 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
             break
         shaken = current
         for _ in range(level):
-            moved = neighbor(case, shaken, level, rng)
+            moved = neighbor(case, shaken, level, rng, n3_min_fraction)
             if moved is not None:
                 shaken = moved
         shaken_result = consider(shaken, current_result)
@@ -553,7 +563,8 @@ def solve(case: Case, objective: int, number: int, iterations: int = ITERATIONS,
 
 def write_outputs(case: Case, runs: list[Run], directory: Path,
                   data_path: Path, iterations: int = ITERATIONS,
-                  base_seed: int = BASE_SEED) -> None:
+                  base_seed: int = BASE_SEED,
+                  n3_min_fraction: float = N3_MIN_FRACTION) -> None:
     """Grava as 15 execuções, estatísticas, planos e figuras do relatório."""
     directory.mkdir(parents=True, exist_ok=True)
     config = {
@@ -563,10 +574,11 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
         "python": sys.version.split()[0],
         "limite_iteracoes_gvns": iterations,
         "limite_passos_reparo": REPAIR_STEPS,
+        "n3_fracao_minima_alterada": n3_min_fraction,
         "politica_inviabilidade": "reparo inicial; rejeição de candidatos inviáveis na GVNS",
         "semente_base": base_seed,
         "construcao": "mínimos em rodízio; completar por preço crescente",
-        "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, com ao menos metade dos caminhões alterados",
+        "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, alterando ao menos max(2, ceil(fração * caminhões))",
         "busca_local": "N1, N2 e N3 até primeira melhora ou exaustão; na N3, ramos que não podem melhorar o objetivo são descartados",
     }
     (directory / "configuracao.json").write_text(
@@ -615,11 +627,13 @@ def write_outputs(case: Case, runs: list[Run], directory: Path,
 
 
 def run_method(case: Case, iterations: int = ITERATIONS,
-               base_seed: int = BASE_SEED) -> list[Run]:
+               base_seed: int = BASE_SEED,
+               n3_min_fraction: float = N3_MIN_FRACTION) -> list[Run]:
     runs = []
     for objective in range(3):
         for number in range(1, RUNS + 1):
-            run = solve(case, objective, number, iterations, base_seed)
+            run = solve(case, objective, number, iterations, base_seed,
+                        n3_min_fraction)
             runs.append(run)
             value = run.best_evaluation.objectives[objective]
             print(f"GVNS, f{objective + 1}, execução {number}: {value}",
@@ -633,6 +647,9 @@ def main() -> None:
                         help="ciclos globais da GVNS por execução (padrão: 50)")
     parser.add_argument("--semente-base", type=int, default=BASE_SEED,
                         help="ponto de partida dos sorteios reproduzíveis")
+    parser.add_argument("--n3-fracao-minima", type=float, default=N3_MIN_FRACTION,
+                        help="fração mínima de caminhões alterados pela N3; "
+                             "o mínimo absoluto é 2 (padrão: 0.5)")
     parser.add_argument("--dados", type=Path,
                         default=Path(__file__).with_name("dados_exemplo.json"))
     parser.add_argument("--saida", type=Path,
@@ -640,11 +657,13 @@ def main() -> None:
     args = parser.parse_args()
     if args.iteracoes <= 0:
         parser.error("--iteracoes deve ser positivo")
+    if not 0 <= args.n3_fracao_minima <= 1:
+        parser.error("--n3-fracao-minima deve estar entre 0 e 1")
     case = load_case(args.dados)
     directory = args.saida or Path(__file__).with_name("resultados")
-    runs = run_method(case, args.iteracoes, args.semente_base)
+    runs = run_method(case, args.iteracoes, args.semente_base, args.n3_fracao_minima)
     write_outputs(case, runs, directory, args.dados,
-                  args.iteracoes, args.semente_base)
+                  args.iteracoes, args.semente_base, args.n3_fracao_minima)
     print(f"Resultados em {directory.resolve()}")
 
 

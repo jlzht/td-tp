@@ -16,6 +16,10 @@ Para cada objetivo otimizado, grava em --saida:
     f{k}_disponibilidade.csv  uso total de cada minério contra mínimo e máximo
     f{k}_evolucao.csv     cada nova solução incumbente e o limitante ao longo do tempo
     f{k}_gurobi.log       log completo do Gurobi
+
+Durante a busca, cada nova incumbente regrava f{k}_incumbente.csv e acrescenta
+uma linha a f{k}_evolucao_parcial.csv, para que um desligamento da máquina não
+perca o que já foi encontrado.
 """
 from __future__ import annotations
 
@@ -94,7 +98,8 @@ class ExactModel:
             objective: 0 para custo, 1 para desvio de SiO2, 2 para desvio de Al2O3.
             time_limit: Limite de tempo em segundos; None deixa o Gurobi provar o ótimo.
             threads: Threads do Gurobi; 0 usa todas.
-            log_path: Arquivo onde o Gurobi grava o log completo.
+            log_path: Arquivo onde o Gurobi grava o log completo; os arquivos
+                de incumbente parcial ficam na mesma pasta.
 
         Returns:
             Status, limitante, gap, esforço, valores dos três objetivos e composição.
@@ -144,28 +149,59 @@ class ExactModel:
         # O Gurobi não abre LogFile em caminho com acento ("Decisão"), então o
         # log é copiado pelo callback de mensagens.
         log = log_path.open("w", encoding="utf-8")
+        prefix = log_path.parent / f"f{objective + 1}"
+        partial = (prefix.parent / f"{prefix.name}_evolucao_parcial.csv").open(
+            "w", newline="", encoding="utf-8")
+        partial_writer = csv.writer(partial, lineterminator="\n")
+        partial_writer.writerow(["segundos", "evento", "incumbente", "limitante"])
+        names = [f"M{o['id']}" for o in self.ores]
+
+        def save_incumbent(seconds: float, value: float, bound: float,
+                           solution: list[float]) -> None:
+            trucks = [[0] * len(self.ores) for _ in self.piles]
+            for (i, j), amount in zip(x, solution):
+                trucks[i][j] = round(amount)
+            # Gravar em arquivo temporário e renomear evita um CSV pela metade
+            # se a máquina desligar durante a escrita.
+            target = prefix.parent / f"{prefix.name}_incumbente.csv"
+            temporary = target.with_suffix(".parcial")
+            with temporary.open("w", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file, lineterminator="\n")
+                writer.writerow(["segundos", "incumbente", "limitante", "pilha", *names])
+                for i, pile in enumerate(self.piles):
+                    writer.writerow([seconds, value, bound, f"P{pile['id']}", *trucks[i]])
+            temporary.replace(target)
 
         def record(cb_model: gp.Model, where: int) -> None:
             if where == GRB.Callback.MESSAGE:
                 log.write(cb_model.cbGet(GRB.Callback.MSG_STRING))
                 log.flush()
             elif where == GRB.Callback.MIPSOL:
-                progress.append((cb_model.cbGet(GRB.Callback.RUNTIME), "nova_incumbente",
-                                 cb_model.cbGet(GRB.Callback.MIPSOL_OBJ),
-                                 cb_model.cbGet(GRB.Callback.MIPSOL_OBJBND)))
+                row = (cb_model.cbGet(GRB.Callback.RUNTIME), "nova_incumbente",
+                       cb_model.cbGet(GRB.Callback.MIPSOL_OBJ),
+                       cb_model.cbGet(GRB.Callback.MIPSOL_OBJBND))
+                progress.append(row)
+                partial_writer.writerow(row)
+                partial.flush()
+                save_incumbent(row[0], row[2], row[3],
+                               cb_model.cbGetSolution(list(x.values())))
             elif where == GRB.Callback.MIP:
                 now = cb_model.cbGet(GRB.Callback.RUNTIME)
                 # Amostrar o limitante evita um CSV com milhões de linhas em 6 h.
                 if now - last_sample[0] >= BOUND_SAMPLE_SECONDS:
                     last_sample[0] = now
-                    progress.append((now, "amostra_limitante",
-                                     cb_model.cbGet(GRB.Callback.MIP_OBJBST),
-                                     cb_model.cbGet(GRB.Callback.MIP_OBJBND)))
+                    row = (now, "amostra_limitante",
+                           cb_model.cbGet(GRB.Callback.MIP_OBJBST),
+                           cb_model.cbGet(GRB.Callback.MIP_OBJBND))
+                    progress.append(row)
+                    partial_writer.writerow(row)
+                    partial.flush()
 
         try:
             model.optimize(record)
         finally:
             log.close()
+            partial.close()
         if model.SolCount == 0:
             raise RuntimeError(f"f{objective + 1}: Gurobi terminou sem solução viável "
                                f"(status {model.Status})")
