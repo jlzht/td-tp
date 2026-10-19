@@ -37,7 +37,7 @@
 \renewcommand{\dblfloatpagefraction}{0.8}
 
 \begin{document}
-\title{Otimização do Custo e Qualidade de Pilhas de Minério -- Relatório Cumulativo}
+\title{Otimização do Custo e \\Qualidade de Pilhas de Minério}
 
 \author{
 \IEEEauthorblockN{Saulo Bruno do Amaral - 2024425199}
@@ -235,13 +235,23 @@ os identificadores internos dos minérios são $0,\ldots,19$; nos dados,
 nas tabelas e na formulação matemática são $1,\ldots,20$.
 
 \subsection{Relação com $x_{ij}$}
-A variável matemática é a contagem de ocorrências:
+Seja $s_{ir}$ o minério do caminhão na posição $r$ do vetor da pilha $i$.
+A variável $x_{ij}$ da formulação é obtida contando quantas posições desse
+vetor contêm o minério $j$:
 \begin{equation}
-x_{ij}=\sum_{r=1}^{n_i}\mathbf{1}\{s_{ir}=j\}.
+x_{ij}=\bigl|\{\,r\in\{1,\ldots,n_i\} : s_{ir}=j\,\}\bigr|.
 \end{equation}
-Duas permutações do mesmo vetor representam a mesma composição. Por isso,
-os resultados são exportados como matrizes de contagens, e a enumeração
-não repete movimentos que apenas escolhem posições equivalentes.
+Por exemplo, se o vetor de P1 for
+$(\mathrm{M14},\mathrm{M14},\mathrm{M14},\mathrm{M14},\mathrm{M14},\mathrm{M14},\mathrm{M13},\mathrm{M4},\mathrm{M10},\mathrm{M11})$,
+então $x_{1,14}=6$, $x_{1,13}=x_{1,4}=x_{1,10}=x_{1,11}=1$ e $x_{1,j}=0$
+para os demais minérios.
+
+A ordem das posições não altera $x_{ij}$: dois vetores com os mesmos minérios
+em ordens diferentes descrevem a mesma pilha, com o mesmo custo e os mesmos
+teores. Por isso, os resultados são exportados como matrizes de contagens
+$x_{ij}$, e as vizinhanças não geram movimentos que diferem apenas pela
+posição escolhida entre caminhões do mesmo minério, pois eles produziriam
+o mesmo vizinho.
 
 \subsection{Verificação de Viabilidade}
 A rotina \texttt{evaluate} verifica comprimento, identificadores e
@@ -620,6 +630,7 @@ A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida e
 \begin{table}[htbp]
 \caption{Resultados das cinco execuções para $f_1$ (custo)}
 \centering
+\small\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{c c r r r r}
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_1$ (R\$ mi)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
@@ -648,6 +659,7 @@ A Tabela~\ref{tab:res_f2} apresenta os resultados da minimização do desvio qua
 \begin{table}[htbp]
 \caption{Resultados das cinco execuções para $f_2$ (desvio de SiO$_2$)}
 \centering
+\small\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{c c r r r r}
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_2$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
@@ -676,6 +688,7 @@ A Tabela~\ref{tab:res_f3} apresenta os resultados da minimização do desvio qua
 \begin{table}[htbp]
 \caption{Resultados das cinco execuções para $f_3$ (desvio de Al$_2$O$_3$)}
 \centering
+\small\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{c c r r r r}
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_3$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
