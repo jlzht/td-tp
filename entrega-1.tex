@@ -540,7 +540,7 @@ O código-fonte, os dados de entrada e as instruções para executar os experime
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{n3_fracoes.pdf}
-\caption{Valor final de 30 execuções (50 ciclos) de cada objetivo para cada regra de mínimo alterado por $N_3$. Caixas: quartis; traço: mediana; triângulo: média; círculos: valores atípicos.}
+\caption{Valor final de 30 execuções (50 ciclos) de cada objetivo para cada regra de mínimo alterado por $N_3$. Caixas: quartis; traço: mediana; triângulo: média; círculos: outliers.}
 \label{fig:n3_fracoes}
 \end{figure*}
 
@@ -589,7 +589,7 @@ $\phi=0{,}75$ & 9\,554 & 0 & 0 \\
 \label{tab:n3_vazia}
 \end{table}
 
-O mínimo fixo de dois caminhões teve o melhor custo médio, mas permite reconstruções que alteram apenas dois caminhões de uma pilha, equivalentes a duas aplicações de $N_1$, o que contraria a exigência de que $N_3$ tenha lógica distinta das demais vizinhanças~\cite{case_cassotis}. Entre as frações que nunca geram esse movimento nas pilhas da instância, de 10 a 19 caminhões, $\phi=0{,}25$ é a menor. Ela não difere significativamente de $\phi=0{,}30$ em nenhum objetivo (Wilcoxon, $p=0{,}90$ em $f_1$, $0{,}87$ em $f_2$ e $0{,}39$ em $f_3$) e é melhor que $\phi=0{,}50$ em $f_1$. Por isso, adotou-se $\phi=0{,}25$.
+O mínimo fixo de dois caminhões teve o melhor custo médio, mas permite reconstruções que alteram apenas dois caminhões de uma pilha, muito similar ao resultado de duas aplicações de $N_1$, o que contraria a exigência de que $N_3$ tenha lógica distinta das demais vizinhanças~\cite{case_cassotis}. Entre as frações que nunca geram esse movimento nas pilhas da instância, de 10 a 19 caminhões, $\phi=0{,}25$ é a menor. Ela não difere significativamente de $\phi=0{,}30$ em nenhum objetivo (Wilcoxon, $p=0{,}90$ em $f_1$, $0{,}87$ em $f_2$ e $0{,}39$ em $f_3$) e é melhor que $\phi=0{,}50$ em $f_1$. Por isso, adotou-se $\phi=0{,}25$.
 
 \subsection{Escolha do Critério de Parada}
 
@@ -621,7 +621,7 @@ Para escolher $C$, cada objetivo foi otimizado em 30 execuções longas, de 500 
 
 Os três objetivos convergem em ritmos diferentes. Em $f_3$, a maior parte das execuções atinge o melhor valor entre 150 e 300 ciclos; com 50 ciclos, só 7\% o atingiam. Em $f_2$, a curva forma um patamar a partir de cerca de 300 ciclos. Em $f_1$, a melhora continua até 500 ciclos, mas em ritmo decrescente: de 300 para 500 ciclos, a distância média cai apenas 0{,}13 ponto percentual, com cerca de 67\% a mais de esforço. Também foi avaliada a parada após $K$ ciclos consecutivos sem melhora, com $K$ de 10 a 150. Para o mesmo número médio de ciclos, ela ficou ligeiramente pior que o orçamento fixo em $f_1$ e equivalente em $f_2$ e $f_3$; como também torna o esforço de cada execução variável, o que dificulta comparar configurações e abordagens, foi mantido o orçamento fixo. Adotou-se, portanto, $C=300$ ciclos, ponto em que $f_2$ e $f_3$ já estão no patamar e o ganho adicional em $f_1$ não compensa o custo, considerando também as 115 chamadas do lote multiobjetivo.
 
-O melhor valor encontrado nessas execuções foi R\$~59{,}36 milhões para $f_1$, 2{,}3726305~pp$^2$ para $f_2$ e 1{,}4199714~pp$^2$ para $f_3$. Na comparação com a referência exata, $f_1$ tem ótimo provado de R\$~59{,}34 milhões, a 0{,}03\% do melhor valor da GVNS. Em $f_2$ e $f_3$, o Gurobi não provou a otimalidade em cerca de quatro horas, mas sua melhor solução coincide com a melhor da GVNS, com intervalo de otimalidade final de $3{,}8\times10^{-5}$ e $4{,}8\times10^{-5}$, respectivamente.
+O melhor valor encontrado nessas execuções foi R\$~59{,}36 milhões para $f_1$, 2{,}3726305~pp$^2$ para $f_2$ e 1{,}4199714~pp$^2$ para $f_3$. Na comparação com a referência exata, $f_1$ tem ótimo provado de R\$~59{,}34 milhões, a 0{,}03\% do melhor valor da GVNS. Em $f_2$ e $f_3$, o Gurobi não provou a otimalidade em cerca de quatro horas de execução, mas sua melhor solução coincide com a melhor da GVNS, com intervalo de otimalidade final (MIP Gap) de $3{,}8\times10^{-5}$ e $4{,}8\times10^{-5}$, respectivamente.
 
 \subsection{Resultados para $f_1$}
 
@@ -660,7 +660,7 @@ A Tabela~\ref{tab:res_f2} apresenta os resultados da minimização do desvio qua
 \caption{Resultados das cinco execuções para $f_2$ (desvio de SiO$_2$)}
 \centering
 \small\setlength{\tabcolsep}{2.8pt}
-\begin{tabular}{c c r r r r}
+\begin{tabular}{c c l r r r}
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_2$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
 \midrule
@@ -689,7 +689,7 @@ A Tabela~\ref{tab:res_f3} apresenta os resultados da minimização do desvio qua
 \caption{Resultados das cinco execuções para $f_3$ (desvio de Al$_2$O$_3$)}
 \centering
 \small\setlength{\tabcolsep}{2.8pt}
-\begin{tabular}{c c r r r r}
+\begin{tabular}{c c l r r r}
 \toprule
 \textbf{Exec.} & \textbf{Semente} & \textbf{$f_3$ (pp$^2$)} & \textbf{Avaliações} & \textbf{Nós $N_3$} & \textbf{Tempo (s)} \\
 \midrule
