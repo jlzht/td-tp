@@ -1,4 +1,4 @@
-"""Gera normalizacao.json a partir do lote oficial mono-objetivo da Entrega 1.
+"""Gera normalizacao.json a partir da execução final mono-objetivo da Entrega 1.
 
 As referências são as melhores soluções de cada objetivo (melhores_solucoes.json
 gravado por mono_objetivo.py). A matriz cruzada dá a = mínimo e b = máximo de
@@ -65,7 +65,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--lote", type=Path, required=True,
-                        help="pasta de saída do lote oficial de mono_objetivo.py")
+                        help="pasta de saída da execução final de mono_objetivo.py")
     parser.add_argument("--dados", type=Path, default=ROOT / "dados_exemplo.json")
     parser.add_argument("--saida", type=Path, default=ROOT / "normalizacao.json")
     args = parser.parse_args()
