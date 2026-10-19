@@ -4,7 +4,8 @@ Lê a pasta de saída de multiobjetivo.py e calcula, por abordagem e por rodada:
 - número de receitas não dominadas e faixa de cada objetivo;
 - hipervolume no espaço normalizado, com ponto de referência comum;
 - cobertura C(A, B): fração dos pontos de B dominados ou igualados por A;
-- contribuição de cada abordagem para o conjunto não dominado da união.
+- contribuição de cada abordagem para o conjunto não dominado da união;
+- figura 3D dos dois conjuntos (frente_3d.pdf).
 
 Execute: python -m pilhas_minerio.comparacao_abordagens
 """
@@ -17,6 +18,7 @@ import statistics
 from pathlib import Path
 
 from .caminhos import RESULTS_DIR
+from .figuras import write_front_3d
 from .multiobjetivo import dominates
 
 METHODS = ("soma", "epsilon")
@@ -118,7 +120,9 @@ class ApproachComparison:
         for row in rows:
             print(f"{row[0]}: {row[1]} não dominadas, hipervolume {row[8]:.4f}, "
                   f"cobertura {row[9]}, {row[10]} pontos na união")
-        print(f"Métricas em {self.directory.resolve()}")
+        write_front_3d(self.directory / "frente_3d.pdf",
+                       {m: self.fronts[m] for m in methods})
+        print(f"Métricas e frente_3d.pdf em {self.directory.resolve()}")
 
     def _write(self, name: str, header: list[str], rows: list) -> None:
         with (self.directory / name).open("w", newline="", encoding="utf-8") as file:

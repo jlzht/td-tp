@@ -2,7 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[brazil]{babel}
+\Sepackage[brazilian]{babel}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -27,7 +27,7 @@
 
 \graphicspath{{figuras/}}
 
-% Valores que dependem dos experimentos finais (critério de parada e lotes oficiais).
+% Valores que dependem dos experimentos (critério de parada e execuções finais).
 \newcommand{\Cparada}{300}
 
 % Permite até 3 figuras/tabelas de largura dupla no topo de uma mesma página
@@ -110,7 +110,7 @@ Seja $x_{ij}$ a quantidade de caminhões contendo o minério $j$ destinados à p
 
 \begin{equation}
  x_{ij} \in \mathbb{Z}_{\geq 0},
- \qquad \forall i\in I,\\ \forall j\in J
+ \qquad \forall i\in I,\ \forall j\in J
 \end{equation}
 
 \subsection{Teor das Pilhas}
@@ -340,7 +340,7 @@ Um teto no número de receitas examinadas por visita limitaria as receitas avali
 
 \subsection{Busca Local}
 
-A busca local é uma VND (\textit{Variable Neighborhood Descent}) com estratégia de primeira melhora (Algoritmo~\ref{alg:vnd}). As vizinhanças são exploradas na ordem $N_1$, $N_2$, $N_3$, da menor para a maior alteração. Os vizinhos de cada vizinhança são percorridos em ordem aleatória, e o primeiro que melhora o critério é aceito, e a busca volta para $N_1$. Se nenhum vizinho de $N_\ell$ melhora, passa-se para $N_{\ell+1}$. No modo de otimização, a busca termina quando as três vizinhanças são esgotadas sem melhora, produzindo um ótimo local em $N_1$, $N_2$ e $N_3$, segundo os operadores implementados e a tolerância numérica. No reparo, retorna assim que encontra uma solução viável. Nenhuma dessas condições prova ótimo global.
+A busca local é uma VND (\textit{Variable Neighborhood Descent}) com estratégia de primeira melhora (Algoritmo~\ref{alg:vnd}). As vizinhanças são exploradas na ordem $N_1$, $N_2$, $N_3$, da menor para a maior alteração. Os vizinhos de cada vizinhança são percorridos em ordem aleatória, e o primeiro que melhora o critério é aceito; a busca, então, volta para $N_1$. Se nenhum vizinho de $N_\ell$ melhora, passa-se para $N_{\ell+1}$. No modo de otimização, a busca termina quando as três vizinhanças são esgotadas sem melhora, produzindo um ótimo local em $N_1$, $N_2$ e $N_3$, segundo os operadores implementados e a tolerância numérica. No reparo, retorna assim que encontra uma solução viável. Nenhuma dessas condições prova ótimo global.
 
 A primeira melhora foi preferida à melhor melhora porque $N_2$ e $N_3$ têm muitos vizinhos, e examinar todos a cada passo tornaria cada ciclo muito mais caro. A ordem aleatória dos vizinhos faz com que execuções com sementes diferentes explorem regiões diferentes do espaço de busca.
 
@@ -350,7 +350,7 @@ A perturbação (\textit{shaking}) tenta até $k$ movimentos sucessivos da vizin
 
 \subsection{Tratamento de Soluções Inviáveis}
 
-O enunciado admite várias políticas para os movimentos que violam restrições. Para este trabalho foi adotado uma combinação de três delas:
+O enunciado admite várias políticas para os movimentos que violam restrições. Para este trabalho, foi adotada uma combinação de três delas:
 \begin{itemize}
     \item \textbf{reparo} da solução construtiva, quando ela é inviável, antes do início da GVNS;
     \item \textbf{rejeição} dos movimentos inviáveis durante a GVNS: todos os candidatos são verificados segundo as restrições ativas antes de serem usados na busca local ou na perturbação;
@@ -361,7 +361,7 @@ A alternativa de aceitar soluções inviáveis com penalização~\cite{aula04} f
 
 \subsection{Critério de Aceitação}
 
-Após a VND, a nova solução substitui a solução corrente somente se tiver valor do objetivo estritamente menor; nesse caso, $k$ volta a 1. Em todas as comparações (viabilidade, melhora na VND, aceitação e registro da melhor solução), diferenças de até $10^{-10}$ são tratadas como erro de arredondamento, com a mesma tolerância em todos os pontos do algoritmo. Caso contrário, a solução corrente é mantida e $k$ avança. Independentemente da aceitação, a melhor solução viável avaliada ao longo de toda a execução, incluindo as avaliadas no reparo, na perturbação e na busca local, é armazenada e é a solução retornada.
+Após a VND, a nova solução substitui a solução corrente somente se tiver valor do objetivo estritamente menor; nesse caso, $k$ volta a 1. Caso contrário, a solução corrente é mantida e $k$ avança. Independentemente da aceitação, a melhor solução viável avaliada ao longo de toda a execução, incluindo as avaliadas no reparo, na perturbação e na busca local, é armazenada e é a solução retornada. Em todas as comparações (viabilidade, melhora na VND, aceitação e registro da melhor solução), diferenças de até $10^{-10}$ são tratadas como erro de arredondamento, com a mesma tolerância em todos os pontos do algoritmo.
 
 \subsection{Critério de Parada}
 
@@ -546,7 +546,7 @@ O código-fonte, os dados de entrada e as instruções para executar os experime
 
 \subsection{Escolha da Fração Mínima de $N_3$}\label{sec:escolha_phi}
 
-Para escolher $\phi$, a GVNS foi executada com oito regras: mínimo fixo de dois caminhões ($\phi=0$) e $\phi\in\{0{,}20;0{,}25;0{,}30;0{,}40;0{,}50;0{,}60;0{,}75\}$, sempre com o arredondamento para cima da Equação~(\ref{eq:n3min}). Para cada regra e cada objetivo, foram feitas 30 execuções de 50 ciclos com as mesmas sementes, totalizando 720 execuções. O experimento usou 50 ciclos por execução e, em $N_2$, a exploração dos pares a partir de uma pilha sorteada; as duas condições são as mesmas para todas as regras comparadas. A Tabela~\ref{tab:n3_fracoes} resume as médias e a Figura~\ref{fig:n3_fracoes} mostra a distribuição dos valores finais.
+Para escolher $\phi$, a GVNS foi executada com oito regras: mínimo fixo de dois caminhões ($\phi=0$) e $\phi\in\{0{,}20;0{,}25;0{,}30;0{,}40;0{,}50;0{,}60;0{,}75\}$, sempre com o arredondamento para cima da Equação~(\ref{eq:n3min}). Para cada regra e cada objetivo, foram feitas 30 execuções de 50 ciclos com as mesmas sementes, totalizando 720 execuções. Nesse experimento, $N_2$ explorava os pares a partir de uma pilha sorteada; essa condição é a mesma para todas as regras comparadas. A Tabela~\ref{tab:n3_fracoes} resume as médias e a Figura~\ref{fig:n3_fracoes} mostra a distribuição dos valores finais.
 
 \begin{table}[htbp]
 \caption{Média do valor final em 30 execuções por regra de $N_3$}
@@ -619,7 +619,7 @@ Para escolher $C$, cada objetivo foi otimizado em 30 execuções longas, de 500 
 \label{tab:parada}
 \end{table}
 
-Os três objetivos convergem em ritmos diferentes. Em $f_3$, a maior parte das execuções atinge o melhor valor entre 150 e 300 ciclos; com 50 ciclos, só 7\% o atingiam. Em $f_2$, a curva forma um patamar a partir de cerca de 300 ciclos. Em $f_1$, a melhora continua até 500 ciclos, mas em ritmo decrescente: de 300 para 500 ciclos, a distância média cai apenas 0{,}13 ponto percentual, com cerca de 67\% a mais de esforço. Também foi avaliada a parada após $K$ ciclos consecutivos sem melhora, com $K$ de 10 a 150. Para o mesmo número médio de ciclos, ela ficou ligeiramente pior que o orçamento fixo em $f_1$ e equivalente em $f_2$ e $f_3$; como também torna o esforço de cada execução variável, o que dificulta comparar configurações e abordagens, foi mantido o orçamento fixo. Adotou-se, portanto, $C=300$ ciclos, ponto em que $f_2$ e $f_3$ já estão no patamar e o ganho adicional em $f_1$ não compensa o custo, considerando também as 115 chamadas do lote multiobjetivo.
+Os três objetivos convergem em ritmos diferentes. Em $f_3$, a maior parte das execuções atinge o melhor valor entre 150 e 300 ciclos; com 50 ciclos, só 7\% o atingiam. Em $f_2$, a curva forma um patamar a partir de cerca de 300 ciclos. Em $f_1$, a melhora continua até 500 ciclos, mas em ritmo decrescente: de 300 para 500 ciclos, a distância média cai apenas 0{,}13 ponto percentual, com cerca de 67\% a mais de esforço. Também foi avaliada a parada após $K$ ciclos consecutivos sem melhora, com $K$ de 10 a 150. Para o mesmo número médio de ciclos, ela ficou ligeiramente pior que o orçamento fixo em $f_1$ e equivalente em $f_2$ e $f_3$; como também torna o esforço de cada execução variável, o que dificulta comparar configurações e abordagens, foi mantido o orçamento fixo. Adotou-se, portanto, $C=300$ ciclos, ponto em que $f_2$ e $f_3$ já estão no patamar e o ganho adicional em $f_1$ não compensa o custo, considerando também as 115 chamadas da execução final multiobjetivo.
 
 O melhor valor encontrado nessas execuções foi R\$~59{,}36 milhões para $f_1$, 2{,}3726305~pp$^2$ para $f_2$ e 1{,}4199714~pp$^2$ para $f_3$. Na comparação com a referência exata, $f_1$ tem ótimo provado de R\$~59{,}34 milhões, a 0{,}03\% do melhor valor da GVNS. Em $f_2$ e $f_3$, o Gurobi não provou a otimalidade em cerca de quatro horas de execução, mas sua melhor solução coincide com a melhor da GVNS, com intervalo de otimalidade final (MIP Gap) de $3{,}8\times10^{-5}$ e $4{,}8\times10^{-5}$, respectivamente.
 
@@ -1000,20 +1000,17 @@ Menor $f_3$ (pp$^2$) & 1{,}692 & 1{,}924 \\
 
 O $\varepsilon$-restrito obteve maior hipervolume (0{,}655 contra 0{,}584) e muito mais receitas não dominadas, distribuídas por toda a superfície de compromisso, enquanto a Soma Ponderada concentrou as soluções em cinco grupos. A diferença no número de chamadas (80 contra 35) explica parte dessa vantagem, mas não a distribuição: mesmo vetores de pesos distintos levaram a Soma Ponderada às mesmas regiões, ao passo que cada par de $\varepsilon$ fixa um nível de qualidade diferente.
 
-As duas abordagens são, porém, complementares. Nenhuma receita da Soma Ponderada é dominada pelas do $\varepsilon$-restrito, e todas as 15 permanecem no conjunto não dominado da união das duas, que tem 73 receitas. Isso ocorre porque a Soma Ponderada alcançou os extremos de alta qualidade: desvio de SiO$_2$ de 2{,}373~pp$^2$ e de Al$_2$O$_3$ de 1{,}692~pp$^2$, abaixo do que permite o menor $\varepsilon$ da grade, 0{,}10, que corresponde a $f_2\leq2{,}815$~pp$^2$ e $f_3\leq1{,}954$~pp$^2$. O $\varepsilon$-restrito, por sua vez, encontrou o menor custo da etapa, R\$~59{,}58 milhões, e preencheu o interior da fronteira que a Soma Ponderada não alcança.
+As duas abordagens são, porém, complementares. Nenhuma receita da Soma Ponderada é dominada pelas do $\varepsilon$-restrito, e todas as 15 permanecem no conjunto não dominado da união das duas, que tem 73 receitas. Em parte, isso ocorre porque a Soma Ponderada alcançou os extremos de alta qualidade: desvio de SiO$_2$ de 2{,}373~pp$^2$ e de Al$_2$O$_3$ de 1{,}692~pp$^2$, abaixo do que permite o menor $\varepsilon$ da grade, 0{,}10, que corresponde a $f_2\leq2{,}815$~pp$^2$ e $f_3\leq1{,}954$~pp$^2$. O $\varepsilon$-restrito, por sua vez, encontrou o menor custo da etapa, R\$~59{,}58 milhões, e preencheu o interior da fronteira que a Soma Ponderada não alcança.
 
 O principal compromisso observado é entre custo e qualidade. Partindo da receita mais barata, reduzir os dois desvios exige substituir minérios baratos e de teores elevados, como M13, M15 e M17, por minérios mais caros, como M1, M3 e M6. No conjunto da união, levar os dois desvios ao nível do par $(0{,}10;0{,}10)$ custa cerca de R\$~5{,}5 milhões a mais que a receita de menor custo. Entre os dois desvios, o conflito é menor: há receitas com ambos baixos, mas elas ficam no extremo caro da fronteira. As receitas da união formam o conjunto de alternativas para a etapa de decisão multicritério.
 
 \section{Conclusão}\label{sec:conclusao}
 
-A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 0{,}9\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}7\% a mais. Essas três soluções também definem, para cada objetivo, o menor e o maior valor usados para colocar os três objetivos na mesma escala na otimização multiobjetivo. Na comparação com a referência exata, a melhor solução de custo ficou 0{,}17\% acima do ótimo provado, e as de $f_2$ e $f_3$ coincidiram com as melhores soluções obtidas pelo Gurobi.
+A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 0{,}9\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}7\% a mais. Essas três soluções também definem, para cada objetivo, o menor e o maior valor usados para colocar os três objetivos na mesma escala na otimização multiobjetivo. Na comparação com a referência exata, a melhor solução de custo ficou 0{,}17\% acima do ótimo provado, a de $f_3$ coincidiu com a melhor solução obtida pelo Gurobi e a de $f_2$ ficou a $1{,}7\times10^{-5}$, em termos relativos, da melhor solução do Gurobi.
 
 Na etapa multiobjetivo, a mesma GVNS foi aplicada à Soma Ponderada e ao $\varepsilon$-restrito, sem falhas de reparo nas 115 chamadas. O $\varepsilon$-restrito produziu 61 receitas não dominadas, distribuídas por toda a superfície de compromisso, e maior hipervolume (0{,}655 contra 0{,}584), enquanto a Soma Ponderada concentrou suas 15 receitas em cinco grupos, como esperado para um método que não alcança regiões não suportadas da fronteira. As abordagens mostraram-se complementares: a Soma Ponderada alcançou os extremos de qualidade, e o $\varepsilon$-restrito, o menor custo e o interior da fronteira. Em ambas, as cinco rodadas atingiram as mesmas regiões do espaço de objetivos, com pequena variação do hipervolume entre rodadas. As 73 receitas não dominadas da união das duas abordagens formam o conjunto de alternativas para a etapa de decisão multicritério.
 
 \begin{thebibliography}{99}
-
-\bibitem{aula01}
-L.~B.~Real, ``Decidir, modelar e otimizar,'' notas de aula (Aula~01), Teoria da Decisão, Universidade Federal de Minas Gerais, Belo Horizonte, 2026.
 
 \bibitem{aula02}
 L.~B.~Real, ``Da construção de soluções às metaheurísticas: representação, busca local e VNS,'' notas de aula (Aula~02), Teoria da Decisão, Universidade Federal de Minas Gerais, Belo Horizonte, 2026.

@@ -11,12 +11,12 @@ O relatório cumulativo das duas entregas está em [`relatorio/relatorio.tex`](r
 
 ```text
 dados/                     instância do case (dados_exemplo.json)
-configuracoes/             grade de pesos e de ε; normalização gerada pela Entrega 1
+configuracoes/             grades de pesos e de ε (final e piloto); normalização gerada pela Entrega 1
 src/pilhas_minerio/        código-fonte (pacote Python)
   gvns.py                    modelo, construção, vizinhanças, reparo e GVNS; execução da Entrega 1
   multiobjetivo.py           Soma Ponderada, ε-restrito, dominância e execução da Entrega 2
   normalizacao.py            gera configuracoes/normalizacao.json a partir da Entrega 1
-  comparacao_abordagens.py   hipervolume, cobertura e variabilidade entre rodadas
+  comparacao_abordagens.py   hipervolume, cobertura, variabilidade entre rodadas e figura 3D
   calibracao_n3.py           experimento da fração mínima de N3 e execuções longas
   criterio_parada.py         análise do critério de parada a partir das execuções longas
   referencia_gurobi.py       referência exata opcional com Gurobi
@@ -78,7 +78,7 @@ python -m pilhas_minerio.comparacao_abordagens
 2. **Soma Ponderada:** minimiza `Σ w_q f̄_q` com 7 vetores de pesos (`configuracoes/grade_multiobjetivo.json`, na ordem custo, sílica, alumina).
 3. **ε-restrito:** minimiza `f̄_1` com `f̄_2 ≤ ε₂` e `f̄_3 ≤ ε₃`, na grade `{0,10; 0,25; 0,50; 1,00}²` (16 pares). No reparo, a violação inclui o excesso sobre cada ε.
 4. **Rodadas:** 5 rodadas de cada grade, com 35 chamadas de Soma Ponderada e 80 de ε-restrito. Semente: `2026 + d + 1000·rodada + índice`, com `d = 100000` (soma) ou `200000` (ε).
-5. **Saída** (`resultados/entrega_2/`): uma receita por chamada em `chamadas/`, `execucoes.csv`, `resumo.json`, conjuntos não dominados por abordagem e por rodada, as seis projeções `soma_f*_f*.pdf` e `epsilon_f*_f*.pdf`, com cores por rodada, e as métricas de comparação.
+5. **Saída** (`resultados/entrega_2/`): uma receita por chamada em `chamadas/`, `execucoes.csv`, `resumo.json`, conjuntos não dominados por abordagem e por rodada, as seis projeções `soma_f*_f*.pdf` e `epsilon_f*_f*.pdf`, com cores por rodada, e, após `comparacao_abordagens`, as métricas de comparação e a figura `frente_3d.pdf`.
 
 Repetir o comando de `multiobjetivo` retoma só as chamadas pendentes; mudanças nos dados, no código, na normalização ou nos parâmetros exigem outra pasta de saída (`--saida`).
 
@@ -89,7 +89,7 @@ Repetir o comando de `multiobjetivo` retoma só as chamadas pendentes; mudanças
 | `fracao_n3/` | 8 regras de mínimo da N3, 30 execuções × 3 objetivos, 50 ciclos | `python -m pilhas_minerio.calibracao_n3 --execucoes 30 --processos 8 --iteracoes 50` |
 | `ciclos_n3/` | 200 contra 50 ciclos para N3 com 25%, 30% e 50% | `python -m pilhas_minerio.calibracao_n3 --fracoes 0.25 0.3 0.5 --execucoes 10 --iteracoes 200 --saida resultados/calibracao/ciclos_n3` |
 | `criterio_parada/` | 30 execuções × 3 objetivos com 500 ciclos; curvas por ciclo | `python -m pilhas_minerio.calibracao_n3 --fracoes 0.25 --execucoes 30 --iteracoes 500 --saida resultados/calibracao/criterio_parada` e `python -m pilhas_minerio.criterio_parada` |
-| `piloto_grade_epsilon/` | Piloto de 1 rodada, 100 ciclos, com ε em {0,05; 0,10; 0,25; 0,50; 1,00} | `python -m pilhas_minerio.multiobjetivo --rodadas 1 --iteracoes 100 --configuracoes <grade ampliada> --saida resultados/calibracao/piloto_grade_epsilon` |
+| `piloto_grade_epsilon/` | Piloto de 1 rodada, 100 ciclos, com ε em {0,05; 0,10; 0,25; 0,50; 1,00} e normalização preliminar; guarda as chamadas e o manifesto | `python -m pilhas_minerio.multiobjetivo --rodadas 1 --iteracoes 100 --configuracoes configuracoes/grade_piloto_epsilon.json --normalizacao resultados/calibracao/piloto_grade_epsilon/normalizacao.json --saida <pasta nova>` |
 
 O experimento de `fracao_n3/` usou, em N2, a exploração dos pares a partir de uma pilha sorteada; as execuções atuais sorteiam os pares diretamente, então os valores por semente podem diferir ligeiramente.
 
