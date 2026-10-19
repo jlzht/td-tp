@@ -326,7 +326,7 @@ A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e
 m_i=\max\{2,\ \lceil \phi\, n_i\rceil\}
 \label{eq:n3min}
 \end{equation}
-com $\phi=0{,}25$. Esse valor foi definido empiricamente, a partir da comparação entre oito regras apresentada na Seção~\ref{sec:escolha_phi}. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento da vizinhança de $N_1$.
+com $\phi=0{,}25$. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento da vizinhança de $N_1$.
 
 A nova composição é gerada diretamente como contagens de caminhões por minério, e não como permutações de posições. Durante a enumeração, o número de caminhões de cada minério é limitado pela disponibilidade que resta após o uso nas outras nove pilhas, e combinações que não podem atingir os limites de qualidade da pilha são descartadas antecipadamente. Assim, a pilha reconstruída sempre respeita massa, compatibilidade, disponibilidade e qualidade; se as outras nove pilhas já forem viáveis, o vizinho inteiro é viável. Durante a GVNS, em que a solução corrente é sempre viável, $N_3$ funciona, portanto, como um operador que preserva a viabilidade.
 
@@ -336,7 +336,7 @@ Na versão entregue anteriormente, a fração era $\phi=0{,}5$, isto é, ao meno
 
 Na versão atual, $N_3$ não possui teto de candidatos completos, nós de enumeração ou tempo. A VND percorre seus vizinhos em ordem sorteada até a primeira melhora ou o esgotamento das reconstruções possíveis. A enumeração é finita, pois trabalha com contagens inteiras limitadas pela massa e pelas disponibilidades. Para que a enumeração completa seja viável, a VND descarta, além dos ramos que não atingem os limites de qualidade, os ramos que não podem melhorar o critério ativo. Como as outras nove pilhas ficam fixas e cada objetivo é uma soma de parcelas por pilha, a variação do critério é a variação ponderada das parcelas da pilha reconstruída. Em cada ramo parcial, calcula-se um limitante inferior para essa variação: o custo mínimo de completar a pilha com os caminhões restantes e o menor desvio quadrático possível dentro da faixa de teor ainda alcançável. Se o limitante indica que nenhuma receita do ramo melhora o critério, o ramo é descartado. Esse corte não altera a vizinhança nem a regra de primeira melhora, pois só elimina receitas que a VND rejeitaria. Na perturbação e no reparo, os cortes por critério não são aplicados.
 
-Na versão entregue anteriormente, cada visita a $N_3$ examinava no máximo 2.000 receitas completas. Esse teto limitava as receitas avaliadas, mas não o esforço de enumeração: antes de cada receita completa, podiam ser visitadas muitas combinações parciais. Com os cortes, o teto foi removido e a vizinhança é examinada por completo. O esforço da enumeração passou a ser registrado à parte, como número de nós visitados, pois esses cálculos não entram no contador de avaliações de soluções completas.
+Na versão entregue anteriormente, cada visita a $N_3$ examinava no máximo 2.000 receitas completas. Esse teto era arbitrário e limitava as receitas avaliadas, mas não o esforço de enumeração: antes de cada receita completa, podiam ser visitadas muitas combinações parciais. Com os cortes, o teto foi removido e a vizinhança é examinada por completo. O esforço da enumeração passou a ser registrado à parte, como número de nós visitados, pois esses cálculos não entram no contador de avaliações de soluções completas.
 
 \subsection{Busca Local}
 
@@ -506,7 +506,7 @@ Para cada objetivo, são registrados o valor da melhor solução viável de cada
 
 As execuções e as configurações do algoritmo são comparadas pelo valor final do objetivo otimizado. O mínimo indica a melhor solução encontrada; a média e o desvio padrão indicam a qualidade típica e a sensibilidade do método à semente. Também são registrados o número de avaliações, o número de nós da enumeração de $N_3$ e o tempo medido. As avaliações são uma contagem independente da máquina, mas não incluem os cálculos internos da enumeração de $N_3$, contados à parte.
 
-Na escolha de parâmetros, as alternativas são comparadas com as mesmas sementes, execução a execução. Usa-se o teste de Friedman para verificar se há diferença entre todas as alternativas e o teste de postos sinalizados de Wilcoxon para comparar pares; ambos são não paramétricos e pareados, adequados a amostras pequenas sem suposição de normalidade.
+Na escolha de parâmetros, as alternativas são comparadas com as mesmas sementes, execução a execução. Usa-se o teste de Friedman~\cite{friedman1937} para verificar se há diferença entre todas as alternativas e o teste de postos sinalizados de Wilcoxon~\cite{wilcoxon1945} para comparar pares; ambos são não paramétricos e pareados, adequados a amostras pequenas sem suposição de normalidade. O uso desses testes na comparação de metaheurísticas, com as condições de aplicação de cada um, é descrito por Derrac \textit{et al.}~\cite{derrac2011}. Os testes foram calculados com as funções \texttt{friedmanchisquare} e \texttt{wilcoxon} do SciPy~\cite{scipy2020}.
 
 \subsection{Código-fonte e reprodutibilidade}
 
@@ -568,7 +568,7 @@ $\phi=0{,}75$ & 60{,}50 & 2{,}37501 & 1{,}42251 \\
 \label{tab:n3_fracoes}
 \end{table}
 
-Em $f_1$, o teste de Friedman indica diferença entre as regras ($p=2{,}6\times10^{-21}$), e o custo médio cresce com $\phi$. Na comparação pareada, $\phi=0{,}25$ foi melhor que $\phi=0{,}50$ em 23 das 30 execuções (Wilcoxon, $p=5{,}3\times10^{-5}$). Em $f_2$ ($p=0{,}16$) e $f_3$ ($p=0{,}76$), o teste de Friedman não indica diferença; as médias mais altas de algumas regras se devem a poucas execuções que terminaram em um mesmo valor ruim, visíveis como pontos isolados na Figura~\ref{fig:n3_fracoes}.
+Em $f_1$, o teste de Friedman~\cite{friedman1937} indica diferença entre as regras ($p=2{,}6\times10^{-21}$), e o custo médio cresce com $\phi$. Na comparação pareada, $\phi=0{,}25$ foi melhor que $\phi=0{,}50$ em 23 das 30 execuções (Wilcoxon, $p=5{,}3\times10^{-5}$). Em $f_2$ ($p=0{,}16$) e $f_3$ ($p=0{,}76$), o teste de Friedman não indica diferença; as médias mais altas de algumas regras se devem a poucas execuções que terminaram em um mesmo valor ruim, visíveis como pontos isolados na Figura~\ref{fig:n3_fracoes}.
 
 Em $f_2$ e $f_3$, as regras $\phi=0{,}50$, $0{,}60$ e $0{,}75$ produziram resultados idênticos em todas as 30 execuções, inclusive no número de avaliações. A causa foi verificada contando os vizinhos de $N_3$ a partir de uma solução obtida após três ciclos (Tabela~\ref{tab:n3_vazia}): nesses objetivos, a vizinhança fica vazia para $\phi\geq0{,}5$. Como a enumeração percorre os mesmos ramos e só rejeita as receitas completas que mudam poucos caminhões, a busca consome os mesmos sorteios e segue a mesma trajetória, sem que $N_3$ contribua. Com a regra da versão anterior ($\phi=0{,}5$), portanto, a busca de $f_2$ e $f_3$ dependia apenas de $N_1$ e $N_2$ depois do início.
 
@@ -964,7 +964,7 @@ O conjunto obtido deixa lacunas entre os grupos, por exemplo entre R\$~60{,}84 e
 
 A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 1{,}1\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}0\% a mais. Esses resultados fornecem as referências fixas para a normalização multiobjetivo. A segunda etapa reutiliza a GVNS nas duas abordagens escalares, com verificação explícita dos $\varepsilon$ e filtragem das soluções encontradas nos três objetivos. As conclusões comparativas dependem do lote oficial, distinguindo seus resultados dos pilotos de validação.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 
 \bibitem{aula01}
 L.~B.~Real, ``Decidir, modelar e otimizar,'' notas de aula (Aula~01), Teoria da Decisão, Universidade Federal de Minas Gerais, Belo Horizonte, 2026.
@@ -981,6 +981,28 @@ Cassotis Consulting, ``Otimização de custo e qualidade na formação de pilhas
 \bibitem{blank_deb2020}
 J.~Blank e K.~Deb, ``Pymoo: Multi-Objective Optimization in Python,''
 \textit{IEEE Access}, vol.~8, 2020. doi: 10.1109/ACCESS.2020.2990567.
+
+\bibitem{friedman1937}
+M.~Friedman, ``The use of ranks to avoid the assumption of normality implicit
+in the analysis of variance,'' \textit{Journal of the American Statistical
+Association}, vol.~32, n.~200, pp.~675--701, 1937.
+doi: 10.1080/01621459.1937.10503522.
+
+\bibitem{wilcoxon1945}
+F.~Wilcoxon, ``Individual comparisons by ranking methods,''
+\textit{Biometrics Bulletin}, vol.~1, n.~6, pp.~80--83, 1945.
+doi: 10.2307/3001968.
+
+\bibitem{derrac2011}
+J.~Derrac, S.~García, D.~Molina e F.~Herrera, ``A practical tutorial on the use
+of nonparametric statistical tests as a methodology for comparing evolutionary
+and swarm intelligence algorithms,'' \textit{Swarm and Evolutionary
+Computation}, vol.~1, n.~1, pp.~3--18, 2011. doi: 10.1016/j.swevo.2011.02.002.
+
+\bibitem{scipy2020}
+P.~Virtanen \textit{et al.}, ``SciPy 1.0: fundamental algorithms for scientific
+computing in Python,'' \textit{Nature Methods}, vol.~17, n.~3, pp.~261--272,
+2020. doi: 10.1038/s41592-019-0686-2.
 
 \bibitem{zitzler1999}
 E.~Zitzler e L.~Thiele, ``Multiobjective evolutionary algorithms: a comparative
