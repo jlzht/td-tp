@@ -625,7 +625,7 @@ O melhor valor encontrado nessas execuções foi R\$~59{,}36 milhões para $f_1$
 
 \subsection{Resultados para $f_1$}
 
-A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida em cada uma das cinco execuções do lote oficial, com $C=300$ ciclos e $\phi=0{,}25$, além do número de avaliações, dos nós visitados na enumeração de $N_3$ e do tempo medido. Todas as execuções terminaram com soluções viáveis, e o reparo encontrou solução admissível no primeiro ciclo em todas elas.
+A Tabela~\ref{tab:res_f1} apresenta o custo da melhor solução viável obtida em cada uma das cinco execuções finais, com $C=300$ ciclos e $\phi=0{,}25$, além do número de avaliações, dos nós visitados na enumeração de $N_3$ e do tempo medido. Todas as execuções terminaram com soluções viáveis, e o reparo encontrou solução admissível no primeiro ciclo em todas elas.
 
 \begin{table}[htbp]
 \caption{Resultados das cinco execuções para $f_1$ (custo)}
@@ -951,16 +951,16 @@ Entre as rodadas, cada vetor de pesos produziu cinco receitas distintas, mas com
 O conjunto obtido deixa lacunas entre os grupos, por exemplo entre R\$~60{,}84 e R\$~61{,}94 milhões, e nenhum vetor produziu receitas com os desvios de SiO$_2$ e de Al$_2$O$_3$ ambos em níveis intermediários. Esse comportamento é esperado na Soma Ponderada: cada vetor de pesos conduz a busca a um único ponto, e regiões não suportadas da fronteira não são alcançadas por nenhuma combinação de pesos~\cite{blank_deb2020}. O resultado indica também que a grade de sete vetores é grosseira para descrever a fronteira; vetores intermediários poderiam preencher parte das lacunas, ao custo de mais chamadas.
 
 \subsection{Resultados do Método $\varepsilon$-restrito}
-% PENDENTE: lote oficial (5 rodadas), projeções epsilon_f1_f2/f1_f3/f2_f3.
-\textbf{[Pendente: lote oficial.]}
+% PENDENTE: execução final (5 rodadas), projeções epsilon_f1_f2/f1_f3/f2_f3.
+\textbf{[Pendente: execução final.]}
 
 \subsection{Comparação entre as Abordagens}
 % PENDENTE: comparação, compromissos entre objetivos e variabilidade entre rodadas.
-\textbf{[Pendente: lote oficial.]}
+\textbf{[Pendente: execução final.]}
 
 \section{Conclusão}\label{sec:conclusao}
 
-A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 0{,}9\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}7\% a mais. Essas três soluções também definem, para cada objetivo, o menor e o maior valor usados para colocar os três objetivos na mesma escala na otimização multiobjetivo. A segunda etapa reutiliza a GVNS nas duas abordagens escalares, com verificação explícita dos $\varepsilon$ e filtragem das soluções encontradas nos três objetivos. As conclusões comparativas dependem do lote oficial, distinguindo seus resultados dos testes de validação.
+A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 0{,}9\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}7\% a mais. Essas três soluções também definem, para cada objetivo, o menor e o maior valor usados para colocar os três objetivos na mesma escala na otimização multiobjetivo. A segunda etapa reutiliza a GVNS nas duas abordagens escalares, com verificação explícita dos $\varepsilon$ e filtragem das soluções encontradas nos três objetivos. As conclusões comparativas dependem da execução final, distinguindo seus resultados dos testes de validação.
 
 \begin{thebibliography}{99}
 

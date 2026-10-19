@@ -35,7 +35,7 @@ python -m unittest -q
 
 `requirements.txt` traz Matplotlib (figuras) e SciPy (testes estatísticos dos experimentos de calibração). O Gurobi só é usado pela referência exata opcional em `solucao_exata/`.
 
-## Entrega 1 — lote oficial
+## Entrega 1 — execução final
 
 ```sh
 python mono_objetivo.py --processos 15 --saida resultados_entrega1
@@ -43,7 +43,7 @@ python mono_objetivo.py --processos 15 --saida resultados_entrega1
 
 Faz 15 execuções (5 sementes × 3 objetivos), 300 ciclos cada. A semente da execução `r` de `f_k` é `2026 + 10000·(k−1) + r` e não depende do número de processos. Saída: `execucoes.csv`, `resumo.csv` (mínimo, média, desvio padrão, máximo), `melhores_solucoes.json`, `convergencia.json`, `convergencia_ciclos.json`, `configuracao.json`, `convergencia_f*.pdf` e `melhor_f*.pdf`.
 
-## Entrega 2 — normalização e lote oficial
+## Entrega 2 — normalização e execução final
 
 ```sh
 python gerar_normalizacao.py --lote resultados_entrega1
