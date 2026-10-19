@@ -1,10 +1,22 @@
+# Python
 __pycache__/
 *.py[cod]
+*.egg-info/
 .venv/
-.DS_Store
-*.aux
-*.log
-*.out
-*.tmp
+
+# LaTeX (o PDF final é gerado a partir de relatorio/relatorio.tex)
+relatorio/*.aux
+relatorio/*.log
+relatorio/*.out
+relatorio/*.fls
+relatorio/*.fdb_latexmk
+relatorio/*.synctex.gz
+relatorio/*.pdf
+
+# Saída de terminal das execuções longas
 *_progresso.txt
 *_erros.txt
+
+# Sistema
+.DS_Store
+*.tmp
