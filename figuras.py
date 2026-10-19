@@ -103,3 +103,39 @@ def write_projections(directory: Path, method: str, points: list[dict], rounds: 
         ax.legend(loc="upper center", bbox_to_anchor=(.5, -.16), ncol=min(rounds, 5), frameon=False)
         fig.savefig(directory/f"{method}_f{a+1}_f{b+1}.pdf", format="pdf", bbox_inches="tight")
         plt.close(fig)
+
+
+def write_front_3d(path: Path, fronts: dict[str, list[dict]]) -> None:
+    """Conjuntos não dominados das abordagens no espaço dos três objetivos.
+
+    Duas vistas do mesmo espaço e linhas verticais até o menor desvio de
+    Al₂O₃ dão noção de profundidade, que uma única perspectiva estática não
+    transmite.
+    """
+    styles = {"soma": ("Soma Ponderada", "tab:blue", "o"),
+              "epsilon": ("ε-restrito", "tab:red", "^")}
+    points = [p for front in fronts.values() for p in front]
+    floor = min(p["objetivos"][2] for p in points) if points else 0.0
+    fig = plt.figure(figsize=(13, 6))
+    for panel, azimuth in enumerate((-58, 32), start=1):
+        ax = fig.add_subplot(1, 2, panel, projection="3d")
+        for method, front in fronts.items():
+            label, color, marker = styles[method]
+            x = [p["objetivos"][0] / 1e6 for p in front]
+            y = [p["objetivos"][1] for p in front]
+            z = [p["objetivos"][2] for p in front]
+            for xi, yi, zi in zip(x, y, z):
+                ax.plot([xi, xi], [yi, yi], [floor, zi], color=color, alpha=0.25,
+                        linewidth=0.8)
+            ax.scatter(x, y, z, color=color, marker=marker, s=40, depthshade=False,
+                       edgecolors="black", linewidths=0.4,
+                       label=f"{label} ({len(front)} receitas)")
+        ax.set_xlabel("Custo (R$ milhões)", labelpad=8)
+        ax.set_ylabel("Desvio de SiO₂ (pp²)", labelpad=8)
+        ax.set_zlabel("Desvio de Al₂O₃ (pp²)", labelpad=8)
+        ax.view_init(elev=22, azim=azimuth)
+        if panel == 1:
+            ax.legend(loc="upper left")
+    fig.subplots_adjust(left=0.02, right=0.95, wspace=0.12)
+    fig.savefig(path, format="pdf", bbox_inches="tight", pad_inches=0.3)
+    plt.close(fig)
