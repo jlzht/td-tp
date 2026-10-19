@@ -326,7 +326,7 @@ A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e
 m_i=\max\{2,\ \lceil \phi\, n_i\rceil\}
 \label{eq:n3min}
 \end{equation}
-com $\phi=0{,}25$. Esse valor foi definido empiricamente, a partir da comparação entre oito regras apresentada na Seção~\ref{sec:escolha_phi}. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento de $N_1$.
+com $\phi=0{,}25$. Esse valor foi definido empiricamente, a partir da comparação entre oito regras apresentada na Seção~\ref{sec:escolha_phi}. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento da vizinhança de $N_1$.
 
 A nova composição é gerada diretamente como contagens de caminhões por minério, e não como permutações de posições. Durante a enumeração, o número de caminhões de cada minério é limitado pela disponibilidade que resta após o uso nas outras nove pilhas, e combinações que não podem atingir os limites de qualidade da pilha são descartadas antecipadamente. Assim, a pilha reconstruída sempre respeita massa, compatibilidade, disponibilidade e qualidade; se as outras nove pilhas já forem viáveis, o vizinho inteiro é viável. Durante a GVNS, em que a solução corrente é sempre viável, $N_3$ funciona, portanto, como um operador que preserva a viabilidade.
 
@@ -935,8 +935,22 @@ A grade inicial de $\varepsilon$ do grupo, $\{0{,}25;0{,}50;1{,}00\}^2$, não pe
 No piloto, os pares com $\varepsilon=0{,}05$ ou $0{,}10$ alcançaram soluções que nenhuma configuração da grade inicial atinge, por exemplo $f_2\approx2{,}58$~pp$^2$ com custo de R\$~63{,}7 milhões e $f_3\approx1{,}66$~pp$^2$ com R\$~64{,}8 milhões. Os pares $(0{,}05;0{,}05)$, $(0{,}05;0{,}10)$ e $(0{,}10;0{,}05)$, que restringem os dois desvios ao mesmo tempo, esgotaram o orçamento no reparo sem solução admissível. Adotou-se, por isso, a grade $\{0{,}10;0{,}25;0{,}50;1{,}00\}^2$, com 16 pares, que inclui a região de alta qualidade sem os pares que falharam no piloto. Os sete pesos da Soma Ponderada foram mantidos. O lote oficial tem, assim, 35 chamadas de Soma Ponderada e 80 de $\varepsilon$-restrito.
 
 \subsection{Resultados da Soma Ponderada}
-% PENDENTE: lote oficial (5 rodadas), projeções soma_f1_f2/f1_f3/f2_f3.
-\textbf{[Pendente: lote oficial.]}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.32\textwidth]{soma_f1_f2.pdf}\hfill
+\includegraphics[width=0.32\textwidth]{soma_f1_f3.pdf}\hfill
+\includegraphics[width=0.32\textwidth]{soma_f2_f3.pdf}
+\caption{Soma Ponderada: projeções $f_1\times f_2$, $f_1\times f_3$ e $f_2\times f_3$ das receitas não dominadas nos três objetivos, reunidas das cinco rodadas. As cores identificam a rodada de origem; uma receita encontrada em mais de uma rodada aparece com marcadores sobrepostos.}
+\label{fig:proj_soma}
+\end{figure*}
+
+As 35 chamadas da Soma Ponderada terminaram com soluções admissíveis, todas com o reparo resolvido no primeiro ciclo. Após a filtragem nos três objetivos, restaram 15 receitas não dominadas, cujas projeções aparecem na Figura~\ref{fig:proj_soma}.
+
+As soluções se concentram em cinco grupos, cada um associado a um vetor de pesos. Os pesos que priorizam o custo produzem as receitas mais baratas, entre R\$~60{,}28 e R\$~60{,}84 milhões, com desvios altos nos dois indicadores. A combinação entre custo e alumina leva a custos entre R\$~61{,}94 e R\$~62{,}40 milhões, com $f_3$ entre 2{,}45 e 2{,}85~pp$^2$, mas com $f_2$ acima do maior valor da matriz de referência ($\bar f_2>1$), pois o peso da sílica é nulo. Os pesos que dão destaque à sílica, inclusive o vetor equilibrado, convergem para receitas com $f_2$ próximo do mínimo isolado e custo entre R\$~63{,}14 e R\$~63{,}44 milhões. O peso que prioriza a alumina gera a receita de menor $f_3$ do conjunto, 1{,}69~pp$^2$, ao custo de R\$~65{,}46 milhões. As receitas do vetor que combina sílica e alumina com peso nulo no custo ficaram próximas às do vetor da alumina e foram dominadas por elas.
+
+Entre as rodadas, cada vetor de pesos produziu cinco receitas distintas, mas com valores escalares muito próximos: a maior diferença relativa entre a melhor e a pior rodada de um mesmo vetor foi de cerca de 1\%, no vetor do custo. As rodadas, portanto, alcançaram as mesmas regiões do espaço de objetivos, como mostra a sobreposição das cores na Figura~\ref{fig:proj_soma}. O hipervolume dos conjuntos de cada rodada variou entre 0{,}542 e 0{,}566, e o da união das cinco rodadas foi 0{,}584.
+
+O conjunto obtido deixa lacunas entre os grupos, por exemplo entre R\$~60{,}84 e R\$~61{,}94 milhões, e nenhum vetor produziu receitas com os dois desvios em níveis intermediários. Esse comportamento é esperado na Soma Ponderada: cada vetor de pesos conduz a busca a um único ponto, e regiões não suportadas da fronteira não são alcançadas por nenhuma combinação de pesos~\cite{blank_deb2020}. O resultado indica também que a grade de sete vetores é grosseira para descrever a fronteira; vetores intermediários poderiam preencher parte das lacunas, ao custo de mais chamadas.
 
 \subsection{Resultados do Método $\varepsilon$-restrito}
 % PENDENTE: lote oficial (5 rodadas), projeções epsilon_f1_f2/f1_f3/f2_f3.
