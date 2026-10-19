@@ -765,7 +765,7 @@ Na solução de menor custo (Figura~\ref{fig:melhor_f1}), o teor de SiO$_2$ de P
 Nas soluções de $f_2$ e $f_3$ (Figuras~\ref{fig:melhor_f2} e~\ref{fig:melhor_f3}), os teores não atingem os valores-alvo. Na solução de $f_2$, o SiO$_2$ varia de 5{,}880\% a 6{,}126\%, acima dos alvos de 5{,}55\% (Sinter~1) e 5{,}50\% (Sinter~2). Na de $f_3$, o Al$_2$O$_3$ varia de 1{,}500\% a 1{,}607\% no Sinter~1 (alvo de 1{,}25\%) e de 1{,}880\% a 1{,}984\% no Sinter~2 (alvo de 1{,}5\%), crescendo com a massa da pilha dentro de cada sinter. A disponibilidade limitada e a ausência de ponderação por massa podem contribuir para esse padrão, mas essa interpretação não constitui uma demonstração causal.
 
 
-\section{Otimização Multiobjetivo -- Entrega 2}\label{sec:multi}
+\section{Otimização Multiobjetivo}\label{sec:multi}
 
 \subsection{Normalização Fixa}
 Seja $X$ o conjunto de planos que satisfazem todas as restrições físicas
@@ -787,8 +787,8 @@ e o maior valor da coluna correspondente nessa matriz:
 \begin{equation}
 \bar f_q(x)=\frac{f_q(x)-a_q}{b_q-a_q}.
 \end{equation}
-São escalas empíricas, não provas de ideal ou nadir exatos. Não cortamos
-valores abaixo de zero ou acima de um. O arquivo \texttt{normalizacao.json}
+São escalas empíricas, não provas exatas e não cortamos
+valores abaixo de 0 nem acima de 1. O arquivo \texttt{normalizacao.json}
 guarda valores completos, receitas, sementes e hash dos dados. Ao carregar,
 o programa reavalia as receitas e confere os extremos. Uma escala nula ou
 um arquivo de dados diferente provoca erro; a normalização não muda durante
@@ -803,8 +803,7 @@ A abordagem resolve
 A grade inclui $(1/3,1/3,1/3)$, as três permutações de $(0{,}6,0{,}2,0{,}2)$
 e as três permutações de $(0{,}5,0{,}5,0)$. A primeira configuração equilibra
 os indicadores normalizados; as demais exploram prioridades individuais e
-compromissos entre pares. Peso zero não remove restrições físicas. Essa grade
-é uma decisão do grupo, não um parâmetro prescrito pelo enunciado. A Soma
+compromissos entre pares. A Soma
 Ponderada pode não alcançar regiões não suportadas de uma fronteira não
 convexa~\cite{blank_deb2020}; a heurística tampouco garante o mínimo global de cada combinação.
 
@@ -831,9 +830,10 @@ de aceitação permanecem os mesmos, mudando apenas o valor escalar e a
 admissibilidade ativa. Na Soma Ponderada, o reparo minimiza a violação física.
 No $\varepsilon$-restrito, utiliza
 \begin{equation}
-V_\varepsilon(x)=V_{\mathrm{fis}}(x)
-+\max(0,\bar f_2(x)-\varepsilon_2)
-+\max(0,\bar f_3(x)-\varepsilon_3),
+\begin{split}
+V_\varepsilon(x)={}&V_{\mathrm{fis}}(x)+\max(0,\bar f_2(x)-\varepsilon_2)\\
+&+\max(0,\bar f_3(x)-\varepsilon_3),
+\end{split}
 \end{equation}
 desprezando somente excessos numéricos de até $10^{-10}$ por limite.
 Essa medida guia exclusivamente o reparo e não é somada ao custo.
