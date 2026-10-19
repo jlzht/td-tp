@@ -951,16 +951,64 @@ Entre as rodadas, cada vetor de pesos produziu cinco receitas distintas, mas com
 O conjunto obtido deixa lacunas entre os grupos, por exemplo entre R\$~60{,}84 e R\$~61{,}94 milhões, e nenhum vetor produziu receitas com os desvios de SiO$_2$ e de Al$_2$O$_3$ ambos em níveis intermediários. Esse comportamento é esperado na Soma Ponderada: cada vetor de pesos conduz a busca a um único ponto, e regiões não suportadas da fronteira não são alcançadas por nenhuma combinação de pesos~\cite{blank_deb2020}. O resultado indica também que a grade de sete vetores é grosseira para descrever a fronteira; vetores intermediários poderiam preencher parte das lacunas, ao custo de mais chamadas.
 
 \subsection{Resultados do Método $\varepsilon$-restrito}
-% PENDENTE: execução final (5 rodadas), projeções epsilon_f1_f2/f1_f3/f2_f3.
-\textbf{[Pendente: execução final.]}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.32\textwidth]{epsilon_f1_f2.pdf}\hfill
+\includegraphics[width=0.32\textwidth]{epsilon_f1_f3.pdf}\hfill
+\includegraphics[width=0.32\textwidth]{epsilon_f2_f3.pdf}
+\caption{$\varepsilon$-restrito: projeções $f_1\times f_2$, $f_1\times f_3$ e $f_2\times f_3$ das receitas não dominadas nos três objetivos, reunidas das cinco rodadas. As cores identificam a rodada de origem.}
+\label{fig:proj_eps}
+\end{figure*}
+
+As 80 chamadas do $\varepsilon$-restrito terminaram com soluções admissíveis; nenhuma esgotou o orçamento no reparo. Após a filtragem nos três objetivos, restaram 61 receitas não dominadas, apresentadas na Figura~\ref{fig:proj_eps}. Elas cobrem custos de R\$~59{,}58 a R\$~65{,}24 milhões, desvios de SiO$_2$ de 2{,}80 a 6{,}79~pp$^2$ e desvios de Al$_2$O$_3$ de 1{,}92 a 6{,}69~pp$^2$.
+
+Em todas as chamadas, ao menos um dos limites $\varepsilon$ ficou ativo na solução final, isto é, o desvio normalizado terminou a menos de 0{,}02 do seu limite. Esse comportamento é esperado: minimizar o custo empurra a solução até o limite de qualidade permitido, e cada par de $\varepsilon$ produz, assim, um ponto distinto da fronteira. Por isso, ao contrário da Soma Ponderada, o $\varepsilon$-restrito distribui as soluções de forma regular pelo espaço de objetivos, seguindo a grade. O custo cresce à medida que os limites ficam mais apertados: de R\$~59{,}58 milhões no par $(1{,}00;1{,}00)$ até R\$~65{,}06 milhões no par $(0{,}10;0{,}10)$.
+
+As rodadas alcançaram as mesmas regiões. Para cada par de $\varepsilon$, a diferença entre o maior e o menor custo das cinco rodadas ficou abaixo de 1{,}3\%, e o hipervolume do conjunto de cada rodada variou entre 0{,}627 e 0{,}640. As maiores diferenças ocorreram nos pares com $\varepsilon_2=0{,}10$ e $\varepsilon_3\geq0{,}50$, em que o limite de sílica é apertado e o de alumina é folgado; uma explicação possível, não verificada, é que essa combinação admite muitas receitas de custo próximo, entre as quais a busca termina em pontos diferentes.
+
 
 \subsection{Comparação entre as Abordagens}
-% PENDENTE: comparação, compromissos entre objetivos e variabilidade entre rodadas.
-\textbf{[Pendente: execução final.]}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{frente_3d.pdf}
+\caption{Receitas não dominadas da Soma Ponderada (círculos) e do $\varepsilon$-restrito (triângulos) no espaço dos três objetivos, em duas vistas. As linhas verticais ligam cada ponto ao menor desvio de Al$_2$O$_3$ do gráfico, para indicar a altura.}
+\label{fig:frente_3d}
+\end{figure*}
+
+A Tabela~\ref{tab:comparacao_multi} resume as medidas de comparação, e a Figura~\ref{fig:frente_3d} mostra os dois conjuntos no espaço dos três objetivos.
+
+\begin{table}[htbp]
+\caption{Comparação entre os conjuntos não dominados das duas abordagens}
+\centering
+\begin{tabular}{l r r}
+\toprule
+\textbf{Medida} & \textbf{Soma Pond.} & \textbf{$\varepsilon$-restrito} \\
+\midrule
+Chamadas & 35 & 80 \\
+Receitas não dominadas & 15 & 61 \\
+Hipervolume normalizado & 0{,}584 & 0{,}655 \\
+Cobertura sobre a outra, $\mathcal{C}$ & 0{,}049 & 0 \\
+Pontos na união não dominada & 15 & 58 \\
+Menor $f_1$ (R\$ mi) & 60{,}28 & 59{,}58 \\
+Menor $f_2$ (pp$^2$) & 2{,}373 & 2{,}796 \\
+Menor $f_3$ (pp$^2$) & 1{,}692 & 1{,}924 \\
+\bottomrule
+\end{tabular}
+\label{tab:comparacao_multi}
+\end{table}
+
+O $\varepsilon$-restrito obteve maior hipervolume (0{,}655 contra 0{,}584) e muito mais receitas não dominadas, distribuídas por toda a superfície de compromisso, enquanto a Soma Ponderada concentrou as soluções em cinco grupos. A diferença no número de chamadas (80 contra 35) explica parte dessa vantagem, mas não a distribuição: mesmo vetores de pesos distintos levaram a Soma Ponderada às mesmas regiões, ao passo que cada par de $\varepsilon$ fixa um nível de qualidade diferente.
+
+As duas abordagens são, porém, complementares. Nenhuma receita da Soma Ponderada é dominada pelas do $\varepsilon$-restrito, e todas as 15 permanecem no conjunto não dominado da união das duas, que tem 73 receitas. Isso ocorre porque a Soma Ponderada alcançou os extremos de alta qualidade: desvio de SiO$_2$ de 2{,}373~pp$^2$ e de Al$_2$O$_3$ de 1{,}692~pp$^2$, abaixo do que permite o menor $\varepsilon$ da grade, 0{,}10, que corresponde a $f_2\leq2{,}815$~pp$^2$ e $f_3\leq1{,}954$~pp$^2$. O $\varepsilon$-restrito, por sua vez, encontrou o menor custo da etapa, R\$~59{,}58 milhões, e preencheu o interior da fronteira que a Soma Ponderada não alcança.
+
+O principal compromisso observado é entre custo e qualidade. Partindo da receita mais barata, reduzir os dois desvios exige substituir minérios baratos e de teores elevados, como M13, M15 e M17, por minérios mais caros, como M1, M3 e M6. No conjunto da união, levar os dois desvios ao nível do par $(0{,}10;0{,}10)$ custa cerca de R\$~5{,}5 milhões a mais que a receita de menor custo. Entre os dois desvios, o conflito é menor: há receitas com ambos baixos, mas elas ficam no extremo caro da fronteira. As receitas da união formam o conjunto de alternativas para a etapa de decisão multicritério.
 
 \section{Conclusão}\label{sec:conclusao}
 
-A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 0{,}9\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}7\% a mais. Essas três soluções também definem, para cada objetivo, o menor e o maior valor usados para colocar os três objetivos na mesma escala na otimização multiobjetivo. A segunda etapa reutiliza a GVNS nas duas abordagens escalares, com verificação explícita dos $\varepsilon$ e filtragem das soluções encontradas nos três objetivos. As conclusões comparativas dependem da execução final, distinguindo seus resultados dos testes de validação.
+A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para os desvios de SiO$_2$ e Al$_2$O$_3$, as cinco execuções convergiram para praticamente o mesmo valor; para o custo, a amplitude dos resultados foi cerca de 0{,}9\% do menor valor observado, o que indica maior sensibilidade à semente. A comparação entre as melhores soluções de cada objetivo mostra que custo e qualidade são conflitantes: a solução de menor custo apresenta os maiores desvios, e a de menor desvio de Al$_2$O$_3$ custa cerca de 10{,}7\% a mais. Essas três soluções também definem, para cada objetivo, o menor e o maior valor usados para colocar os três objetivos na mesma escala na otimização multiobjetivo. Na comparação com a referência exata, a melhor solução de custo ficou 0{,}17\% acima do ótimo provado, e as de $f_2$ e $f_3$ coincidiram com as melhores soluções obtidas pelo Gurobi.
+
+Na etapa multiobjetivo, a mesma GVNS foi aplicada à Soma Ponderada e ao $\varepsilon$-restrito, sem falhas de reparo nas 115 chamadas. O $\varepsilon$-restrito produziu 61 receitas não dominadas, distribuídas por toda a superfície de compromisso, e maior hipervolume (0{,}655 contra 0{,}584), enquanto a Soma Ponderada concentrou suas 15 receitas em cinco grupos, como esperado para um método que não alcança regiões não suportadas da fronteira. As abordagens mostraram-se complementares: a Soma Ponderada alcançou os extremos de qualidade, e o $\varepsilon$-restrito, o menor custo e o interior da fronteira. Em ambas, as cinco rodadas atingiram as mesmas regiões do espaço de objetivos, com pequena variação do hipervolume entre rodadas. As 73 receitas não dominadas da união das duas abordagens formam o conjunto de alternativas para a etapa de decisão multicritério.
 
 \begin{thebibliography}{99}
 
