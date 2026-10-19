@@ -321,12 +321,12 @@ A vizinhança $N_2$ também segue o enunciado: escolhem-se duas pilhas $p_1$ e $
 
 \subsection{Vizinhança $N_3$}
 
-A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e reconstrói a composição inteira da décima, exigindo que pelo menos
+A vizinhança $N_3$ foi definida neste trabalho. Ela mantém nove pilhas fixas e reconstrói a composição inteira da décima, exigindo que pelo menos $m_i$ dos seus $n_i$ caminhões mudem de minério, sendo
 \begin{equation}
 m_i=\max\{2,\ \lceil \phi\, n_i\rceil\}
 \label{eq:n3min}
 \end{equation}
-dos seus $n_i$ caminhões mudem de minério, com $\phi=0{,}25$. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento de $N_1$.
+com $\phi=0{,}25$. Esse valor foi definido empiricamente, a partir da comparação entre oito regras apresentada na Seção~\ref{sec:escolha_phi}. Assim, uma pilha de 10 caminhões muda ao menos 3 caminhões, e uma de 19 caminhões, ao menos 5. O piso de dois caminhões garante que $N_3$ nunca gere um movimento de $N_1$.
 
 A nova composição é gerada diretamente como contagens de caminhões por minério, e não como permutações de posições. Durante a enumeração, o número de caminhões de cada minério é limitado pela disponibilidade que resta após o uso nas outras nove pilhas, e combinações que não podem atingir os limites de qualidade da pilha são descartadas antecipadamente. Assim, a pilha reconstruída sempre respeita massa, compatibilidade, disponibilidade e qualidade; se as outras nove pilhas já forem viáveis, o vizinho inteiro é viável. Durante a GVNS, em que a solução corrente é sempre viável, $N_3$ funciona, portanto, como um operador que preserva a viabilidade.
 
@@ -544,7 +544,7 @@ O código-fonte, os dados de entrada e as instruções para executar os experime
 \label{fig:n3_fracoes}
 \end{figure*}
 
-\subsection{Escolha da Fração Mínima de $N_3$}
+\subsection{Escolha da Fração Mínima de $N_3$}\label{sec:escolha_phi}
 
 Para escolher $\phi$, a GVNS foi executada com oito regras: mínimo fixo de dois caminhões ($\phi=0$) e $\phi\in\{0{,}20;0{,}25;0{,}30;0{,}40;0{,}50;0{,}60;0{,}75\}$, sempre com o arredondamento para cima da Equação~(\ref{eq:n3min}). Para cada regra e cada objetivo, foram feitas 30 execuções de 50 ciclos com as mesmas sementes, totalizando 720 execuções. O experimento foi feito antes da escolha de $C$ e do sorteio uniforme dos pares de $N_2$; essas mudanças são posteriores e valem igualmente para todas as regras comparadas. A Tabela~\ref{tab:n3_fracoes} resume as médias e a Figura~\ref{fig:n3_fracoes} mostra a distribuição dos valores finais.
 
