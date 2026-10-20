@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pilhas-minerio"
+version = "2.0.0"
+description = "GVNS mono e multiobjetivo para composição de pilhas de minério (Teoria da Decisão, UFMG 2026/2)"
+requires-python = ">=3.10"
+dependencies = ["matplotlib>=3.8,<4", "scipy>=1.11"]
+
+[project.optional-dependencies]
+gurobi = ["gurobipy"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

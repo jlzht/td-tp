@@ -1,0 +1,16 @@
+{
+  "metodo": "gvns",
+  "dados": "dados_exemplo.json",
+  "sha256_dados": "0bec75216b43f54b71f365d5c54f8f173326271696ae367de051b12f12b44c62",
+  "execucoes_por_objetivo": 5,
+  "python": "3.14.3",
+  "limite_iteracoes_gvns": 300,
+  "ciclos_reparo_antes_de_recomecar": 100,
+  "n3_fracao_minima_alterada": 0.25,
+  "politica_inviabilidade": "reparo inicial com recomeço a cada 100 ciclos sem solução viável, dentro do mesmo orçamento de ciclos; rejeição de candidatos inviáveis na GVNS",
+  "orcamento_ciclos": "reparo + GVNS",
+  "semente_base": 2026,
+  "construcao": "mínimos em rodízio; completar por preço crescente",
+  "vizinhanças": "N1 substituição; N2 troca entre pilhas; N3 reconstrução integral de uma pilha, alterando ao menos max(2, ceil(fração * caminhões))",
+  "busca_local": "N1, N2 e N3 até primeira melhora ou exaustão; na N3, ramos que não podem melhorar o objetivo são descartados"
+}
