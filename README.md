@@ -4,6 +4,7 @@ Trabalho da disciplina Teoria da Decisão (Engenharia de Sistemas, UFMG, 2026/2)
 
 - **Entrega 1:** resolve com **GVNS** os três problemas mono-objetivo: minimizar o custo (`f1`), o desvio quadrático de SiO₂ (`f2`) ou o desvio quadrático de Al₂O₃ (`f3`), sempre com as mesmas restrições de massa, qualidade, elegibilidade e disponibilidade.
 - **Entrega 2:** reutiliza a mesma GVNS nas abordagens **Soma Ponderada** e **ε-restrito**, com normalização a partir da Entrega 1 e filtragem das soluções não dominadas nos três objetivos.
+- **Entrega 3:** tomada de decisão multicritério sobre a união das frentes da Entrega 2, com quatro critérios (custo, desvio de SiO₂, desvio de Al₂O₃ e um critério extra), métodos de apoio à decisão plugáveis e análise de sensibilidade.
 
 O relatório cumulativo das duas entregas está em [`relatorio/relatorio.tex`](relatorio/relatorio.tex).
 
@@ -21,12 +22,14 @@ src/pilhas_minerio/        código-fonte (pacote Python)
   criterio_parada.py         análise do critério de parada a partir das execuções longas
   referencia_gurobi.py       referência exata opcional com Gurobi
   figuras.py                 gráficos em PDF
+  decisao/                   Entrega 3: união das frentes, critérios, seleção, métodos e sensibilidade
   caminhos.py                caminhos padrão do projeto
 tests/                     testes automatizados (unittest)
 relatorio/                 relatório em LaTeX e suas figuras
 resultados/
   entrega_1/                 execução final mono-objetivo
   entrega_2/                 execução final multiobjetivo
+  entrega_3/                 união das frentes com os quatro critérios e conjunto reduzido de alternativas
   calibracao/                fração de N3, ciclos, critério de parada e piloto da grade de ε
   referencia_exata/          resultados do Gurobi
 ```
@@ -100,3 +103,17 @@ python -m pilhas_minerio.referencia_gurobi --objetivo 2 --tempo-limite 21600
 ```
 
 Resolve f1 (programa linear inteiro) e f2, f3 (programas quadráticos inteiros) com Gurobi, só para medir a distância entre a GVNS e o ótimo. Os resultados ficam em `resultados/referencia_exata/` e não são usados em nenhuma outra etapa.
+
+## Entrega 3 — alternativas e critérios
+
+```sh
+python -m pilhas_minerio.decisao.preparar --quantidade 10
+```
+
+1. **União:** reúne `nao_dominadas_soma.json` e `nao_dominadas_epsilon.json`, reavalia cada receita na instância (os objetivos gravados precisam coincidir), une receitas idênticas e remove as dominadas entre as duas abordagens. Cada alternativa recebe um código (`A01`, ...) pela ordem crescente dos objetivos.
+2. **Critérios** (`decisao/criterios.py`): os três objetivos mais um critério extra escolhido por `--criterio-extra`. Hoje, `homogeneidade`: para cada equipamento, média da distância L1 entre a receita de cada pilha e a receita comum do grupo (total de caminhões de cada minério dividido pelo total de caminhões do grupo), e média entre os equipamentos; 0 é receita igual em todas as pilhas. Outro critério entra como subclasse de `DecisionCriterion` registrada em `EXTRA_CRITERIA`.
+3. **Redução** (`decisao/selecao.py`): `--quantidade N` escolhe `N` alternativas sem usar pesos: a melhor em cada critério, a mais próxima do ponto ideal (distância euclidiana sobre os critérios normalizados pelo mínimo e máximo do conjunto) e, para completar, a que mais se afasta das já escolhidas. `selecao.json` guarda o motivo de cada escolha.
+4. **Métodos** (`decisao/metodos/`): cada método implementa `DecisionMethod.evaluate(problema, pesos)` e se registra em `METHODS`.
+5. **Sensibilidade** (`decisao/sensibilidade.py`): varredura de cada peso, sorteio de pesos por Dirichlet (concentração, número de sorteios e semente explícitos), variantes de parâmetros do método e variantes do tamanho do conjunto; mede a frequência de vitória, a aceitabilidade de cada posição e o tau de Kendall com o ranking-base.
+
+Saída em `resultados/entrega_3/`: `uniao_nao_dominadas.json` (resumo com contagens, faixas dos critérios e correlação de Spearman do critério extra, mais uma linha por alternativa) e, com `--quantidade`, `selecao.json`.
