@@ -6,35 +6,15 @@ from pathlib import Path
 
 import numpy as np
 
+from auxiliar import FRONT, synthetic_problem
 from pilhas_minerio.caminhos import CONFIG_DIR, DATA_FILE, RESULTS_DIR
-from pilhas_minerio.decisao.alternativas import Alternative
 from pilhas_minerio.decisao.executar import FinalDecision
 from pilhas_minerio.decisao.hiperparametros import Hyperparameters
 from pilhas_minerio.decisao.metodos.ahp import (Ahp, ComparisonMatrix, CriteriaWeights,
                                                 RandomIndex)
 from pilhas_minerio.decisao.metodos.electre1 import ElectreI
-from pilhas_minerio.decisao.pipeline import ElectreThenAhp
+from pilhas_minerio.decisao.pipeline import ElectreThenAhp, PipelineSettings
 from pilhas_minerio.decisao.preparar import Preparation
-from pilhas_minerio.decisao.problema import DecisionProblem
-
-
-class Dummy:
-    """Critério sintético para problemas de teste."""
-
-    def __init__(self, key, minimize=True):
-        self.key, self.label, self.unit = key, key, "u"
-        self.minimize, self.tolerance = minimize, 1e-10
-
-
-def synthetic_problem(points, minimize=None):
-    minimize = minimize or (True,) * len(points[0])
-    alternatives = tuple(Alternative(f"P{i}", (), (0.0, 0.0, 0.0), (), ())
-                         for i in range(len(points)))
-    criteria = tuple(Dummy(f"c{j}", m) for j, m in enumerate(minimize))
-    return DecisionProblem(alternatives, criteria, np.array(points, dtype=float))
-
-
-FRONT = [(0, 10), (1, 6), (3, 3), (7, 1), (10, 0)]
 
 
 class ElectreITests(unittest.TestCase):
@@ -69,17 +49,22 @@ class ElectreITests(unittest.TestCase):
         self.assertEqual(levels, [[0, 1], [2]])
         self.assertEqual(label[0], label[1])
 
-    def test_nucleo_e_calibracao_do_veto(self):
-        problem = synthetic_problem(FRONT)
-        weights = np.array([0.5, 0.5])
-        method = ElectreI(0.5, 0.0)
-        result = method.evaluate(problem, weights)
-        self.assertEqual(len(ElectreI.kernel(result)), 5)
-        calibration = method.calibrate_tau_d(problem, weights, 2, np.linspace(0, 1, 11))
-        self.assertAlmostEqual(calibration.kernel_size, 2, delta=1)
-        self.assertEqual(len(calibration.grid), len(calibration.sizes))
+    def test_primeiros_niveis_acumulam_sem_partir_nenhum(self):
+        problem = synthetic_problem(FRONT + [(9, 9), (10, 10)])
+        result = ElectreI(0.5, 0.3).evaluate(problem, np.array([0.5, 0.5]))
+        levels = result.details["niveis"]
+        self.assertGreaterEqual(len(levels), 2)
+        self.assertEqual(set(ElectreI.top_levels(result, 1)), set(levels[0]))
+        self.assertEqual(set(ElectreI.top_levels(result, 2)), set(levels[0]) | set(levels[1]))
+        self.assertEqual(len(ElectreI.top_levels(result, 99)), len(problem.alternatives))
+        with self.assertRaises(ValueError):
+            ElectreI.top_levels(result, 0)
+
+    def test_limiares_fora_do_dominio(self):
         with self.assertRaises(ValueError):
             ElectreI(0.0, 0.5)
+        with self.assertRaises(ValueError):
+            ElectreI(0.5, 1.5)
 
 
 class AhpTests(unittest.TestCase):
@@ -135,15 +120,30 @@ class AhpTests(unittest.TestCase):
 
 
 class PipelineTests(unittest.TestCase):
-    def test_nucleo_vai_a_frente_e_ahp_ordena_dentro_dele(self):
+    def test_conjunto_do_ahp_vai_a_frente_e_o_ahp_ordena_dentro_dele(self):
         problem = synthetic_problem(FRONT + [(9, 9)])
-        result = ElectreThenAhp(0.5, 0.2, "faixa_linear").evaluate(problem, np.array([0.5, 0.5]))
-        kernel = set(result.details["nucleo"])
-        self.assertNotIn(5, kernel)
-        self.assertEqual(set(result.ranking[:len(kernel)]), kernel)
-        self.assertIn(result.best, kernel)
+        method = ElectreThenAhp(PipelineSettings(0.5, 0.2, "faixa_linear", 1))
+        result = method.evaluate(problem, np.array([0.5, 0.5]))
+        chosen = set(result.details["conjunto_ahp"])
+        self.assertNotIn(5, chosen)
+        self.assertEqual(set(result.ranking[:len(chosen)]), chosen)
+        self.assertIn(result.best, chosen)
         self.assertEqual(sorted(result.ranking), list(range(6)))
         self.assertAlmostEqual(sum(result.details["resumo"]["prioridade_global"].values()), 1.0)
+
+    def test_mais_niveis_levam_mais_alternativas_ao_ahp(self):
+        problem = synthetic_problem(FRONT + [(9, 9), (10, 10)])
+        weights = np.array([0.5, 0.5])
+        sizes = [ElectreThenAhp(PipelineSettings(0.5, 0.3, "faixa_linear", n)).evaluate(
+            problem, weights).details["resumo"]["tamanho_ahp"] for n in (1, 2, 3)]
+        self.assertLess(sizes[0], sizes[1])
+        self.assertLessEqual(sizes[1], sizes[2])
+
+    def test_niveis_invalidos(self):
+        problem = synthetic_problem(FRONT)
+        with self.assertRaises(ValueError):
+            ElectreThenAhp(PipelineSettings(0.5, 0.3, "faixa_linear", 0)).evaluate(
+                problem, np.array([0.5, 0.5]))
 
 
 class HyperparameterTests(unittest.TestCase):
@@ -153,7 +153,9 @@ class HyperparameterTests(unittest.TestCase):
         self.assertAlmostEqual(weights.sum(), 1.0)
         self.assertLessEqual(params.judgments_consistency_ratio(), params.max_consistency_ratio)
         self.assertEqual(len(weights), len(params.criteria))
-        self.assertGreaterEqual(params.tau_d_search[-1], 1.0 - 1e-9)
+        self.assertIn(params.pipeline.tau_d, params.sensitivity.veto)
+        self.assertIn(params.pipeline.tau_c, params.sensitivity.support)
+        self.assertIn(params.pipeline.levels, params.sensitivity.levels)
 
     def test_valor_fora_do_dominio_e_recusado(self):
         raw = json.loads((CONFIG_DIR / "decisao.json").read_text(encoding="utf-8"))
@@ -168,15 +170,15 @@ class HyperparameterTests(unittest.TestCase):
 @unittest.skipUnless((RESULTS_DIR / "entrega_2" / "nao_dominadas_soma.json").exists(),
                      "resultados da Entrega 2 ausentes")
 class FinalDecisionTests(unittest.TestCase):
-    def test_decisao_final_escolhe_uma_do_nucleo_com_os_pesos_do_arquivo(self):
+    def test_decisao_final_escolhe_uma_das_alternativas_do_ahp_com_os_pesos_do_arquivo(self):
         params = Hyperparameters.load(CONFIG_DIR / "decisao.json")
         preparation = Preparation(DATA_FILE, RESULTS_DIR / "entrega_2", params.extra_criterion)
         record = FinalDecision(preparation, params).run()
-        self.assertIn(record["escolhida"]["id"], record["electre1"]["nucleo"])
+        self.assertIn(record["escolhida"]["id"], record["electre1"]["conjunto_ahp"])
         self.assertAlmostEqual(sum(record["pesos"]["valores"]), 1.0)
         self.assertEqual(record["ranking_final"][0], record["escolhida"]["id"])
         self.assertAlmostEqual(sum(record["ahp"]["prioridade_global"].values()), 1.0)
-        self.assertIn(round(record["limiares"]["tau_d"], 6), [round(x, 6) for x in params.tau_d_search])
+        self.assertEqual(record["limiares"]["tau_d"], params.pipeline.tau_d)
 
 
 if __name__ == "__main__":

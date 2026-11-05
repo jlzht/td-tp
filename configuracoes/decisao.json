@@ -15,28 +15,34 @@
   "electre1": {
     "tau_c": 0.70,
     "tau_d": 0.30,
-    "alternativas_alvo": 10,
-    "busca_tau_d": {"inicio": 0.0, "fim": 1.0, "passo": 0.01}
+    "niveis_para_ahp": 1
   },
   "ahp": {
     "julgamento_local": "faixa_linear"
   },
   "sensibilidade": {
-    "alternativas_alvo": [8, 10, 15],
-    "varredura_pesos_passos": 11,
-    "dirichlet": {"concentracao": null, "sorteios": 1000, "semente": 2026},
-    "grade_tau_c": [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
-    "grade_tau_d": [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
+    "niveis_para_ahp": [1, 2, 3],
+    "veto": {"inicio": 0.10, "fim": 0.50, "passo": 0.05},
+    "apoio": {"inicio": 0.50, "fim": 0.90, "passo": 0.05},
+    "mapa_calor": {
+      "veto": {"inicio": 0.0, "fim": 1.0, "passo": 0.05},
+      "apoio": {"inicio": 0.50, "fim": 1.0, "passo": 0.05}
+    },
+    "marcas_da_entrevista": {"tau_c": 0.80, "tau_d": 0.10},
+    "varredura_pesos_passos": 41,
+    "julgamentos": {"degraus": [1, 2], "sorteios": 1000, "degrau_maximo_sorteio": 1, "semente": 2026},
     "julgamento_local": ["faixa_linear", "razao"]
   },
   "justificativas": {
     "criterio_extra": "Sugestão do enunciado e da professora. Sete candidatos foram comparados nas 73 alternativas; nenhum conflita com os três objetivos ao mesmo tempo, e o único forte, o teor de ferro médio, é quase o espelho do custo (Spearman -0,97) e o enunciado diz que o ferro não influencia a otimização neste case. Decisão do grupo em 2026-11-05.",
     "pesos.julgamentos": "Entrevista simulada com o tomador de decisão (configuracoes/entrevista_decisor.json), em 2026-11-05. Intensidades na escala de Saaty sobre a melhoria do pior ao melhor valor de cada critério entre as 73 alternativas. QC = 0,05. O decisor confirmou os pesos resultantes: custo 0,64, sílica 0,16, alumina 0,16, homogeneidade 0,04.",
     "pesos.qc_maximo": "Regra prática das aulas: aceitar julgamentos com QC até 0,10.",
-    "electre1.tau_c": "Decisão do grupo em 2026-11-05: apoio mínimo de 70% da importância total. A entrevista tinha dado 80%; com 80% e veto de 30% o núcleo fica maior.",
-    "electre1.tau_d": "Decisão do grupo em 2026-11-05: veto de 30% da faixa. A entrevista tinha dado 10%, que deixa 42 das 73 alternativas no núcleo; relaxar o veto até um núcleo de 10 o tornaria quase inativo (0,84). Nulo calibra o tau_d ao alvo de alternativas.",
-    "electre1.alternativas_alvo": "Decisão do grupo: cerca de 10 alternativas. Só é usado quando tau_d é nulo e nas variantes de 8, 10 e 15 da sensibilidade; com tau_d fixo o tamanho do núcleo é consequência.",
+    "electre1.tau_c": "Decisão do grupo em 2026-11-05: apoio mínimo de 70% da importância total. A entrevista tinha dado 80%, que fica como variante da sensibilidade.",
+    "electre1.tau_d": "Decisão do grupo em 2026-11-05: veto de 30% da faixa. A entrevista tinha dado 10%, que deixa 42 das 73 alternativas no núcleo com apoio de 80%; fica como variante da sensibilidade.",
+    "electre1.niveis_para_ahp": "Decisão do grupo: só o primeiro nível (as alternativas que empatam em primeiro, por serem incomparáveis entre si) segue para o AHP. Partir um nível exigiria um desempate arbitrário. Primeiro e segundo níveis, e os três primeiros, são variantes da sensibilidade.",
     "ahp.julgamento_local": "As matrizes de comparação entre alternativas saem dos valores medidos, pela faixa de variação de cada critério, como pedem as aulas ao tratar de faixas e pesos. A alternativa pela razão dos valores é testada na sensibilidade.",
-    "sensibilidade.dirichlet": "A concentração fica nula até ser calibrada por teste com gráfico; sorteios e semente apenas fixam a reprodução."
+    "sensibilidade.veto": "Faixa em torno do valor base, parâmetro a parâmetro, incluindo o 0,10 da entrevista.",
+    "sensibilidade.apoio": "Faixa em torno do valor base, incluindo o 0,80 da entrevista.",
+    "sensibilidade.julgamentos": "Cada julgamento do decisor sobe ou desce de 1 a 2 degraus da escala de Saaty, um por vez, e todos juntos em sorteios de até 1 degrau; matrizes com QC acima do máximo são descartadas. Um degrau é a granularidade da própria entrevista, o que dá sentido à perturbação sem uma dispersão arbitrária. Sorteios e semente apenas fixam a reprodução."
   }
 }

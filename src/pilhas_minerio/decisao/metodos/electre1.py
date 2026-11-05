@@ -15,7 +15,6 @@ resumem.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -128,45 +127,20 @@ class ElectreI(DecisionMethod):
             "resumo": {"relacoes": int(relation.sum()), "tamanho_niveis": [len(x) for x in levels]}})
 
     @staticmethod
-    def kernel(result: MethodResult) -> tuple[int, ...]:
-        """Núcleo: posições das alternativas que nenhuma outra sobreclassifica (primeiro nível)."""
-        return tuple(result.details["niveis"][0])
+    def top_levels(result: MethodResult, count: int) -> tuple[int, ...]:
+        """Posições das alternativas dos ``count`` primeiros níveis.
 
-    def calibrate_tau_d(self, problem: DecisionProblem, weights: np.ndarray, target: int,
-                        grid: np.ndarray) -> "KernelCalibration":
-        """Escolhe tau_d, mantido tau_c, para que o núcleo fique com ``target`` alternativas.
-
-        Um veto mais frouxo (tau_d maior) cria mais relações de sobreclassificação e
-        encolhe o núcleo. A calibração percorre ``grid`` e fica com o tau_d de núcleo mais
-        próximo de ``target``; em empate, o menor tau_d (veto mais exigente).
+        O primeiro nível é o núcleo: as alternativas que nenhuma outra sobreclassifica.
+        Os níveis são indivisíveis, pois as alternativas de um nível são incomparáveis
+        entre si e partir o nível exigiria um desempate arbitrário.
 
         Args:
-            problem: Alternativas e critérios.
-            weights: Pesos dos critérios.
-            target: Tamanho desejado do núcleo.
-            grid: Valores de tau_d a testar, em [0, 1].
+            result: Resultado de ``evaluate``.
+            count: Número de níveis, no mínimo 1.
+
+        Raises:
+            ValueError: ``count`` menor que 1.
         """
-        concordance, discordance = self.concordance_discordance(problem, weights)
-        sizes = []
-        for tau_d in grid:
-            relation = ElectreI(self.tau_c, float(tau_d)).outranking(concordance, discordance)
-            sizes.append(len(self.levels(relation)[0][0]))
-        best = min(range(len(grid)), key=lambda i: (abs(sizes[i] - target), grid[i]))
-        return KernelCalibration(float(grid[best]), sizes[best], tuple(float(x) for x in grid),
-                                 tuple(sizes))
-
-
-@dataclass(frozen=True)
-class KernelCalibration:
-    """Resultado da calibração de tau_d.
-
-    Attributes:
-        tau_d: Limiar escolhido.
-        kernel_size: Tamanho do núcleo com esse limiar.
-        grid: Valores de tau_d testados.
-        sizes: Tamanho do núcleo para cada valor de ``grid``.
-    """
-    tau_d: float
-    kernel_size: int
-    grid: tuple[float, ...]
-    sizes: tuple[int, ...]
+        if count < 1:
+            raise ValueError("é preciso pelo menos um nível")
+        return tuple(i for members in result.details["niveis"][:count] for i in members)

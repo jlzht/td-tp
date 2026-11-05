@@ -17,10 +17,8 @@
   "limiares": {
     "tau_c": 0.7,
     "tau_d": 0.3,
-    "tau_d_calibrado": false,
-    "alvo": 10
+    "niveis_para_ahp": 1
   },
-  "calibracao_tau_d": null,
   "electre1": {
     "tamanho_niveis": [
       9,
@@ -51,7 +49,8 @@
       2,
       1
     ],
-    "nucleo": [
+    "relacoes": 443,
+    "conjunto_ahp": [
       "A01",
       "A04",
       "A05",
@@ -61,8 +60,7 @@
       "A37",
       "A53",
       "A73"
-    ],
-    "relacoes": 443
+    ]
   },
   "ahp": {
     "julgamento_local": "faixa_linear",
@@ -332,7 +330,7 @@
       }
     ]
   },
-  "alternativas_do_nucleo": [
+  "alternativas_do_ahp": [
     {
       "id": "A01",
       "abordagens": [

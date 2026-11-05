@@ -1,7 +1,7 @@
 """Entrega 3, etapa 1: une as frentes, calcula os critérios e reduz as alternativas.
 
-Execute: python -m pilhas_minerio.decisao.preparar --quantidade 10
-Sem --quantidade grava só a união. Saída em resultados/entrega_3/.
+Execute: python -m pilhas_minerio.decisao.preparar
+Saída em resultados/entrega_3/.
 """
 from __future__ import annotations
 
@@ -16,7 +16,6 @@ from ..multiobjetivo import write_json
 from .alternativas import ParetoUnion, UnionResult
 from .criterios import EXTRA_CRITERIA, build_criteria
 from .problema import DecisionProblem
-from .selecao import SelectionRule
 
 
 class Preparation:
@@ -62,19 +61,12 @@ def main() -> None:
     parser.add_argument("--entrega2", type=Path, default=RESULTS_DIR / "entrega_2")
     parser.add_argument("--saida", type=Path, default=RESULTS_DIR / "entrega_3")
     parser.add_argument("--criterio-extra", choices=sorted(EXTRA_CRITERIA), default="homogeneidade")
-    parser.add_argument("--quantidade", type=int, help="tamanho do conjunto reduzido")
     args = parser.parse_args()
     preparation = Preparation(args.dados, args.entrega2, args.criterio_extra)
     args.saida.mkdir(parents=True, exist_ok=True)
     write_json(args.saida / "uniao_nao_dominadas.json",
                {"resumo": preparation.summary(), "alternativas": preparation.alternatives_table()})
     print(f"{preparation.union.report.final} alternativas em {args.saida / 'uniao_nao_dominadas.json'}")
-    if args.quantidade is not None:
-        selection = SelectionRule(args.quantidade).select(preparation.problem)
-        write_json(args.saida / "selecao.json",
-                   {"quantidade": args.quantidade, "identificadores": list(selection.identifiers),
-                    "motivos": selection.reasons})
-        print(f"selecionadas: {', '.join(selection.identifiers)}")
 
 
 if __name__ == "__main__":
