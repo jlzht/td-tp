@@ -8,7 +8,8 @@ import numpy as np
 
 from auxiliar import FRONT, synthetic_problem
 from pilhas_minerio.caminhos import CONFIG_DIR, DATA_FILE, RESULTS_DIR
-from pilhas_minerio.decisao.executar import FinalDecision
+from pilhas_minerio.decisao.executar import FinalDecision, write_table
+from pilhas_minerio.decisao.figuras_escolha import ChoiceFigures
 from pilhas_minerio.decisao.hiperparametros import Hyperparameters
 from pilhas_minerio.decisao.metodos.ahp import (Ahp, ComparisonMatrix, CriteriaWeights,
                                                 RandomIndex)
@@ -179,6 +180,26 @@ class FinalDecisionTests(unittest.TestCase):
         self.assertEqual(record["ranking_final"][0], record["escolhida"]["id"])
         self.assertAlmostEqual(sum(record["ahp"]["prioridade_global"].values()), 1.0)
         self.assertEqual(record["limiares"]["tau_d"], params.pipeline.tau_d)
+
+    def test_tabela_compromissos_e_figuras(self):
+        params = Hyperparameters.load(CONFIG_DIR / "decisao.json")
+        preparation = Preparation(DATA_FILE, RESULTS_DIR / "entrega_2", params.extra_criterion)
+        record = FinalDecision(preparation, params).run()
+        table = record["tabela"]
+        self.assertEqual(len(table), len(preparation.problem.alternatives))
+        self.assertEqual(sum(row["no_ahp"] for row in table), len(record["electre1"]["conjunto_ahp"]))
+        winner = [row for row in table if row["posicao_final"] == 1]
+        self.assertEqual([row["id"] for row in winner], [record["escolhida"]["id"]])
+        self.assertEqual(set(record["compromissos"]), set(params.criteria))
+        for key, item in record["compromissos"].items():
+            self.assertTrue(0.0 <= item["posicao_na_faixa"] <= 1.0)
+            self.assertEqual(item["ao_trocar_pela_melhor"][key]["variacao"],
+                             item["melhor_valor"] - item["valor_da_escolhida"])
+        with tempfile.TemporaryDirectory() as tmp:
+            ChoiceFigures(preparation, record).write(Path(tmp))
+            write_table(Path(tmp) / "tabela.csv", table, params.criteria)
+            for name in ("projecoes_escolha.pdf", "solucao_final.pdf", "tabela.csv"):
+                self.assertGreater((Path(tmp) / name).stat().st_size, 0)
 
 
 if __name__ == "__main__":

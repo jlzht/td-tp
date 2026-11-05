@@ -1,0 +1,54 @@
+{
+  "Afastamento da receita comum (H)": {
+    "constante": false,
+    "spearman_com_custo": 0.3419300650682198,
+    "spearman_com_desvio_sio2": -0.1370788596815994,
+    "spearman_com_desvio_al2o3": -0.29714303344440335,
+    "alternativas_dominadas_com_o_candidato": 0
+  },
+  "Teor de ferro médio": {
+    "constante": false,
+    "spearman_com_custo": -0.9729239648760012,
+    "spearman_com_desvio_sio2": 0.7226186845090478,
+    "spearman_com_desvio_al2o3": 0.7160303474401372,
+    "alternativas_dominadas_com_o_candidato": 0
+  },
+  "Teor de ferro da pior pilha": {
+    "constante": false,
+    "spearman_com_custo": -0.267712151003132,
+    "spearman_com_desvio_sio2": 0.3099097096294723,
+    "spearman_com_desvio_al2o3": 0.15872972274700367,
+    "alternativas_dominadas_com_o_candidato": 0
+  },
+  "Variação do ferro entre pilhas do equipamento": {
+    "constante": false,
+    "spearman_com_custo": 0.22929573110323612,
+    "spearman_com_desvio_sio2": -0.17783536961619156,
+    "spearman_com_desvio_al2o3": -0.17669381710477602,
+    "alternativas_dominadas_com_o_candidato": 0
+  },
+  "Maior uso da disponibilidade de um minério": {
+    "constante": true
+  },
+  "Minérios no limite de disponibilidade": {
+    "constante": false,
+    "spearman_com_custo": 0.4046672535377459,
+    "spearman_com_desvio_sio2": -0.5403413395102968,
+    "spearman_com_desvio_al2o3": -0.15016444124481815,
+    "alternativas_dominadas_com_o_candidato": 0
+  },
+  "Minérios distintos no plano": {
+    "constante": false,
+    "spearman_com_custo": 0.08760262852195107,
+    "spearman_com_desvio_sio2": 0.3268061238739924,
+    "spearman_com_desvio_al2o3": -0.30072936580321785,
+    "alternativas_dominadas_com_o_candidato": 0
+  },
+  "Minérios distintos por pilha (média)": {
+    "constante": false,
+    "spearman_com_custo": 0.016532258955710987,
+    "spearman_com_desvio_sio2": -0.01620375631647928,
+    "spearman_com_desvio_al2o3": -0.06320394433196508,
+    "alternativas_dominadas_com_o_candidato": 0
+  }
+}
