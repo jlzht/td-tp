@@ -48,11 +48,13 @@ class ScenarioOutcome:
         tags: Rótulos do cenário.
         ranked: Códigos da melhor para a pior alternativa.
         scores: Código -> pontuação do método.
+        summary: Grandezas resumidas do método (núcleo, QC), sem as matrizes.
     """
     name: str
     tags: Mapping[str, object]
     ranked: tuple[str, ...]
     scores: Mapping[str, float]
+    summary: Mapping[str, object] = field(default_factory=dict)
 
     @property
     def winner(self) -> str:
@@ -142,7 +144,8 @@ class SensitivityAnalysis:
         codes = scenario.problem.identifiers
         return ScenarioOutcome(scenario.name, dict(scenario.tags),
                                tuple(codes[i] for i in result.ranking),
-                               {codes[i]: float(result.scores[i]) for i in range(len(codes))})
+                               {codes[i]: float(result.scores[i]) for i in range(len(codes))},
+                               result.details.get("resumo", {}))
 
 
 class WeightSweep:

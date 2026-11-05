@@ -1,0 +1,42 @@
+{
+  "criterio_extra": "homogeneidade",
+  "pesos": {
+    "criterios": ["custo", "desvio_sio2", "desvio_al2o3", "homogeneidade"],
+    "julgamentos": {
+      "custo:desvio_sio2": 5,
+      "custo:desvio_al2o3": 5,
+      "custo:homogeneidade": 9,
+      "desvio_sio2:desvio_al2o3": 1,
+      "desvio_sio2:homogeneidade": 5,
+      "desvio_al2o3:homogeneidade": 5
+    },
+    "qc_maximo": 0.10
+  },
+  "electre1": {
+    "tau_c": 0.80,
+    "tau_d": null,
+    "alternativas_alvo": 10,
+    "busca_tau_d": {"inicio": 0.0, "fim": 1.0, "passo": 0.01}
+  },
+  "ahp": {
+    "julgamento_local": "faixa_linear"
+  },
+  "sensibilidade": {
+    "alternativas_alvo": [8, 10, 15],
+    "varredura_pesos_passos": 11,
+    "dirichlet": {"concentracao": null, "sorteios": 1000, "semente": 2026},
+    "grade_tau_c": [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
+    "grade_tau_d": [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0],
+    "julgamento_local": ["faixa_linear", "razao"]
+  },
+  "justificativas": {
+    "criterio_extra": "Sugestão do enunciado e da professora. Sete candidatos foram comparados nas 73 alternativas; nenhum conflita com os três objetivos ao mesmo tempo, e o único forte, o teor de ferro médio, é quase o espelho do custo (Spearman -0,97) e o enunciado diz que o ferro não influencia a otimização neste case. Decisão do grupo em 2026-11-05.",
+    "pesos.julgamentos": "Entrevista simulada com o tomador de decisão (configuracoes/entrevista_decisor.json), em 2026-11-05. Intensidades na escala de Saaty sobre a melhoria do pior ao melhor valor de cada critério entre as 73 alternativas. QC = 0,05. O decisor confirmou os pesos resultantes: custo 0,64, sílica 0,16, alumina 0,16, homogeneidade 0,04.",
+    "pesos.qc_maximo": "Regra prática das aulas: aceitar julgamentos com QC até 0,10.",
+    "electre1.tau_c": "Entrevista: o decisor exige pelo menos 80% da importância total a favor para descartar uma alternativa.",
+    "electre1.tau_d": "Nulo: calibrado para que o núcleo tenha alternativas_alvo alternativas. O decisor declarou tolerar piora de até 10% da faixa em um critério; com esse veto o núcleo tem 42 alternativas, sem reduzir o conjunto, então o veto é relaxado até o alvo.",
+    "electre1.alternativas_alvo": "Decisão do grupo: cerca de 10 alternativas para o AHP, com 8 e 15 na análise de sensibilidade.",
+    "ahp.julgamento_local": "As matrizes de comparação entre alternativas saem dos valores medidos, pela faixa de variação de cada critério, como pedem as aulas ao tratar de faixas e pesos. A alternativa pela razão dos valores é testada na sensibilidade.",
+    "sensibilidade.dirichlet": "A concentração fica nula até ser calibrada por teste com gráfico; sorteios e semente apenas fixam a reprodução."
+  }
+}
