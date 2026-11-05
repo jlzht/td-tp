@@ -13,8 +13,8 @@
     "qc_maximo": 0.10
   },
   "electre1": {
-    "tau_c": 0.80,
-    "tau_d": null,
+    "tau_c": 0.70,
+    "tau_d": 0.30,
     "alternativas_alvo": 10,
     "busca_tau_d": {"inicio": 0.0, "fim": 1.0, "passo": 0.01}
   },
@@ -33,9 +33,9 @@
     "criterio_extra": "Sugestão do enunciado e da professora. Sete candidatos foram comparados nas 73 alternativas; nenhum conflita com os três objetivos ao mesmo tempo, e o único forte, o teor de ferro médio, é quase o espelho do custo (Spearman -0,97) e o enunciado diz que o ferro não influencia a otimização neste case. Decisão do grupo em 2026-11-05.",
     "pesos.julgamentos": "Entrevista simulada com o tomador de decisão (configuracoes/entrevista_decisor.json), em 2026-11-05. Intensidades na escala de Saaty sobre a melhoria do pior ao melhor valor de cada critério entre as 73 alternativas. QC = 0,05. O decisor confirmou os pesos resultantes: custo 0,64, sílica 0,16, alumina 0,16, homogeneidade 0,04.",
     "pesos.qc_maximo": "Regra prática das aulas: aceitar julgamentos com QC até 0,10.",
-    "electre1.tau_c": "Entrevista: o decisor exige pelo menos 80% da importância total a favor para descartar uma alternativa.",
-    "electre1.tau_d": "Nulo: calibrado para que o núcleo tenha alternativas_alvo alternativas. O decisor declarou tolerar piora de até 10% da faixa em um critério; com esse veto o núcleo tem 42 alternativas, sem reduzir o conjunto, então o veto é relaxado até o alvo.",
-    "electre1.alternativas_alvo": "Decisão do grupo: cerca de 10 alternativas para o AHP, com 8 e 15 na análise de sensibilidade.",
+    "electre1.tau_c": "Decisão do grupo em 2026-11-05: apoio mínimo de 70% da importância total. A entrevista tinha dado 80%; com 80% e veto de 30% o núcleo fica maior.",
+    "electre1.tau_d": "Decisão do grupo em 2026-11-05: veto de 30% da faixa. A entrevista tinha dado 10%, que deixa 42 das 73 alternativas no núcleo; relaxar o veto até um núcleo de 10 o tornaria quase inativo (0,84). Nulo calibra o tau_d ao alvo de alternativas.",
+    "electre1.alternativas_alvo": "Decisão do grupo: cerca de 10 alternativas. Só é usado quando tau_d é nulo e nas variantes de 8, 10 e 15 da sensibilidade; com tau_d fixo o tamanho do núcleo é consequência.",
     "ahp.julgamento_local": "As matrizes de comparação entre alternativas saem dos valores medidos, pela faixa de variação de cada critério, como pedem as aulas ao tratar de faixas e pesos. A alternativa pela razão dos valores é testada na sensibilidade.",
     "sensibilidade.dirichlet": "A concentração fica nula até ser calibrada por teste com gráfico; sorteios e semente apenas fixam a reprodução."
   }
