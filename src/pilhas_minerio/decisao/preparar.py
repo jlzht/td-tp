@@ -8,8 +8,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from scipy.stats import spearmanr
-
 from ..caminhos import DATA_FILE, RESULTS_DIR
 from ..gvns import load_case
 from ..multiobjetivo import write_json
@@ -29,11 +27,8 @@ class Preparation:
                                              build_criteria(extra_criterion))
 
     def summary(self) -> dict:
-        """Contagens da união, faixas dos critérios e correlação de Spearman do critério extra."""
+        """Contagens da união e faixas dos critérios."""
         values = self.problem.values
-        extra = values.shape[1] - 1
-        correlations = {c.key: float(spearmanr(values[:, extra], values[:, j]).statistic)
-                        for j, c in enumerate(self.problem.criteria[:extra])}
         report = self.union.report
         return {
             "uniao": {"por_arquivo": report.per_file, "receitas_distintas": report.distinct_recipes,
@@ -42,7 +37,6 @@ class Preparation:
                                   "minimo": float(values[:, j].min()),
                                   "maximo": float(values[:, j].max())}
                           for j, c in enumerate(self.problem.criteria)},
-            "spearman_do_criterio_extra": correlations,
             "todas_nao_dominadas_nos_criterios": bool(self.problem.nondominated_mask().all()),
         }
 

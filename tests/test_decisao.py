@@ -141,11 +141,11 @@ class RealFrontTests(unittest.TestCase):
             for expected, got in zip(alternative.objectives, row[:3]):
                 self.assertAlmostEqual(expected, got, places=6)
 
-    def test_resumo_traz_contagens_e_correlacoes(self):
+    def test_resumo_traz_contagens_e_faixas(self):
         summary = self.preparation.summary()
         self.assertEqual(summary["uniao"]["finais"], len(self.preparation.union.alternatives))
-        self.assertEqual(set(summary["spearman_do_criterio_extra"]),
-                         {"custo", "desvio_sio2", "desvio_al2o3"})
+        self.assertEqual(set(summary["criterios"]),
+                         {"custo", "desvio_sio2", "desvio_al2o3", "homogeneidade"})
 
 
 if __name__ == "__main__":

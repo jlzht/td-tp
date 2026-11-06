@@ -35,11 +35,6 @@
         "maximo": 1.0568191784136056
       }
     },
-    "spearman_do_criterio_extra": {
-      "custo": 0.3419300650682198,
-      "desvio_sio2": -0.1370788596815994,
-      "desvio_al2o3": -0.29714303344440335
-    },
     "todas_nao_dominadas_nos_criterios": true
   },
   "alternativas": [

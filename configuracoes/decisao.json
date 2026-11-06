@@ -34,7 +34,7 @@
     "julgamento_local": ["faixa_linear", "razao"]
   },
   "justificativas": {
-    "criterio_extra": "Sugestão do enunciado e da professora. Sete candidatos foram comparados nas 73 alternativas; nenhum conflita com os três objetivos ao mesmo tempo, e o único forte, o teor de ferro médio, é quase o espelho do custo (Spearman -0,97) e o enunciado diz que o ferro não influencia a otimização neste case. Decisão do grupo em 2026-11-05.",
+    "criterio_extra": "Sugestão do enunciado e da professora. Com ele incluído, nenhuma das 73 alternativas passa a ser dominada, e tem leitura direta na operação do pátio. Decisão do grupo em 2026-11-05.",
     "pesos.julgamentos": "Entrevista simulada com o tomador de decisão (configuracoes/entrevista_decisor.json), em 2026-11-05. Intensidades na escala de Saaty sobre a melhoria do pior ao melhor valor de cada critério entre as 73 alternativas. QC = 0,05. O decisor confirmou os pesos resultantes: custo 0,64, sílica 0,16, alumina 0,16, homogeneidade 0,04.",
     "pesos.qc_maximo": "Regra prática das aulas: aceitar julgamentos com QC até 0,10.",
     "electre1.tau_c": "Decisão do grupo em 2026-11-05: apoio mínimo de 70% da importância total. A entrevista tinha dado 80%, que fica como variante da sensibilidade.",
