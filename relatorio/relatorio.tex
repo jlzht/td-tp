@@ -1021,34 +1021,41 @@ H = \frac{1}{|S|}\sum_{s\in S}H_s.
 \end{align}
 O valor $H/2$ é a fração dos caminhões de uma pilha que precisaria trocar de minério para igualar a receita comum. O critério vale zero quando todas as pilhas de cada equipamento têm a mesma proporção de minérios e é minimizado. Nas 73 alternativas, $H$ varia de 0{,}734 a 1{,}057.
 
-O enunciado exige que o critério extra seja conflitante com os demais. Com $H$ incluído, nenhuma das 73 alternativas passa a ser dominada. Para saber se outro atributo conflitaria mais, comparamos $H$ com sete candidatos por meio da correlação de Spearman com cada objetivo (Tabela~\ref{tab:candidatos}); todos os atributos foram orientados para minimização, de modo que correlação negativa indica conflito.
+O enunciado exige que o critério extra seja conflitante com os demais. Com $H$ incluído, nenhuma das 73 alternativas passa a ser dominada. Adotamos a homogeneidade por ter leitura direta na operação do pátio.
+
+\subsection{Pesos e Entrevista com o Decisor}\label{sec:pesos}
+
+Neste trabalho somos a unidade de decisão, mas os pesos não foram arbitrados diretamente. Estruturamos uma entrevista em que as perguntas descrevem o problema, e não os parâmetros dos métodos, e obtivemos os pesos e os limiares a partir das respostas. As subseções seguintes descrevem o instrumento, a aplicação, o tratamento das respostas e o resultado.
+
+\subsubsection{Instrumento}
+
+O instrumento é um formulário eletrônico com cinco seções (Tabela~\ref{tab:formulario}), cujo texto completo está no Apêndice~B. Quatro decisões orientam as perguntas.
+
+Primeiro, cada critério é apresentado pela melhoria do pior ao melhor valor existente entre as 73 alternativas: custo de R\$~65{,}5 a R\$~59{,}6 milhões, desvio típico de cada pilha em relação ao alvo de 0{,}84 a 0{,}49~pp na sílica e de 0{,}82 a 0{,}41~pp na alumina, e receita de cada pilha diferindo da receita comum em 53\% a 37\% dos caminhões. Assim, a importância declarada se refere à faixa de variação do critério, e não ao critério em abstrato, cuidado destacado nas aulas~\cite{aula10}. O desvio típico é a raiz do desvio quadrático dividido pelo número de pilhas, e a fração de caminhões é $H/2$; as duas grandezas são mais fáceis de interpretar do que $f_2$, $f_3$ e $H$.
+
+Segundo, as comparações usam a escala verbal de Saaty, com os níveis moderadamente, fortemente, muito fortemente e extremamente mais, registrados com os valores 3, 5, 7 e 9. Os valores pares da escala não são oferecidos. Terceiro, cada comparação tem nove opções simétricas: o primeiro critério do par pode valer mais (valores positivos), os dois podem valer o mesmo (valor 1) ou o segundo pode valer mais (valores negativos). Quarto, os $n(n-1)/2=6$ pares dos quatro critérios são todos perguntados, o que permite medir a consistência dos julgamentos. As perguntas sobre os limiares trazem exemplos numéricos na unidade de cada critério.
 
 \begin{table}[htbp]
-\caption{Correlação de Spearman de cada atributo candidato, orientado para minimização, com os três objetivos nas 73 alternativas}
+\caption{Seções do formulário da entrevista}
 \centering
 \small
-\begin{tabular}{p{0.50\columnwidth} r r r}
+\begin{tabular}{c p{0.58\columnwidth} c}
 \toprule
-\textbf{Atributo} & $f_1$ & $f_2$ & $f_3$ \\
+\textbf{Seção} & \textbf{Conteúdo} & \textbf{Perguntas} \\
 \midrule
-Afastamento da receita comum ($H$) & $+0{,}34$ & $-0{,}14$ & $-0{,}30$ \\
-Teor de ferro médio (maximizar) & $-0{,}97$ & $+0{,}72$ & $+0{,}72$ \\
-Teor de ferro da pior pilha (maximizar) & $-0{,}27$ & $+0{,}31$ & $+0{,}16$ \\
-Variação do ferro entre pilhas do equipamento & $+0{,}23$ & $-0{,}18$ & $-0{,}18$ \\
-Maior uso da disponibilidade de um minério & \multicolumn{3}{c}{constante (1{,}0)} \\
-Minérios no limite de disponibilidade & $+0{,}40$ & $-0{,}54$ & $-0{,}15$ \\
-Minérios distintos no plano & $+0{,}09$ & $+0{,}33$ & $-0{,}30$ \\
-Minérios distintos por pilha (média) & $+0{,}02$ & $-0{,}02$ & $-0{,}06$ \\
+1 & Apresentação do problema e dos quatro critérios & 0 \\
+2 & Melhoria de maior valor e de menor valor & 2 \\
+3 & Intensidade da preferência em cada um dos 6 pares de critérios & 6 \\
+4 & Maior piora tolerada e fração mínima da importância & 2 \\
+5 & Observações livres (opcional) & 1 \\
 \bottomrule
 \end{tabular}
-\label{tab:candidatos}
+\label{tab:formulario}
 \end{table}
 
-Nenhum candidato conflita com os três objetivos ao mesmo tempo. O teor de ferro médio conflita fortemente com o custo, pois minérios com mais ferro são mais caros, mas é quase o espelho do custo, e o enunciado informa que o ferro não influencia a otimização neste case; incluí-lo faria os dois critérios tenderem a se anular na agregação. A homogeneidade conflita com os desvios de SiO$_2$ e de Al$_2$O$_3$ e se relaciona de forma fraca e positiva com o custo, isto é, receitas um pouco mais baratas tendem a ser um pouco mais homogêneas. Adotamos a homogeneidade, por ter leitura direta na operação do pátio e por manter as 73 alternativas não dominadas.
+\subsubsection{Aplicação}
 
-\subsection{Pesos}\label{sec:pesos}
-
-Neste trabalho somos a unidade de decisão. Para que os pesos não fossem arbitrados diretamente, simulamos uma entrevista em que um integrante do grupo respondeu como decisor, sem conhecimento de métodos de decisão, e outro a conduziu como analista. As perguntas descrevem o problema e não os pesos. Cada critério é apresentado pela melhoria do pior ao melhor valor existente entre as 73 alternativas: custo de R\$~65{,}5 a R\$~59{,}6 milhões, distância média de cada pilha ao alvo de 0{,}84 a 0{,}49~pp na sílica e de 0{,}82 a 0{,}41~pp na alumina, e receita de cada pilha diferindo da receita comum em 53\% a 37\% dos caminhões. Esse enquadramento atende ao cuidado, destacado nas aulas, de que um peso só tem sentido em relação à faixa de variação que pondera~\cite{aula10}.
+A primeira aplicação foi uma conversa: um integrante do grupo, sem conhecimento de métodos de decisão, respondeu como decisor, e outro conduziu a entrevista como analista. As perguntas foram as do formulário, mas o sentido de cada comparação foi definido pelas respostas anteriores, em vez de oferecido nas duas direções. O formulário reúne as perguntas de forma autoadministrada, para que a entrevista possa ser repetida com outro decisor sem a presença do analista. A conversa terminou com uma devolutiva: o analista mostrou os pesos calculados, e o decisor confirmou que representam o que pensa. A Tabela~\ref{tab:entrevista} reúne as perguntas e as respostas.
 
 \begin{table}[htbp]
 \caption{Perguntas e respostas da entrevista com o decisor}
@@ -1073,7 +1080,15 @@ Alumina contra homogeneidade & Fortemente mais (5) \\
 \label{tab:entrevista}
 \end{table}
 
-Os julgamentos da Tabela~\ref{tab:entrevista} formam a matriz de comparação par a par $A$ dos critérios, na escala de Saaty, na ordem custo, SiO$_2$, Al$_2$O$_3$ e $H$:
+\subsubsection{Tratamento das respostas}
+
+Cada comparação vira um julgamento $a_{ij}$ da matriz de comparação par a par $A$ dos critérios, na escala de Saaty: o valor $n>0$ significa que o critério $i$ vale $n$ vezes o critério $j$ e dá $a_{ij}=n$, o valor $-n$ dá $a_{ij}=1/n$, e a igualdade dá $a_{ij}=1$. A matriz é completada por reciprocidade, $a_{ji}=1/a_{ij}$, e o vetor de pesos $w$ é o autovetor principal de $A$, normalizado para somar 1 (Seção~\ref{sec:ahp}).
+
+A consistência é verificada de duas formas. O quociente de consistência QC deve ser de no máximo 0{,}10, limite adotado nas aulas; se for maior, o decisor revê os julgamentos que mais se afastam da consistência. Além disso, o critério apontado como de maior valor deve ter o maior peso, e o de menor valor, o menor. Das respostas sobre os limiares, a maior piora tolerada define o veto declarado, em fração da faixa, e a fração mínima da importância define o apoio mínimo declarado; os dois são os valores de referência para $\tau_d$ e $\tau_c$ (Seção~\ref{sec:electre}).
+
+\subsubsection{Resultado}
+
+Os julgamentos da Tabela~\ref{tab:entrevista} formam a matriz $A$, na ordem custo, SiO$_2$, Al$_2$O$_3$ e $H$:
 \begin{equation}
 A=\begin{bmatrix}
 1 & 5 & 5 & 9\\
@@ -1082,7 +1097,9 @@ A=\begin{bmatrix}
 1/9 & 1/5 & 1/5 & 1
 \end{bmatrix}.
 \end{equation}
-O quociente de consistência é 0{,}05, abaixo do limite de 0{,}10 adotado nas aulas, e o vetor de pesos $w$, autovetor principal de $A$, é $(0{,}636;\ 0{,}161;\ 0{,}161;\ 0{,}043)$. Na devolutiva, o decisor confirmou que esses pesos representam o que pensa. O mesmo vetor alimenta o ELECTRE~I e o AHP.
+O quociente de consistência é 0{,}05, abaixo do limite de 0{,}10, e o vetor de pesos é $w=(0{,}636;\ 0{,}161;\ 0{,}161;\ 0{,}043)$. O custo tem o maior peso e a homogeneidade, o menor, como o decisor havia indicado nas perguntas sobre a melhoria de maior e de menor valor. O mesmo vetor alimenta o ELECTRE~I e o AHP.
+
+Como limitações, a aplicação teve um único respondente, e a ordem das perguntas e o sentido das primeiras comparações foram fixos, o que pode influenciar as respostas; não testamos outras ordens. A análise de sensibilidade (Seção~\ref{sec:sensibilidade}) mede quanto a escolha final depende dos julgamentos.
 
 \subsection{ELECTRE I}\label{sec:electre}
 
@@ -1128,7 +1145,7 @@ Com 9 alternativas, cada critério exigiria 36 comparações manuais, ou 144 no 
 
 \subsection{Encadeamento e Incomparabilidade}
 
-Os dois métodos atuam em sequência. O ELECTRE~I, não compensatório, reduz as 73 alternativas às que nenhuma outra supera; o AHP, compensatório, ordena essas alternativas e indica a recomendada. A incomparabilidade que o ELECTRE~I deixa entre as alternativas do primeiro nível é resolvida pelo AHP, que é, assim, o critério adicional exigido para essa situação, sem desempate extra. Só seria necessária uma regra a mais se o AHP terminasse com margem desprezível entre as duas primeiras, o que não ocorre no caso base.
+Os dois métodos atuam em sequência. O ELECTRE~I, não compensatório, reduz as 73 alternativas às que nenhuma outra supera; o AHP, compensatório, ordena essas alternativas e indica a recomendada. A incomparabilidade que o ELECTRE~I deixa entre as alternativas do primeiro nível é resolvida pelo AHP, que é, assim, o critério adicional exigido para essa situação, sem desempate extra. Só seria necessária uma regra a mais se o AHP terminasse com margem desprezível entre as duas primeiras, o que não ocorreu no caso base.
 
 \subsection{Resultados da Decisão}\label{sec:resultado_decisao}
 
@@ -1146,7 +1163,7 @@ Os dois métodos atuam em sequência. O ELECTRE~I, não compensatório, reduz as
 \label{fig:solucao}
 \end{figure*}
 
-O ELECTRE~I escolheu 9 alternativas, e o AHP escolheu entre elas a A01 (Tabela~\ref{tab:nucleo}). A A01 tem prioridade global 0{,}173, contra 0{,}123 da segunda colocada, e é a de menor custo entre as 73 alternativas. A Figura~\ref{fig:proj_escolha} mostra as alternativas nos três planos de objetivos, e a Tabela~\ref{tab:apendice} do Apêndice reúne os critérios de todas as 73.
+O ELECTRE~I escolheu 9 alternativas, e o AHP escolheu entre elas a A01 (Tabela~\ref{tab:nucleo}). A A01 tem prioridade global 0{,}173, contra 0{,}123 da segunda colocada, e é a de menor custo entre as 73 alternativas. A Figura~\ref{fig:proj_escolha} mostra as alternativas nos três planos de objetivos, e a Tabela~\ref{tab:apendice} do Apêndice~A reúne os critérios de todas as 73.
 
 \begin{table}[htbp]
 \caption{Alternativas escolhidas pelo ELECTRE~I, com os critérios e a prioridade global $g$ do AHP. A escolhida pelo AHP está em negrito}
@@ -1236,7 +1253,7 @@ Na etapa multiobjetivo, a mesma GVNS foi aplicada à Soma Ponderada e ao $\varep
 
 Na decisão multicritério, o ELECTRE~I, com apoio mínimo de 0{,}70 e veto de 0{,}30, reduziu as 73 alternativas a 9 que nenhuma outra supera, e o AHP escolheu entre elas a receita de menor custo, R\$~59{,}58 milhões, com prioridade global de 0{,}173 contra 0{,}123 da segunda colocada. É um extremo da fronteira: os desvios de SiO$_2$ e de Al$_2$O$_3$ ficam a 94\% e 95\% do caminho entre o melhor e o pior valor, e as pilhas operam a menos de 0{,}07~pp do limite superior de sílica. Essa posição decorre do peso de 0{,}64 dado ao custo na entrevista com o decisor. A escolha se mantém para o veto entre 0{,}25 e 0{,}50, para o apoio até 0{,}75 e para qualquer perturbação de até dois degraus nos julgamentos da entrevista. Quando a A02, uma receita R\$~40~mil mais cara e praticamente equivalente, entra no AHP, ela passa a vencer por diferença de 0{,}001 na prioridade. Soluções realmente distintas, mais caras e de melhor qualidade, só aparecem se o peso do custo cair de 0{,}64 para 0{,}53 ou se o AHP usar a razão dos valores, que anula o peso do custo. As limitações são a falta de folga das pilhas em relação aos limites de qualidade, que o modelo não penaliza, e os pesos, obtidos em uma entrevista simulada dentro do grupo.
 
-\section*{Apêndice}
+\section*{Apêndice A: critérios das alternativas}
 
 \begin{table*}[!t]
 \caption{Critérios das 73 alternativas avaliadas pelo ELECTRE~I: custo $f_1$ (R\$ milhões), desvios $f_2$ e $f_3$ (pp$^2$), homogeneidade $H$, nível no ELECTRE~I e prioridade global $g$ do AHP, para as que seguiram para o AHP. A escolhida pelo AHP está em negrito}
@@ -1245,6 +1262,37 @@ Na decisão multicritério, o ELECTRE~I, com apoio mínimo de 0{,}70 e veto de 0
 \input{tabela_alternativas.tex}
 \label{tab:apendice}
 \end{table*}
+
+\section*{Apêndice B: formulário da entrevista}
+
+\begingroup\small
+
+\textbf{Seção 1, apresentação.} Uma usina siderúrgica precisa decidir como compor 10 pilhas de minério que alimentam dois equipamentos de sinterização. Existem 73 composições candidatas, todas eficientes: nenhuma é melhor que outra em todos os aspectos ao mesmo tempo. Escolher entre elas depende do que mais importa para a usina. Pedimos que você responda como a pessoa responsável por essa escolha. São quatro aspectos: custo é o gasto com a compra dos minérios; sílica e alumina medem o quanto o teor de cada pilha fica longe do alvo do equipamento; receita parecida mede o quanto as pilhas de um mesmo equipamento seguem receitas (proporções de minérios) semelhantes, o que simplifica o trabalho no pátio. Para cada aspecto, damos o pior e o melhor valor existentes entre as 73 composições.
+
+\textbf{Seção 2, o que mais importa.} Em cada pergunta, considere a melhoria do pior para o melhor valor existente entre as composições, em um aspecto de cada vez. Duas perguntas de resposta única, obrigatórias: ``Se você pudesse melhorar só um aspecto, do pior para o melhor valor, qual traria mais valor para a usina?'' e ``Qual dos quatro traria menos valor, ou seja, qual você abriria mão primeiro?''. As opções, iguais nas duas perguntas, são:
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item Custo: a compra de minério cai de R\$~65,5 milhões para R\$~59,6 milhões (economia de R\$~5,9 milhões, cerca de 10\%).
+\item Sílica: o desvio típico do teor de sílica de cada pilha em relação ao alvo do equipamento cai de 0,84 para 0,49 ponto percentual.
+\item Alumina: o desvio típico do teor de alumina de cada pilha em relação ao alvo do equipamento cai de 0,82 para 0,41 ponto percentual.
+\item Receita parecida: a receita de cada pilha difere da receita comum do equipamento em 37\% dos caminhões, em vez de 53\%.
+\end{itemize}
+
+\textbf{Seção 3, quanto mais importa.} Para cada par, diga quanto uma melhoria vale mais que a outra, sempre do pior para o melhor valor do aspecto. Seis perguntas de resposta única, obrigatórias, uma para cada par, na ordem custo e sílica, custo e alumina, custo e receita parecida, sílica e alumina, sílica e receita parecida, alumina e receita parecida. Modelo da pergunta, para o par $X$ e $Y$: ``Quanto vale mais melhorar $X$ ou melhorar $Y$?''. Opções, em que \textit{nível} percorre ``extremamente'' (9), ``muito fortemente'' (7), ``fortemente'' (5) e ``moderadamente'' (3):
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item Melhorar $X$ vale \textit{nível} mais que melhorar $Y$ (valor positivo, de 9 a 3);
+\item As duas melhorias valem o mesmo (1);
+\item Melhorar $Y$ vale \textit{nível} mais que melhorar $X$ (valor negativo, de $-3$ a $-9$).
+\end{itemize}
+
+\textbf{Seção 4, como comparar duas composições.} Ao comparar duas composições, uma pode ser melhor em alguns aspectos e pior em outros. As duas perguntas seguintes definem quando você aceita dizer que uma composição supera a outra.
+
+Primeira pergunta: ``Você aceita uma composição que seja pior em um aspecto desde que compense nos outros. Qual a maior piora que você toleraria em qualquer aspecto isolado?'' Texto de apoio: ``Meça como fração da faixa entre o melhor e o pior valor. Exemplo de 25\% da faixa: R\$~1,5 milhão a mais de custo, ou sílica e alumina cerca de 0,09 ponto percentual mais longe do alvo.'' Opções: até 10\%, 25\%, 40\% ou 50\% da faixa, cada uma com uma frase que a explica.
+
+Segunda pergunta: ``Para considerar que a composição A é `pelo menos tão boa quanto' a B e descartar a B, os aspectos em que A é melhor ou igual a B precisam somar quanto da importância total?'' Texto de apoio: ``Por exemplo, se custo e sílica somam 70\% da importância e A é melhor ou igual a B nesses dois, então 70\% da importância está a favor de A.'' Opções: pelo menos 60\%, 70\%, 80\% ou 90\%, cada uma com uma frase que a explica.
+
+\textbf{Seção 5, para terminar.} Uma pergunta de texto livre, opcional: ``Há algum aspecto importante para a usina que ficou de fora, ou alguma observação sobre as suas respostas?''
+
+\endgroup
 
 \begin{thebibliography}{99}
 
