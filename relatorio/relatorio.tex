@@ -1055,28 +1055,26 @@ Segundo, as comparações usam a escala verbal de Saaty, com os níveis moderada
 
 \subsubsection{Aplicação}
 
-A entrevista teve duas aplicações. A primeira, piloto, foi uma conversa em que um integrante do grupo, sem conhecimento de métodos de decisão, respondeu como decisor, e a entrevista foi conduzida no papel de analista. As perguntas foram as do formulário, mas o sentido de cada comparação foi definido pelas respostas anteriores, em vez de oferecido nas duas direções; a conversa terminou com uma devolutiva, em que o decisor confirmou que os pesos calculados representam o que pensa. O formulário reúne as mesmas perguntas de forma autoadministrada, com cada comparação oferecida nas duas direções.
-
-Na segunda aplicação, um profissional da Cassotis, empresa que propôs o case, respondeu ao formulário no papel de decisor. Os pesos usados neste trabalho vêm dessa resposta, e os do piloto entram como variante na análise de sensibilidade. A Tabela~\ref{tab:entrevista} reúne as respostas das duas aplicações.
+Um profissional da Cassotis, empresa que propôs o case, respondeu ao formulário no papel de decisor. A Tabela~\ref{tab:entrevista} reúne as respostas.
 
 \begin{table}[htbp]
-\caption{Respostas das duas aplicações da entrevista. Nas comparações, o primeiro critério do par foi o preferido nas duas aplicações, e a intensidade segue a escala de Saaty: 1, mesmo valor; 3, moderadamente; 5, fortemente; 7, muito fortemente; 9, extremamente mais}
+\caption{Respostas da entrevista. Nas comparações, o primeiro critério do par foi o preferido, e a intensidade segue a escala de Saaty: 3, moderadamente; 7, muito fortemente; 9, extremamente mais}
 \centering
 \small
-\begin{tabular}{p{0.46\columnwidth} c c}
+\begin{tabular}{p{0.62\columnwidth} c}
 \toprule
-\textbf{Pergunta} & \textbf{Piloto} & \textbf{Cassotis} \\
+\textbf{Pergunta} & \textbf{Resposta} \\
 \midrule
-Melhoria de maior valor & Custo & Custo \\
-Melhoria de menor valor & $H$ & $H$ \\
-Maior piora tolerada (fração da faixa) & 10\% & 25\% \\
-Fração mínima da importância & 80\% & 80\% \\
-Custo contra sílica & 5 & 7 \\
-Custo contra alumina & 5 & 7 \\
-Custo contra homogeneidade & 9 & 9 \\
-Sílica contra alumina & 1 & 3 \\
-Sílica contra homogeneidade & 5 & 7 \\
-Alumina contra homogeneidade & 5 & 7 \\
+Melhoria de maior valor & Custo \\
+Melhoria de menor valor & $H$ \\
+Maior piora tolerada (fração da faixa) & 25\% \\
+Fração mínima da importância & 80\% \\
+Custo contra sílica & 7 \\
+Custo contra alumina & 7 \\
+Custo contra homogeneidade & 9 \\
+Sílica contra alumina & 3 \\
+Sílica contra homogeneidade & 7 \\
+Alumina contra homogeneidade & 7 \\
 \bottomrule
 \end{tabular}
 \label{tab:entrevista}
@@ -1103,9 +1101,9 @@ com vetor de pesos $w=(0{,}671;\ 0{,}186;\ 0{,}110;\ 0{,}033)$. O custo tem o ma
 
 A inconsistência vem do teto da escala de Saaty, e não de um julgamento isolado. O custo vale 7 vezes a sílica, e a sílica vale 7 vezes a homogeneidade, o que implicaria um custo cerca de 49 vezes mais importante que a homogeneidade; a escala, no entanto, termina em 9, e o próprio vetor de pesos indica uma razão de cerca de 20. Nenhuma mudança de um ou dois degraus em um único julgamento traz o QC para 0{,}10 ou menos; a melhor chega a 0{,}14. Enviamos ao respondente uma devolutiva com quatro composições reais entre as 73, a indicação que os pesos produziam e uma pergunta de pontuação sem teto, no formato do método SMART das aulas~\cite{aula10}, mas não houve resposta até o fechamento do trabalho.
 
-Decidimos usar os julgamentos da Cassotis como estão, por virem de quem conhece a operação, e registrar o QC acima do limite como limitação. Duas verificações acompanham essa decisão na análise de sensibilidade: os pesos do piloto, $w=(0{,}636;\ 0{,}161;\ 0{,}161;\ 0{,}043)$, com QC de 0{,}05, e perturbações dos julgamentos da Cassotis que não aumentam a inconsistência. As duas aplicações concordam na ordem dos critérios e diferem sobretudo na sílica, que a Cassotis põe acima da alumina. O mesmo vetor $w$ alimenta o ELECTRE~I e o AHP.
+Decidimos usar os julgamentos da Cassotis como estão, por virem de quem conhece a operação, e registrar o QC acima do limite como limitação. A análise de sensibilidade acompanha essa decisão com perturbações dos julgamentos que não aumentam a inconsistência. O mesmo vetor $w$ alimenta o ELECTRE~I e o AHP.
 
-Como limitações, cada aplicação teve um único respondente, e a ordem das perguntas foi fixa, o que pode influenciar as respostas; não testamos outras ordens.
+Como limitações, a entrevista teve um único respondente, e a ordem das perguntas foi fixa, o que pode influenciar as respostas; não testamos outras ordens.
 
 \subsection{ELECTRE I}\label{sec:electre}
 
@@ -1215,7 +1213,7 @@ A Figura~\ref{fig:solucao} mostra uma consequência operacional do custo mínimo
 \label{fig:julgamentos}
 \end{figure*}
 
-Em torno do caso base, variamos um grupo de parâmetros por vez, mantendo os demais nos valores base: o veto, o apoio, o número de níveis do ELECTRE~I enviados ao AHP, o modo do AHP, os pesos e os julgamentos do decisor. O número de alternativas do AHP varia por níveis inteiros, e não por cortes dentro de um nível, para evitar o desempate arbitrário. Acrescentamos o par apoio e veto em uma grade (Figura~\ref{fig:mapa}), os pesos do piloto e um caso de referência com o AHP aplicado às 73 alternativas, sem o ELECTRE~I. Os resultados estão na Tabela~\ref{tab:sens}.
+Em torno do caso base, variamos um grupo de parâmetros por vez, mantendo os demais nos valores base: o veto, o apoio, o número de níveis do ELECTRE~I enviados ao AHP, o modo do AHP, os pesos e os julgamentos do decisor. O número de alternativas do AHP varia por níveis inteiros, e não por cortes dentro de um nível, para evitar o desempate arbitrário. Acrescentamos o par apoio e veto em uma grade (Figura~\ref{fig:mapa}) e um caso de referência com o AHP aplicado às 73 alternativas, sem o ELECTRE~I. Os resultados estão na Tabela~\ref{tab:sens}.
 
 \begin{table}[htbp]
 \caption{Alternativa escolhida nas variações em torno do caso base}
@@ -1235,7 +1233,6 @@ Dois primeiros níveis & 5 & A01 \\
 Três primeiros níveis & 7 & A02 \\
 AHP sobre as 73, sem ELECTRE~I & 73 & A02 \\
 AHP pela razão dos valores & 4 & A73 \\
-Pesos do piloto & 9 & A01 \\
 Julgamentos, 1 e 2 degraus (10 casos) & 4 a 9 & A01 \\
 Julgamentos, 281 sorteios & 1 a 9 & A01 \\
 \bottomrule
@@ -1247,13 +1244,13 @@ A A02 custa R\$~40~mil a mais que a A01, é melhor em SiO$_2$ e em homogeneidade
 
 O AHP pela razão dos valores escolhe a A73, a de menor desvio de Al$_2$O$_3$ e a mais cara, e coloca a A01 na última posição entre as quatro. Isso ocorre porque a razão trata as diferenças de custo como pequenas, o que anula o peso do custo obtido na entrevista, e é a razão de usarmos a faixa de cada critério.
 
-A escolha só muda para soluções distintas de A01 e A02 com mudanças grandes nos pesos. A A01 se mantém enquanto o peso do custo fica acima de 0{,}549 (valor adotado: 0{,}671), o da sílica abaixo de 0{,}300 (0{,}186), o da alumina abaixo de 0{,}260 (0{,}110) e o da homogeneidade abaixo de 0{,}133 (0{,}033). Fora desses valores, a escolha passa para alternativas de custo maior e melhor qualidade, como a A02, a A05 e a A73. A relação não é monótona, porque os pesos também mudam o conjunto que o ELECTRE~I envia ao AHP: no peso da alumina, a A73 vence entre 0{,}26 e 0{,}27, a A01 volta a vencer até 0{,}40, e só acima disso a A73 assume. Os pesos do piloto também levam à A01. Nas perturbações dos julgamentos da Cassotis, só valem as que não aumentam a inconsistência, já que a matriz original foi aceita com QC acima do limite: das 24 perturbações de um julgamento por vez, 10 atendem a essa condição, e dos 1000 sorteios de até um degrau em todos os julgamentos, 281. Em todas, a escolha continua sendo a A01.
+A escolha só muda para soluções distintas de A01 e A02 com mudanças grandes nos pesos. A A01 se mantém enquanto o peso do custo fica acima de 0{,}549 (valor adotado: 0{,}671), o da sílica abaixo de 0{,}300 (0{,}186), o da alumina abaixo de 0{,}260 (0{,}110) e o da homogeneidade abaixo de 0{,}133 (0{,}033). Fora desses valores, a escolha passa para alternativas de custo maior e melhor qualidade, como a A02, a A05 e a A73. A relação não é monótona, porque os pesos também mudam o conjunto que o ELECTRE~I envia ao AHP: no peso da alumina, a A73 vence entre 0{,}26 e 0{,}27, a A01 volta a vencer até 0{,}40, e só acima disso a A73 assume. Nas perturbações dos julgamentos da Cassotis, só valem as que não aumentam a inconsistência, já que a matriz original foi aceita com QC acima do limite: das 24 perturbações de um julgamento por vez, 10 atendem a essa condição, e dos 1000 sorteios de até um degrau em todos os julgamentos, 281. Em todas, a escolha continua sendo a A01.
 
 \subsection{Comparação entre os Métodos e Recomendação}\label{sec:recomendacao}
 
 Isolados, os dois métodos não respondem à mesma pergunta. O ELECTRE~I sozinho não chega a uma alternativa: ele deixa quatro alternativas incomparáveis no primeiro nível. O AHP sozinho, aplicado às 73, ordena todas e põe a A02 em primeiro e a A01 em segundo, com prioridades de 0{,}0353 e 0{,}0351. Os dois concordam que a escolha está no extremo de menor custo da fronteira e só divergem entre a A01 e a A02. A divergência vem da natureza de cada método: o AHP, compensatório, troca a desvantagem de R\$~40~mil da A02 no custo por sua vantagem em sílica e em homogeneidade, enquanto o ELECTRE~I, não compensatório, considera que a A01 supera a A02, pois ela é melhor em critérios que somam 78\% da importância e sua maior desvantagem fica dentro do veto.
 
-Recomendamos a A01. Ela é a escolha do encadeamento definido antes dos resultados, vence com folga dentro do primeiro nível do ELECTRE~I e se mantém com os pesos do piloto, em todas as perturbações aceitas dos julgamentos e na maior parte das variações de veto e apoio; quando a escolha muda nessas variações, é para a A02. A A02 é uma alternativa praticamente equivalente, que pode ser preferida se a homogeneidade das receitas pesar mais na operação. Em qualquer das duas, a usina deve considerar a falta de folga em relação aos limites de qualidade antes de implementar a receita.
+Recomendamos a A01. Ela é a escolha do encadeamento definido antes dos resultados, vence com folga dentro do primeiro nível do ELECTRE~I e se mantém em todas as perturbações aceitas dos julgamentos e na maior parte das variações de veto e apoio; quando a escolha muda nessas variações, é para a A02. A A02 é uma alternativa praticamente equivalente, que pode ser preferida se a homogeneidade das receitas pesar mais na operação. Em qualquer das duas, a usina deve considerar a falta de folga em relação aos limites de qualidade antes de implementar a receita.
 
 \section{Conclusão}\label{sec:conclusao}
 
@@ -1261,7 +1258,7 @@ A GVNS proposta encontrou soluções viáveis em todas as 15 execuções. Para o
 
 Na etapa multiobjetivo, a mesma GVNS foi aplicada à Soma Ponderada e ao $\varepsilon$-restrito, sem falhas de reparo nas 115 chamadas. O $\varepsilon$-restrito produziu 61 receitas não dominadas, distribuídas por toda a superfície de compromisso, e maior hipervolume (0{,}655 contra 0{,}584), enquanto a Soma Ponderada concentrou suas 15 receitas em cinco grupos, como esperado para um método que não alcança regiões não suportadas da fronteira. As abordagens mostraram-se complementares: a Soma Ponderada alcançou os extremos de qualidade, e o $\varepsilon$-restrito, o menor custo e o interior da fronteira. Em ambas, as cinco rodadas atingiram as mesmas regiões do espaço de objetivos, com pequena variação do hipervolume entre rodadas. As 73 receitas não dominadas da união das duas abordagens formam o conjunto de alternativas para a etapa de decisão multicritério.
 
-Na decisão multicritério, os pesos vieram de um formulário respondido por um profissional da Cassotis: custo 0{,}671, sílica 0{,}186, alumina 0{,}110 e homogeneidade 0{,}033. O quociente de consistência dessas respostas é 0{,}20, acima do limite de 0{,}10, por causa do teto da escala de Saaty, e a devolutiva enviada não teve resposta a tempo; usamos os julgamentos como estão e registramos essa limitação. O ELECTRE~I, com apoio mínimo de 0{,}70 e veto de 0{,}30, reduziu as 73 alternativas a 4 que nenhuma outra supera, e o AHP escolheu entre elas a receita de menor custo, R\$~59{,}58 milhões, com prioridade global de 0{,}337 contra 0{,}233 da segunda colocada. É um extremo da fronteira: os desvios de SiO$_2$ e de Al$_2$O$_3$ ficam a 94\% e 95\% do caminho entre o melhor e o pior valor, e as pilhas operam a menos de 0{,}07~pp do limite superior de sílica. A escolha se mantém com os pesos da entrevista piloto, para o veto entre 0{,}25 e 0{,}50, para o apoio até 0{,}80 e em todas as perturbações dos julgamentos que não aumentam a inconsistência. Quando a A02, uma receita R\$~40~mil mais cara e praticamente equivalente, entra no AHP, as duas passam a disputar o primeiro lugar por diferenças mínimas de prioridade. Soluções realmente distintas, mais caras e de melhor qualidade, só aparecem se o peso do custo cair de 0{,}67 para 0{,}55 ou se o AHP usar a razão dos valores, que anula o peso do custo. As limitações são a falta de folga das pilhas em relação aos limites de qualidade, que o modelo não penaliza, a inconsistência dos julgamentos e o fato de cada aplicação da entrevista ter um único respondente.
+Na decisão multicritério, os pesos vieram de um formulário respondido por um profissional da Cassotis: custo 0{,}671, sílica 0{,}186, alumina 0{,}110 e homogeneidade 0{,}033. O quociente de consistência dessas respostas é 0{,}20, acima do limite de 0{,}10, por causa do teto da escala de Saaty, e a devolutiva enviada não teve resposta a tempo; usamos os julgamentos como estão e registramos essa limitação. O ELECTRE~I, com apoio mínimo de 0{,}70 e veto de 0{,}30, reduziu as 73 alternativas a 4 que nenhuma outra supera, e o AHP escolheu entre elas a receita de menor custo, R\$~59{,}58 milhões, com prioridade global de 0{,}337 contra 0{,}233 da segunda colocada. É um extremo da fronteira: os desvios de SiO$_2$ e de Al$_2$O$_3$ ficam a 94\% e 95\% do caminho entre o melhor e o pior valor, e as pilhas operam a menos de 0{,}07~pp do limite superior de sílica. A escolha se mantém para o veto entre 0{,}25 e 0{,}50, para o apoio até 0{,}80 e em todas as perturbações dos julgamentos que não aumentam a inconsistência. Quando a A02, uma receita R\$~40~mil mais cara e praticamente equivalente, entra no AHP, as duas passam a disputar o primeiro lugar por diferenças mínimas de prioridade. Soluções realmente distintas, mais caras e de melhor qualidade, só aparecem se o peso do custo cair de 0{,}67 para 0{,}55 ou se o AHP usar a razão dos valores, que anula o peso do custo. As limitações são a falta de folga das pilhas em relação aos limites de qualidade, que o modelo não penaliza, a inconsistência dos julgamentos e o fato de a entrevista ter um único respondente.
 
 \section*{Apêndice A: critérios das alternativas}
 

@@ -1,7 +1,12 @@
 {
   "criterio_extra": "homogeneidade",
   "pesos": {
-    "criterios": ["custo", "desvio_sio2", "desvio_al2o3", "homogeneidade"],
+    "criterios": [
+      "custo",
+      "desvio_sio2",
+      "desvio_al2o3",
+      "homogeneidade"
+    ],
     "julgamentos": {
       "custo:desvio_sio2": 7,
       "custo:desvio_al2o3": 7,
@@ -10,39 +15,63 @@
       "desvio_sio2:homogeneidade": 7,
       "desvio_al2o3:homogeneidade": 7
     },
-    "qc_maximo": 0.10,
+    "qc_maximo": 0.1,
     "aceitar_qc_acima_do_maximo": true
   },
   "electre1": {
-    "tau_c": 0.70,
-    "tau_d": 0.30,
+    "tau_c": 0.7,
+    "tau_d": 0.3,
     "niveis_para_ahp": 1
   },
   "ahp": {
     "julgamento_local": "faixa_linear"
   },
   "sensibilidade": {
-    "niveis_para_ahp": [1, 2, 3],
-    "veto": {"inicio": 0.10, "fim": 0.50, "passo": 0.05},
-    "apoio": {"inicio": 0.50, "fim": 0.90, "passo": 0.05},
-    "mapa_calor": {
-      "veto": {"inicio": 0.0, "fim": 1.0, "passo": 0.05},
-      "apoio": {"inicio": 0.50, "fim": 1.0, "passo": 0.05}
+    "niveis_para_ahp": [
+      1,
+      2,
+      3
+    ],
+    "veto": {
+      "inicio": 0.1,
+      "fim": 0.5,
+      "passo": 0.05
     },
-    "marcas_da_entrevista": {"tau_c": 0.80, "tau_d": 0.25},
-    "varredura_pesos_passos": 41,
-    "julgamentos": {"degraus": [1, 2], "sorteios": 1000, "degrau_maximo_sorteio": 1, "semente": 2026},
-    "julgamentos_alternativos": {
-      "entrevista_piloto": {
-        "custo:desvio_sio2": 5,
-        "custo:desvio_al2o3": 5,
-        "custo:homogeneidade": 9,
-        "desvio_sio2:desvio_al2o3": 1,
-        "desvio_sio2:homogeneidade": 5,
-        "desvio_al2o3:homogeneidade": 5
+    "apoio": {
+      "inicio": 0.5,
+      "fim": 0.9,
+      "passo": 0.05
+    },
+    "mapa_calor": {
+      "veto": {
+        "inicio": 0.0,
+        "fim": 1.0,
+        "passo": 0.05
+      },
+      "apoio": {
+        "inicio": 0.5,
+        "fim": 1.0,
+        "passo": 0.05
       }
     },
-    "julgamento_local": ["faixa_linear", "razao"]
+    "marcas_da_entrevista": {
+      "tau_c": 0.8,
+      "tau_d": 0.25
+    },
+    "varredura_pesos_passos": 41,
+    "julgamentos": {
+      "degraus": [
+        1,
+        2
+      ],
+      "sorteios": 1000,
+      "degrau_maximo_sorteio": 1,
+      "semente": 2026
+    },
+    "julgamento_local": [
+      "faixa_linear",
+      "razao"
+    ]
   },
   "justificativas": {
     "criterio_extra": "Sugestão do enunciado e da professora. Com ele incluído, nenhuma das 73 alternativas passa a ser dominada, e tem leitura direta na operação do pátio. Decisão do grupo em 2026-11-05.",
@@ -55,7 +84,6 @@
     "ahp.julgamento_local": "As matrizes de comparação entre alternativas saem dos valores medidos, pela faixa de variação de cada critério, como pedem as aulas ao tratar de faixas e pesos. A alternativa pela razão dos valores é testada na sensibilidade.",
     "sensibilidade.veto": "Faixa em torno do valor base, parâmetro a parâmetro, incluindo o 0,25 declarado pelo respondente.",
     "sensibilidade.apoio": "Faixa em torno do valor base, incluindo o 0,80 declarado pelo respondente.",
-    "sensibilidade.julgamentos": "Cada julgamento do decisor sobe ou desce de 1 a 2 degraus da escala de Saaty, um por vez, e todos juntos em sorteios de até 1 degrau. Como a matriz base foi aceita com QC acima de 0,10, são descartadas as matrizes mais inconsistentes que ela. Um degrau é a granularidade da própria entrevista, o que dá sentido à perturbação sem uma dispersão arbitrária. Sorteios e semente apenas fixam a reprodução.",
-    "sensibilidade.julgamentos_alternativos": "Julgamentos da entrevista piloto, feita em conversa dentro do grupo antes do formulário (configuracoes/entrevista_decisor.json), com QC de 0,05."
+    "sensibilidade.julgamentos": "Cada julgamento do decisor sobe ou desce de 1 a 2 degraus da escala de Saaty, um por vez, e todos juntos em sorteios de até 1 degrau. Como a matriz base foi aceita com QC acima de 0,10, são descartadas as matrizes mais inconsistentes que ela. Um degrau é a granularidade da própria entrevista, o que dá sentido à perturbação sem uma dispersão arbitrária. Sorteios e semente apenas fixam a reprodução."
   }
 }

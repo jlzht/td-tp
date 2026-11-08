@@ -6,8 +6,7 @@
  * do formulário, para enviar à pessoa entrevistada, e da planilha de respostas saem em
  * Execuções, no registro da execução.
  *
- * As perguntas repetem a entrevista de configuracoes/entrevista_decisor.json: as faixas são
- * as das 73 alternativas não dominadas, e as respostas viram os julgamentos par a par do AHP
+ * As faixas são as das 73 alternativas não dominadas, e as respostas viram os julgamentos par a par do AHP
  * e os limiares do ELECTRE I. Nas comparações, o número entre parênteses é positivo quando o
  * primeiro aspecto do par vale mais e negativo quando é o segundo; decisao/entrevista.py lê
  * esse formato.

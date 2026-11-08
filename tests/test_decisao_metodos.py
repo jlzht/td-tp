@@ -157,8 +157,6 @@ class HyperparameterTests(unittest.TestCase):
                 params.max_consistency_ratio, params.judgments_consistency_ratio()))
         else:
             self.assertLessEqual(params.judgments_consistency_ratio(), params.max_consistency_ratio)
-        for alternative in params.alternative_weights().values():
-            self.assertAlmostEqual(alternative.sum(), 1.0)
         self.assertEqual(len(weights), len(params.criteria))
         self.assertIn(params.pipeline.tau_d, params.sensitivity.veto)
         self.assertIn(params.pipeline.tau_c, params.sensitivity.support)

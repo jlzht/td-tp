@@ -43,22 +43,21 @@ def row(values, most="Custo: a compra de minério cai", least="Receita parecida:
     return data
 
 
-# Entrevista do grupo, em configuracoes/entrevista_decisor.json.
-INTERVIEW = {"custo:desvio_sio2": 5, "custo:desvio_al2o3": 5, "custo:homogeneidade": 9,
-             "desvio_sio2:desvio_al2o3": 1, "desvio_sio2:homogeneidade": 5,
-             "desvio_al2o3:homogeneidade": 5}
+# Julgamentos perfeitamente consistentes: 3 x 3 = 9.
+INTERVIEW = {"custo:desvio_sio2": 3, "custo:desvio_al2o3": 3, "custo:homogeneidade": 9,
+             "desvio_sio2:desvio_al2o3": 1, "desvio_sio2:homogeneidade": 3,
+             "desvio_al2o3:homogeneidade": 3}
 
 
 class ResponseSheetTests(unittest.TestCase):
-    def test_respostas_da_entrevista_do_grupo_reproduzem_os_julgamentos_e_os_pesos(self):
+    def test_respostas_viram_julgamentos_e_pesos(self):
         answers = ResponseSheet([row(INTERVIEW)], CRITERIA).answers()
         self.assertEqual(answers.judgments, {k: float(v) for k, v in INTERVIEW.items()})
         self.assertEqual((answers.most_valuable, answers.least_valuable), ("custo", "homogeneidade"))
         self.assertEqual((answers.declared_veto, answers.declared_support), (0.10, 0.80))
         analysis = InterviewAnalysis.of(answers, CRITERIA, 0.10)
-        params = Hyperparameters.load(CONFIG_DIR / "decisao.json")
-        np.testing.assert_allclose(list(analysis.weights.values()),
-                                   params.alternative_weights()["entrevista_piloto"])
+        np.testing.assert_allclose(list(analysis.weights.values()), [9 / 16, 3 / 16, 3 / 16, 1 / 16])
+        self.assertAlmostEqual(analysis.consistency_ratio, 0.0)
         self.assertTrue(analysis.within_limit and analysis.order_agrees)
 
     def test_planilha_da_cassotis_reproduz_os_julgamentos_adotados(self):
@@ -89,7 +88,7 @@ class ResponseSheetTests(unittest.TestCase):
             sheet = ResponseSheet.from_csv(path, CRITERIA)
         self.assertEqual(sheet.answers().judgments["custo:desvio_sio2"], 7.0)
         self.assertEqual(sheet.answers().comments, "segunda, com acento: é")
-        self.assertEqual(sheet.answers(0).judgments["custo:desvio_sio2"], 5.0)
+        self.assertEqual(sheet.answers(0).judgments["custo:desvio_sio2"], 3.0)
 
     def test_julgamentos_circulares_passam_do_limite_de_consistencia(self):
         circular = {"custo:desvio_sio2": 9, "custo:desvio_al2o3": -9, "custo:homogeneidade": 1,

@@ -62,10 +62,6 @@ class SensitivityRun:
             "referencia_ahp_sem_electre": self._group([Scenario(
                 "ahp_sobre_todas", problem, Ahp(base.local_judgment), weights,
                 {"tipo": "referencia"})]),
-            "pesos_alternativos": self._group([
-                Scenario(f"pesos_{name}", problem, self.base.method, alternative,
-                         {"tipo": "pesos_alternativos", "valor": name})
-                for name, alternative in self.params.alternative_weights().items()]),
         }
         perturbation = JudgmentPerturbation(self.params.criteria, self.params.judgments,
                                             self.params.judgment_ratio_ceiling())

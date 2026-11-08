@@ -7181,31 +7181,6 @@
         }
       ]
     },
-    "pesos_alternativos": {
-      "vencedora_base": "A01",
-      "fracao_em_que_a_base_vence": 1.0,
-      "frequencia_das_vencedoras": {
-        "A01": 1.0
-      },
-      "cenarios": [
-        {
-          "cenario": "pesos_entrevista_piloto",
-          "tipo": "pesos_alternativos",
-          "valor": "entrevista_piloto",
-          "vencedora": "A01",
-          "mudou": false,
-          "posicao_da_base": 1,
-          "tau_base": 1.0,
-          "alternativas_no_ahp": 9,
-          "pesos": [
-            0.6359332065844795,
-            0.16051166456376967,
-            0.16051166456376964,
-            0.04304346428798116
-          ]
-        }
-      ]
-    },
     "julgamentos": {
       "vencedora_base": "A01",
       "fracao_em_que_a_base_vence": 1.0,
