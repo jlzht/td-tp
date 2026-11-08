@@ -36,6 +36,8 @@ class SensitivitySettings:
         judgment_max_step: Maior degrau de cada julgamento nos sorteios.
         seed: Semente dos sorteios.
         local_judgments: Modos do AHP comparados.
+        alternative_judgments: Nome -> julgamentos de outra aplicação da entrevista, comparados
+            como variante dos pesos.
     """
     levels: tuple[int, ...]
     veto: tuple[float, ...]
@@ -50,6 +52,7 @@ class SensitivitySettings:
     judgment_max_step: int
     seed: int
     local_judgments: tuple[str, ...]
+    alternative_judgments: dict[str, dict[str, float]]
 
 
 @dataclass(frozen=True)
@@ -61,6 +64,8 @@ class Hyperparameters:
         criteria: Chaves dos critérios, na ordem da matriz de julgamentos.
         judgments: Julgamentos par a par do decisor, ``"a:b" -> intensidade``.
         max_consistency_ratio: Maior QC aceito para os julgamentos do decisor.
+        accept_above_limit: Verdadeiro se o grupo decidiu usar os julgamentos mesmo com QC acima
+            do máximo; a decisão e o motivo ficam nas justificativas.
         pipeline: Limiares, modo do AHP e níveis do caso base.
         sensitivity: Variações da análise de sensibilidade.
         justifications: Parâmetro -> origem ou justificativa, para o relatório.
@@ -69,6 +74,7 @@ class Hyperparameters:
     criteria: tuple[str, ...]
     judgments: dict[str, float]
     max_consistency_ratio: float
+    accept_above_limit: bool
     pipeline: PipelineSettings
     sensitivity: SensitivitySettings
     justifications: dict[str, str]
@@ -89,6 +95,7 @@ class Hyperparameters:
             criteria=tuple(raw["pesos"]["criterios"]),
             judgments={k: float(v) for k, v in raw["pesos"]["julgamentos"].items()},
             max_consistency_ratio=float(raw["pesos"]["qc_maximo"]),
+            accept_above_limit=bool(raw["pesos"].get("aceitar_qc_acima_do_maximo", False)),
             pipeline=PipelineSettings(float(electre["tau_c"]), float(electre["tau_d"]),
                                       raw["ahp"]["julgamento_local"], int(electre["niveis_para_ahp"])),
             sensitivity=SensitivitySettings(
@@ -103,7 +110,10 @@ class Hyperparameters:
                 judgment_samples=int(judgments["sorteios"]),
                 judgment_max_step=int(judgments["degrau_maximo_sorteio"]),
                 seed=int(judgments["semente"]),
-                local_judgments=tuple(sens["julgamento_local"])),
+                local_judgments=tuple(sens["julgamento_local"]),
+                alternative_judgments={
+                    name: {k: float(v) for k, v in values.items()}
+                    for name, values in sens.get("julgamentos_alternativos", {}).items()}),
             justifications=dict(raw.get("justificativas", {})))
         params.validate()
         return params
@@ -125,8 +135,25 @@ class Hyperparameters:
             raise ValueError("passos, sorteios e degrau máximo devem ser positivos")
 
     def criteria_weights(self) -> np.ndarray:
-        """Pesos dos critérios pelo AHP a partir dos julgamentos do decisor."""
-        return CriteriaWeights(self.criteria, self.judgments).weights(self.max_consistency_ratio)
+        """Pesos dos critérios pelo AHP a partir dos julgamentos do decisor.
+
+        Raises:
+            ValueError: QC acima do máximo sem a decisão registrada de aceitá-lo.
+        """
+        return CriteriaWeights(self.criteria, self.judgments).weights(self.judgment_ratio_ceiling())
+
+    def judgment_ratio_ceiling(self) -> float:
+        """Maior QC admitido nos julgamentos: o máximo das aulas ou, se o grupo aceitou a matriz
+        acima dele, o próprio QC dessa matriz, para que nenhuma variação seja mais inconsistente
+        que a base."""
+        if self.accept_above_limit:
+            return max(self.max_consistency_ratio, self.judgments_consistency_ratio())
+        return self.max_consistency_ratio
+
+    def alternative_weights(self) -> dict[str, np.ndarray]:
+        """Pesos de cada aplicação alternativa da entrevista, com o limite de QC das aulas."""
+        return {name: CriteriaWeights(self.criteria, values).weights(self.max_consistency_ratio)
+                for name, values in self.sensitivity.alternative_judgments.items()}
 
     def judgments_consistency_ratio(self) -> float:
         """QC da matriz de julgamentos do decisor."""

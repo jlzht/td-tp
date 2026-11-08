@@ -3,14 +3,15 @@
   "pesos": {
     "criterios": ["custo", "desvio_sio2", "desvio_al2o3", "homogeneidade"],
     "julgamentos": {
-      "custo:desvio_sio2": 5,
-      "custo:desvio_al2o3": 5,
+      "custo:desvio_sio2": 7,
+      "custo:desvio_al2o3": 7,
       "custo:homogeneidade": 9,
-      "desvio_sio2:desvio_al2o3": 1,
-      "desvio_sio2:homogeneidade": 5,
-      "desvio_al2o3:homogeneidade": 5
+      "desvio_sio2:desvio_al2o3": 3,
+      "desvio_sio2:homogeneidade": 7,
+      "desvio_al2o3:homogeneidade": 7
     },
-    "qc_maximo": 0.10
+    "qc_maximo": 0.10,
+    "aceitar_qc_acima_do_maximo": true
   },
   "electre1": {
     "tau_c": 0.70,
@@ -28,21 +29,33 @@
       "veto": {"inicio": 0.0, "fim": 1.0, "passo": 0.05},
       "apoio": {"inicio": 0.50, "fim": 1.0, "passo": 0.05}
     },
-    "marcas_da_entrevista": {"tau_c": 0.80, "tau_d": 0.10},
+    "marcas_da_entrevista": {"tau_c": 0.80, "tau_d": 0.25},
     "varredura_pesos_passos": 41,
     "julgamentos": {"degraus": [1, 2], "sorteios": 1000, "degrau_maximo_sorteio": 1, "semente": 2026},
+    "julgamentos_alternativos": {
+      "entrevista_piloto": {
+        "custo:desvio_sio2": 5,
+        "custo:desvio_al2o3": 5,
+        "custo:homogeneidade": 9,
+        "desvio_sio2:desvio_al2o3": 1,
+        "desvio_sio2:homogeneidade": 5,
+        "desvio_al2o3:homogeneidade": 5
+      }
+    },
     "julgamento_local": ["faixa_linear", "razao"]
   },
   "justificativas": {
     "criterio_extra": "Sugestão do enunciado e da professora. Com ele incluído, nenhuma das 73 alternativas passa a ser dominada, e tem leitura direta na operação do pátio. Decisão do grupo em 2026-11-05.",
-    "pesos.julgamentos": "Entrevista simulada com o tomador de decisão (configuracoes/entrevista_decisor.json), em 2026-11-05. Intensidades na escala de Saaty sobre a melhoria do pior ao melhor valor de cada critério entre as 73 alternativas. QC = 0,05. O decisor confirmou os pesos resultantes: custo 0,64, sílica 0,16, alumina 0,16, homogeneidade 0,04.",
+    "pesos.julgamentos": "Respostas de um profissional da Cassotis ao formulário da entrevista (entrevista/respostas_cassotis.csv, configuracoes/entrevista_cassotis.json), em 2026-11-06. QC = 0,20.",
     "pesos.qc_maximo": "Regra prática das aulas: aceitar julgamentos com QC até 0,10.",
-    "electre1.tau_c": "Decisão do grupo em 2026-11-05: apoio mínimo de 70% da importância total. A entrevista tinha dado 80%, que fica como variante da sensibilidade.",
-    "electre1.tau_d": "Decisão do grupo em 2026-11-05: veto de 30% da faixa. A entrevista tinha dado 10%, que deixa 42 das 73 alternativas no núcleo com apoio de 80%; fica como variante da sensibilidade.",
+    "pesos.aceitar_qc_acima_do_maximo": "Decisão do grupo em 2026-11-08. O QC de 0,20 decorre do teto da escala de Saaty (custo cerca de 20 vezes mais importante que a homogeneidade, acima do máximo 9). A devolutiva enviada ao respondente, com exemplos concretos, não teve resposta até o fechamento do trabalho; os pesos são usados como estão e o QC é registrado como limitação.",
+    "electre1.tau_c": "Decisão do grupo em 2026-11-05: apoio mínimo de 70% da importância total. O respondente da Cassotis declarou 80%, que fica como variante da sensibilidade.",
+    "electre1.tau_d": "Decisão do grupo em 2026-11-05: veto de 30% da faixa. O respondente da Cassotis declarou 25%, que fica como variante da sensibilidade.",
     "electre1.niveis_para_ahp": "Decisão do grupo: só o primeiro nível (as alternativas que empatam em primeiro, por serem incomparáveis entre si) segue para o AHP. Partir um nível exigiria um desempate arbitrário. Primeiro e segundo níveis, e os três primeiros, são variantes da sensibilidade.",
     "ahp.julgamento_local": "As matrizes de comparação entre alternativas saem dos valores medidos, pela faixa de variação de cada critério, como pedem as aulas ao tratar de faixas e pesos. A alternativa pela razão dos valores é testada na sensibilidade.",
-    "sensibilidade.veto": "Faixa em torno do valor base, parâmetro a parâmetro, incluindo o 0,10 da entrevista.",
-    "sensibilidade.apoio": "Faixa em torno do valor base, incluindo o 0,80 da entrevista.",
-    "sensibilidade.julgamentos": "Cada julgamento do decisor sobe ou desce de 1 a 2 degraus da escala de Saaty, um por vez, e todos juntos em sorteios de até 1 degrau; matrizes com QC acima do máximo são descartadas. Um degrau é a granularidade da própria entrevista, o que dá sentido à perturbação sem uma dispersão arbitrária. Sorteios e semente apenas fixam a reprodução."
+    "sensibilidade.veto": "Faixa em torno do valor base, parâmetro a parâmetro, incluindo o 0,25 declarado pelo respondente.",
+    "sensibilidade.apoio": "Faixa em torno do valor base, incluindo o 0,80 declarado pelo respondente.",
+    "sensibilidade.julgamentos": "Cada julgamento do decisor sobe ou desce de 1 a 2 degraus da escala de Saaty, um por vez, e todos juntos em sorteios de até 1 degrau. Como a matriz base foi aceita com QC acima de 0,10, são descartadas as matrizes mais inconsistentes que ela. Um degrau é a granularidade da própria entrevista, o que dá sentido à perturbação sem uma dispersão arbitrária. Sorteios e semente apenas fixam a reprodução.",
+    "sensibilidade.julgamentos_alternativos": "Julgamentos da entrevista piloto, feita em conversa dentro do grupo antes do formulário (configuracoes/entrevista_decisor.json), com QC de 0,05."
   }
 }

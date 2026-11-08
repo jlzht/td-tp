@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from pilhas_minerio.caminhos import CONFIG_DIR
+from pilhas_minerio.caminhos import CONFIG_DIR, PROJECT_ROOT as PROJECT
 from pilhas_minerio.decisao.entrevista import InterviewAnalysis, ResponseSheet
 from pilhas_minerio.decisao.hiperparametros import Hyperparameters
 
@@ -57,9 +57,20 @@ class ResponseSheetTests(unittest.TestCase):
         self.assertEqual((answers.declared_veto, answers.declared_support), (0.10, 0.80))
         analysis = InterviewAnalysis.of(answers, CRITERIA, 0.10)
         params = Hyperparameters.load(CONFIG_DIR / "decisao.json")
+        np.testing.assert_allclose(list(analysis.weights.values()),
+                                   params.alternative_weights()["entrevista_piloto"])
+        self.assertTrue(analysis.within_limit and analysis.order_agrees)
+
+    def test_planilha_da_cassotis_reproduz_os_julgamentos_adotados(self):
+        params = Hyperparameters.load(CONFIG_DIR / "decisao.json")
+        sheet = ResponseSheet.from_csv(PROJECT / "entrevista" / "respostas_cassotis.csv", CRITERIA)
+        answers = sheet.answers()
+        self.assertEqual(answers.judgments, params.judgments)
+        analysis = InterviewAnalysis.of(answers, CRITERIA, params.max_consistency_ratio)
         np.testing.assert_allclose(list(analysis.weights.values()), params.criteria_weights())
         self.assertAlmostEqual(analysis.consistency_ratio, params.judgments_consistency_ratio())
-        self.assertTrue(analysis.within_limit and analysis.order_agrees)
+        self.assertFalse(analysis.within_limit)
+        self.assertTrue(analysis.order_agrees)
 
     def test_valor_negativo_significa_que_o_segundo_criterio_vale_mais(self):
         values = {**INTERVIEW, "custo:desvio_sio2": -3}

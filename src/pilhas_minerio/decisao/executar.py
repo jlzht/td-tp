@@ -44,7 +44,9 @@ class FinalDecision:
         return {
             "pesos": {"criterios": list(self.params.criteria),
                       "valores": [float(w) for w in self.weights],
-                      "qc": float(self.params.judgments_consistency_ratio())},
+                      "qc": float(self.params.judgments_consistency_ratio()),
+                      "qc_maximo": self.params.max_consistency_ratio,
+                      "qc_aceito_acima_do_maximo": self.params.accept_above_limit},
             "limiares": {"tau_c": base.tau_c, "tau_d": base.tau_d, "niveis_para_ahp": base.levels},
             "electre1": {"tamanho_niveis": summary["tamanho_niveis"],
                          "relacoes": result.details["electre"]["relacoes"],

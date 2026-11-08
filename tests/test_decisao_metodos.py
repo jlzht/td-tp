@@ -152,11 +152,32 @@ class HyperparameterTests(unittest.TestCase):
         params = Hyperparameters.load(CONFIG_DIR / "decisao.json")
         weights = params.criteria_weights()
         self.assertAlmostEqual(weights.sum(), 1.0)
-        self.assertLessEqual(params.judgments_consistency_ratio(), params.max_consistency_ratio)
+        if params.accept_above_limit:
+            self.assertEqual(params.judgment_ratio_ceiling(), max(
+                params.max_consistency_ratio, params.judgments_consistency_ratio()))
+        else:
+            self.assertLessEqual(params.judgments_consistency_ratio(), params.max_consistency_ratio)
+        for alternative in params.alternative_weights().values():
+            self.assertAlmostEqual(alternative.sum(), 1.0)
         self.assertEqual(len(weights), len(params.criteria))
         self.assertIn(params.pipeline.tau_d, params.sensitivity.veto)
         self.assertIn(params.pipeline.tau_c, params.sensitivity.support)
         self.assertIn(params.pipeline.levels, params.sensitivity.levels)
+
+    def test_qc_acima_do_maximo_exige_decisao_registrada(self):
+        raw = json.loads((CONFIG_DIR / "decisao.json").read_text(encoding="utf-8"))
+        raw["pesos"]["julgamentos"] = {"custo:desvio_sio2": 7, "custo:desvio_al2o3": 7,
+                                       "custo:homogeneidade": 9, "desvio_sio2:desvio_al2o3": 3,
+                                       "desvio_sio2:homogeneidade": 7, "desvio_al2o3:homogeneidade": 7}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "decisao.json"
+            raw["pesos"]["aceitar_qc_acima_do_maximo"] = False
+            path.write_text(json.dumps(raw), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                Hyperparameters.load(path).criteria_weights()
+            raw["pesos"]["aceitar_qc_acima_do_maximo"] = True
+            path.write_text(json.dumps(raw), encoding="utf-8")
+            self.assertAlmostEqual(Hyperparameters.load(path).criteria_weights().sum(), 1.0)
 
     def test_valor_fora_do_dominio_e_recusado(self):
         raw = json.loads((CONFIG_DIR / "decisao.json").read_text(encoding="utf-8"))

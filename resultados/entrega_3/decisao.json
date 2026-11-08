@@ -7,12 +7,14 @@
       "homogeneidade"
     ],
     "valores": [
-      0.6359332065844795,
-      0.16051166456376967,
-      0.16051166456376964,
-      0.04304346428798116
+      0.6707606336543688,
+      0.18605466656717426,
+      0.11012731729714104,
+      0.033057382481315914
     ],
-    "qc": 0.04988876025177062
+    "qc": 0.2001799343843899,
+    "qc_maximo": 0.1,
+    "qc_aceito_acima_do_maximo": true
   },
   "limiares": {
     "tau_c": 0.7,
@@ -21,21 +23,26 @@
   },
   "electre1": {
     "tamanho_niveis": [
-      9,
       4,
+      1,
+      2,
       3,
+      2,
+      3,
+      1,
+      2,
+      5,
+      2,
+      1,
+      1,
+      2,
+      2,
+      3,
+      4,
+      1,
       4,
       5,
       2,
-      2,
-      2,
-      2,
-      3,
-      4,
-      1,
-      4,
-      4,
-      1,
       4,
       4,
       2,
@@ -49,44 +56,29 @@
       2,
       1
     ],
-    "relacoes": 443,
+    "relacoes": 660,
     "conjunto_ahp": [
       "A01",
-      "A04",
       "A05",
       "A06",
-      "A07",
-      "A10",
-      "A37",
-      "A53",
       "A73"
     ]
   },
   "ahp": {
     "julgamento_local": "faixa_linear",
     "prioridade_global": {
-      "A01": 0.172538286841021,
-      "A04": 0.12291867575444822,
-      "A05": 0.11545740867057391,
-      "A06": 0.10834141936424263,
-      "A07": 0.09165846039293782,
-      "A10": 0.08558948856549295,
-      "A37": 0.08364264754185444,
-      "A53": 0.10119317923246268,
-      "A73": 0.1186604336369663
+      "A01": 0.33725159621116235,
+      "A05": 0.22262416904655463,
+      "A06": 0.2073102815601752,
+      "A73": 0.23281395318210774
     },
-    "qc_maximo_entre_alternativas": 0.024622605511678084
+    "qc_maximo_entre_alternativas": 0.053660426225956306
   },
   "ranking_final": [
     "A01",
-    "A04",
     "A73",
     "A05",
-    "A06",
-    "A53",
-    "A07",
-    "A10",
-    "A37"
+    "A06"
   ],
   "escolhida": {
     "id": "A01",
@@ -570,248 +562,6 @@
           "rodada": 3,
           "configuracao": "eps_100_100",
           "semente": 205042
-        }
-      ]
-    },
-    {
-      "id": "A04",
-      "abordagens": [
-        "soma"
-      ],
-      "criterios": {
-        "custo": 60280000.0,
-        "desvio_sio2": 5.395448439140031,
-        "desvio_al2o3": 5.556753519931615,
-        "homogeneidade": 0.8160581094172425
-      },
-      "caminhoes_por_pilha_e_minerio": [
-        [
-          0,
-          1,
-          0,
-          2,
-          0,
-          0,
-          1,
-          0,
-          0,
-          1,
-          0,
-          4,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          3,
-          1,
-          4,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          1,
-          3,
-          3,
-          0,
-          1,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          2,
-          0,
-          2,
-          0,
-          0,
-          0,
-          1,
-          6,
-          1,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          2,
-          0,
-          1,
-          0,
-          0,
-          0,
-          4,
-          1,
-          2,
-          2,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          1,
-          1,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          1,
-          4,
-          0,
-          2,
-          1
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          4,
-          2,
-          4,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          3,
-          6,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          1,
-          1,
-          1,
-          0,
-          0,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          4,
-          0,
-          2,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          1,
-          0,
-          1,
-          2,
-          2,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          5,
-          4,
-          0,
-          4,
-          0,
-          1
-        ]
-      ],
-      "origens": [
-        {
-          "abordagem": "soma",
-          "rodada": 4,
-          "configuracao": "custo",
-          "semente": 106028
         }
       ]
     },
@@ -1300,974 +1050,6 @@
       ]
     },
     {
-      "id": "A07",
-      "abordagens": [
-        "soma"
-      ],
-      "criterios": {
-        "custo": 60840000.0,
-        "desvio_sio2": 4.716966174806142,
-        "desvio_al2o3": 5.057604056793465,
-        "homogeneidade": 0.9813763403778883
-      },
-      "caminhoes_por_pilha_e_minerio": [
-        [
-          0,
-          1,
-          0,
-          1,
-          1,
-          0,
-          0,
-          4,
-          0,
-          0,
-          2,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          1,
-          0,
-          0,
-          0,
-          2,
-          4,
-          1,
-          1,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          1,
-          0,
-          1,
-          0,
-          3,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          3,
-          6,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          3,
-          0,
-          7,
-          0,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          0,
-          0,
-          2,
-          0,
-          1,
-          4,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          3,
-          2,
-          1,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          1,
-          2,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          3,
-          4,
-          0,
-          0,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          1,
-          7,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          2,
-          3,
-          0,
-          1,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          1,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          6,
-          3,
-          0,
-          6,
-          0,
-          1
-        ],
-        [
-          0,
-          2,
-          0,
-          6,
-          0,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          6,
-          1
-        ]
-      ],
-      "origens": [
-        {
-          "abordagem": "soma",
-          "rodada": 1,
-          "configuracao": "custo",
-          "semente": 103028
-        }
-      ]
-    },
-    {
-      "id": "A10",
-      "abordagens": [
-        "epsilon"
-      ],
-      "criterios": {
-        "custo": 61000000.0,
-        "desvio_sio2": 4.571366693651142,
-        "desvio_al2o3": 5.18591807500283,
-        "homogeneidade": 0.882373884285649
-      },
-      "caminhoes_por_pilha_e_minerio": [
-        [
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          3,
-          1,
-          2,
-          0,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          5,
-          0,
-          1,
-          1,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          3,
-          0,
-          0,
-          0,
-          5,
-          1,
-          0,
-          1,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          1,
-          2,
-          4,
-          0,
-          0,
-          0,
-          4,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          2,
-          3,
-          0,
-          5,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          0,
-          0,
-          2,
-          0,
-          0,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          1,
-          0,
-          1,
-          2,
-          3,
-          0,
-          2
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          1,
-          0,
-          2,
-          2,
-          0,
-          6,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          1,
-          5,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          5,
-          3,
-          0,
-          0,
-          2
-        ],
-        [
-          1,
-          0,
-          0,
-          3,
-          0,
-          2,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          3,
-          5,
-          0,
-          2
-        ],
-        [
-          3,
-          2,
-          0,
-          6,
-          0,
-          0,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          2,
-          0,
-          0,
-          0,
-          2,
-          0
-        ]
-      ],
-      "origens": [
-        {
-          "abordagem": "epsilon",
-          "rodada": 5,
-          "configuracao": "eps_050_100",
-          "semente": 207038
-        }
-      ]
-    },
-    {
-      "id": "A37",
-      "abordagens": [
-        "epsilon"
-      ],
-      "criterios": {
-        "custo": 62820000.0,
-        "desvio_sio2": 2.80977044300683,
-        "desvio_al2o3": 4.059402807763265,
-        "homogeneidade": 0.8304890585850337
-      },
-      "caminhoes_por_pilha_e_minerio": [
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          1,
-          1,
-          1,
-          3,
-          0,
-          0,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          4,
-          1,
-          3,
-          1,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          1,
-          1,
-          3,
-          2,
-          2,
-          1,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          2,
-          0,
-          0,
-          1,
-          0,
-          0,
-          1,
-          1,
-          5,
-          1,
-          1,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          1,
-          1,
-          1,
-          7,
-          0,
-          1,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          0,
-          0,
-          4,
-          1,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          1,
-          0,
-          2,
-          1,
-          3
-        ],
-        [
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          5,
-          3,
-          1,
-          4,
-          1
-        ],
-        [
-          2,
-          0,
-          0,
-          0,
-          7,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          2,
-          3,
-          0,
-          0,
-          1
-        ],
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          1,
-          1,
-          0,
-          3,
-          5,
-          2,
-          2
-        ],
-        [
-          3,
-          2,
-          0,
-          5,
-          1,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          1,
-          0,
-          1,
-          0,
-          1,
-          1
-        ]
-      ],
-      "origens": [
-        {
-          "abordagem": "epsilon",
-          "rodada": 4,
-          "configuracao": "eps_010_050",
-          "semente": 206029
-        }
-      ]
-    },
-    {
-      "id": "A53",
-      "abordagens": [
-        "soma"
-      ],
-      "criterios": {
-        "custo": 63440000.0,
-        "desvio_sio2": 2.372975750756782,
-        "desvio_al2o3": 3.289245897094389,
-        "homogeneidade": 0.8187757349289857
-      },
-      "caminhoes_por_pilha_e_minerio": [
-        [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          3,
-          5,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          1,
-          0,
-          0,
-          2,
-          1,
-          0,
-          1,
-          0,
-          1,
-          0,
-          4,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          2,
-          1,
-          5,
-          1,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          1,
-          0,
-          0,
-          3,
-          3,
-          0,
-          2,
-          0,
-          2,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          0,
-          1,
-          0,
-          0,
-          1,
-          0,
-          0,
-          2,
-          3,
-          3,
-          1,
-          3,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        [
-          2,
-          0,
-          0,
-          2,
-          1,
-          5,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          1,
-          0,
-          1,
-          2
-        ],
-        [
-          0,
-          0,
-          0,
-          3,
-          3,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          5,
-          3
-        ],
-        [
-          1,
-          0,
-          0,
-          3,
-          1,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          2,
-          6,
-          0,
-          2
-        ],
-        [
-          3,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          5,
-          4,
-          1,
-          2,
-          1,
-          0
-        ],
-        [
-          0,
-          2,
-          0,
-          2,
-          4,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          3,
-          3,
-          0,
-          1,
-          1
-        ]
-      ],
-      "origens": [
-        {
-          "abordagem": "soma",
-          "rodada": 1,
-          "configuracao": "silica",
-          "semente": 103029
-        }
-      ]
-    },
-    {
       "id": "A73",
       "abordagens": [
         "soma"
@@ -2626,7 +1408,7 @@
       },
       "nivel_electre": 1,
       "no_ahp": true,
-      "prioridade_ahp": 0.172538286841021,
+      "prioridade_ahp": 0.33725159621116235,
       "posicao_final": 1
     },
     {
@@ -2672,10 +1454,10 @@
         "desvio_al2o3": 5.556753519931615,
         "homogeneidade": 0.8160581094172425
       },
-      "nivel_electre": 1,
-      "no_ahp": true,
-      "prioridade_ahp": 0.12291867575444822,
-      "posicao_final": 2
+      "nivel_electre": 3,
+      "no_ahp": false,
+      "prioridade_ahp": null,
+      "posicao_final": null
     },
     {
       "id": "A05",
@@ -2690,8 +1472,8 @@
       },
       "nivel_electre": 1,
       "no_ahp": true,
-      "prioridade_ahp": 0.11545740867057391,
-      "posicao_final": 4
+      "prioridade_ahp": 0.22262416904655463,
+      "posicao_final": 3
     },
     {
       "id": "A06",
@@ -2706,8 +1488,8 @@
       },
       "nivel_electre": 1,
       "no_ahp": true,
-      "prioridade_ahp": 0.10834141936424263,
-      "posicao_final": 5
+      "prioridade_ahp": 0.2073102815601752,
+      "posicao_final": 4
     },
     {
       "id": "A07",
@@ -2720,10 +1502,10 @@
         "desvio_al2o3": 5.057604056793465,
         "homogeneidade": 0.9813763403778883
       },
-      "nivel_electre": 1,
-      "no_ahp": true,
-      "prioridade_ahp": 0.09165846039293782,
-      "posicao_final": 7
+      "nivel_electre": 4,
+      "no_ahp": false,
+      "prioridade_ahp": null,
+      "posicao_final": null
     },
     {
       "id": "A08",
@@ -2736,7 +1518,7 @@
         "desvio_al2o3": 4.064452781083508,
         "homogeneidade": 0.8043681000801743
       },
-      "nivel_electre": 2,
+      "nivel_electre": 4,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2752,7 +1534,7 @@
         "desvio_al2o3": 4.054106540464976,
         "homogeneidade": 0.8692353484149149
       },
-      "nivel_electre": 3,
+      "nivel_electre": 5,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2768,10 +1550,10 @@
         "desvio_al2o3": 5.18591807500283,
         "homogeneidade": 0.882373884285649
       },
-      "nivel_electre": 1,
-      "no_ahp": true,
-      "prioridade_ahp": 0.08558948856549295,
-      "posicao_final": 8
+      "nivel_electre": 4,
+      "no_ahp": false,
+      "prioridade_ahp": null,
+      "posicao_final": null
     },
     {
       "id": "A11",
@@ -2784,7 +1566,7 @@
         "desvio_al2o3": 4.083802933859988,
         "homogeneidade": 0.8993863858879338
       },
-      "nivel_electre": 4,
+      "nivel_electre": 6,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2800,7 +1582,7 @@
         "desvio_al2o3": 4.073846272102989,
         "homogeneidade": 0.9437268416138385
       },
-      "nivel_electre": 4,
+      "nivel_electre": 6,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2816,7 +1598,7 @@
         "desvio_al2o3": 5.094111247999097,
         "homogeneidade": 0.7978862365704471
       },
-      "nivel_electre": 2,
+      "nivel_electre": 5,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2832,7 +1614,7 @@
         "desvio_al2o3": 5.455323560538273,
         "homogeneidade": 0.8991018707814373
       },
-      "nivel_electre": 3,
+      "nivel_electre": 6,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2848,7 +1630,7 @@
         "desvio_al2o3": 4.07951094984057,
         "homogeneidade": 0.8500228417952875
       },
-      "nivel_electre": 4,
+      "nivel_electre": 7,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2864,7 +1646,7 @@
         "desvio_al2o3": 4.07705748476774,
         "homogeneidade": 0.8585868998562496
       },
-      "nivel_electre": 4,
+      "nivel_electre": 8,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2880,7 +1662,7 @@
         "desvio_al2o3": 4.074951775194859,
         "homogeneidade": 0.8946835895442706
       },
-      "nivel_electre": 5,
+      "nivel_electre": 9,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2896,7 +1678,7 @@
         "desvio_al2o3": 4.064266637077606,
         "homogeneidade": 0.927705297798177
       },
-      "nivel_electre": 5,
+      "nivel_electre": 9,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2912,7 +1694,7 @@
         "desvio_al2o3": 2.85048682046039,
         "homogeneidade": 0.7955477984347954
       },
-      "nivel_electre": 5,
+      "nivel_electre": 9,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2928,7 +1710,7 @@
         "desvio_al2o3": 4.930756798523577,
         "homogeneidade": 0.8955270022375286
       },
-      "nivel_electre": 6,
+      "nivel_electre": 10,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2944,7 +1726,7 @@
         "desvio_al2o3": 4.747014499197769,
         "homogeneidade": 0.8730535812656557
       },
-      "nivel_electre": 7,
+      "nivel_electre": 11,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2960,7 +1742,7 @@
         "desvio_al2o3": 4.5441492372285435,
         "homogeneidade": 0.8834239779828015
       },
-      "nivel_electre": 7,
+      "nivel_electre": 12,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2976,7 +1758,7 @@
         "desvio_al2o3": 2.7018286174712784,
         "homogeneidade": 0.9734805150130228
       },
-      "nivel_electre": 6,
+      "nivel_electre": 10,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -2992,7 +1774,7 @@
         "desvio_al2o3": 2.754382356994114,
         "homogeneidade": 0.784895530166428
       },
-      "nivel_electre": 5,
+      "nivel_electre": 9,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3008,7 +1790,7 @@
         "desvio_al2o3": 4.0863726014279145,
         "homogeneidade": 0.8646670984674081
       },
-      "nivel_electre": 8,
+      "nivel_electre": 13,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3024,7 +1806,7 @@
         "desvio_al2o3": 2.7508129495688842,
         "homogeneidade": 0.8600565662407768
       },
-      "nivel_electre": 9,
+      "nivel_electre": 14,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3040,7 +1822,7 @@
         "desvio_al2o3": 4.086796414493837,
         "homogeneidade": 0.7534939166440715
       },
-      "nivel_electre": 5,
+      "nivel_electre": 8,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3056,7 +1838,7 @@
         "desvio_al2o3": 2.752576835200223,
         "homogeneidade": 0.9630872438534976
       },
-      "nivel_electre": 10,
+      "nivel_electre": 15,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3072,7 +1854,7 @@
         "desvio_al2o3": 4.084419218349924,
         "homogeneidade": 0.8599266265210539
       },
-      "nivel_electre": 8,
+      "nivel_electre": 13,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3088,7 +1870,7 @@
         "desvio_al2o3": 2.5953067554473543,
         "homogeneidade": 0.8638252605667467
       },
-      "nivel_electre": 10,
+      "nivel_electre": 15,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3104,7 +1886,7 @@
         "desvio_al2o3": 4.084947430188663,
         "homogeneidade": 0.9194072525341874
       },
-      "nivel_electre": 9,
+      "nivel_electre": 14,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3120,7 +1902,7 @@
         "desvio_al2o3": 4.059409356633185,
         "homogeneidade": 0.9168683406376905
       },
-      "nivel_electre": 10,
+      "nivel_electre": 15,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3136,7 +1918,7 @@
         "desvio_al2o3": 2.5327266585866903,
         "homogeneidade": 0.921649254598171
       },
-      "nivel_electre": 11,
+      "nivel_electre": 16,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3152,7 +1934,7 @@
         "desvio_al2o3": 2.44868317698853,
         "homogeneidade": 0.814616160413374
       },
-      "nivel_electre": 11,
+      "nivel_electre": 16,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3168,7 +1950,7 @@
         "desvio_al2o3": 4.389901764345022,
         "homogeneidade": 0.9439308489927685
       },
-      "nivel_electre": 11,
+      "nivel_electre": 16,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3184,7 +1966,7 @@
         "desvio_al2o3": 4.27027201361077,
         "homogeneidade": 0.9256598518440624
       },
-      "nivel_electre": 11,
+      "nivel_electre": 16,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3200,10 +1982,10 @@
         "desvio_al2o3": 4.059402807763265,
         "homogeneidade": 0.8304890585850337
       },
-      "nivel_electre": 1,
-      "no_ahp": true,
-      "prioridade_ahp": 0.08364264754185444,
-      "posicao_final": 9
+      "nivel_electre": 9,
+      "no_ahp": false,
+      "prioridade_ahp": null,
+      "posicao_final": null
     },
     {
       "id": "A38",
@@ -3216,7 +1998,7 @@
         "desvio_al2o3": 4.011011293359768,
         "homogeneidade": 0.9407145228352658
       },
-      "nivel_electre": 12,
+      "nivel_electre": 17,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3232,7 +2014,7 @@
         "desvio_al2o3": 4.072291091169174,
         "homogeneidade": 0.9748572798031003
       },
-      "nivel_electre": 13,
+      "nivel_electre": 18,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3248,7 +2030,7 @@
         "desvio_al2o3": 2.7550136705282555,
         "homogeneidade": 0.8710493110260913
       },
-      "nivel_electre": 14,
+      "nivel_electre": 19,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3264,7 +2046,7 @@
         "desvio_al2o3": 2.7484620878390924,
         "homogeneidade": 0.9447542653425006
       },
-      "nivel_electre": 14,
+      "nivel_electre": 19,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3280,7 +2062,7 @@
         "desvio_al2o3": 2.735860093499609,
         "homogeneidade": 0.9295666639861686
       },
-      "nivel_electre": 14,
+      "nivel_electre": 19,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3296,7 +2078,7 @@
         "desvio_al2o3": 2.739316263513641,
         "homogeneidade": 0.865505516155671
       },
-      "nivel_electre": 15,
+      "nivel_electre": 20,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3312,7 +2094,7 @@
         "desvio_al2o3": 4.026616093927391,
         "homogeneidade": 0.8164682591230579
       },
-      "nivel_electre": 13,
+      "nivel_electre": 18,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3328,7 +2110,7 @@
         "desvio_al2o3": 4.012134085402296,
         "homogeneidade": 0.8228812415654521
       },
-      "nivel_electre": 13,
+      "nivel_electre": 18,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3344,7 +2126,7 @@
         "desvio_al2o3": 3.795028440689064,
         "homogeneidade": 0.8562864182601024
       },
-      "nivel_electre": 13,
+      "nivel_electre": 18,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3360,7 +2142,7 @@
         "desvio_al2o3": 1.950611103869947,
         "homogeneidade": 0.9767253747284705
       },
-      "nivel_electre": 16,
+      "nivel_electre": 21,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3376,7 +2158,7 @@
         "desvio_al2o3": 3.309268072062918,
         "homogeneidade": 0.9594939133793623
       },
-      "nivel_electre": 14,
+      "nivel_electre": 19,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3392,7 +2174,7 @@
         "desvio_al2o3": 1.9534005058849535,
         "homogeneidade": 0.9845890796509992
       },
-      "nivel_electre": 17,
+      "nivel_electre": 22,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3408,7 +2190,7 @@
         "desvio_al2o3": 1.9514295794720793,
         "homogeneidade": 0.858092908983002
       },
-      "nivel_electre": 16,
+      "nivel_electre": 21,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3424,7 +2206,7 @@
         "desvio_al2o3": 1.9524473406351937,
         "homogeneidade": 0.8333306691588425
       },
-      "nivel_electre": 17,
+      "nivel_electre": 22,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3440,7 +2222,7 @@
         "desvio_al2o3": 3.292175461916869,
         "homogeneidade": 0.9366577789255808
       },
-      "nivel_electre": 2,
+      "nivel_electre": 20,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3456,10 +2238,10 @@
         "desvio_al2o3": 3.289245897094389,
         "homogeneidade": 0.8187757349289857
       },
-      "nivel_electre": 1,
-      "no_ahp": true,
-      "prioridade_ahp": 0.10119317923246268,
-      "posicao_final": 6
+      "nivel_electre": 19,
+      "no_ahp": false,
+      "prioridade_ahp": null,
+      "posicao_final": null
     },
     {
       "id": "A54",
@@ -3472,7 +2254,7 @@
         "desvio_al2o3": 2.7507130211858883,
         "homogeneidade": 0.895670171761503
       },
-      "nivel_electre": 16,
+      "nivel_electre": 21,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3488,7 +2270,7 @@
         "desvio_al2o3": 2.74376325542566,
         "homogeneidade": 0.9056468900896145
       },
-      "nivel_electre": 16,
+      "nivel_electre": 21,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3504,7 +2286,7 @@
         "desvio_al2o3": 2.7535291115161957,
         "homogeneidade": 0.9651151548829568
       },
-      "nivel_electre": 17,
+      "nivel_electre": 22,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3520,7 +2302,7 @@
         "desvio_al2o3": 2.7550548681325147,
         "homogeneidade": 0.9289648475019991
       },
-      "nivel_electre": 18,
+      "nivel_electre": 23,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3536,7 +2318,7 @@
         "desvio_al2o3": 2.74910975283192,
         "homogeneidade": 0.847770118598292
       },
-      "nivel_electre": 17,
+      "nivel_electre": 22,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3552,7 +2334,7 @@
         "desvio_al2o3": 2.753902837142555,
         "homogeneidade": 0.8678235945341208
       },
-      "nivel_electre": 18,
+      "nivel_electre": 23,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3568,7 +2350,7 @@
         "desvio_al2o3": 2.7455359181670147,
         "homogeneidade": 1.0568191784136056
       },
-      "nivel_electre": 19,
+      "nivel_electre": 24,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3584,7 +2366,7 @@
         "desvio_al2o3": 1.9537533543243732,
         "homogeneidade": 0.9476717443203511
       },
-      "nivel_electre": 19,
+      "nivel_electre": 24,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3600,7 +2382,7 @@
         "desvio_al2o3": 1.9468619476157734,
         "homogeneidade": 0.9346220661003943
       },
-      "nivel_electre": 20,
+      "nivel_electre": 25,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3616,7 +2398,7 @@
         "desvio_al2o3": 1.9236022928817953,
         "homogeneidade": 0.9253634892798979
       },
-      "nivel_electre": 20,
+      "nivel_electre": 25,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3632,7 +2414,7 @@
         "desvio_al2o3": 1.9503847714535303,
         "homogeneidade": 0.8820660067486692
       },
-      "nivel_electre": 21,
+      "nivel_electre": 26,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3648,7 +2430,7 @@
         "desvio_al2o3": 1.9530640345987693,
         "homogeneidade": 0.9310516736445529
       },
-      "nivel_electre": 22,
+      "nivel_electre": 27,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3664,7 +2446,7 @@
         "desvio_al2o3": 1.9527859819354345,
         "homogeneidade": 0.9354794517488016
       },
-      "nivel_electre": 22,
+      "nivel_electre": 27,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3680,7 +2462,7 @@
         "desvio_al2o3": 1.9374952651719812,
         "homogeneidade": 0.916775561040267
       },
-      "nivel_electre": 23,
+      "nivel_electre": 28,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3696,7 +2478,7 @@
         "desvio_al2o3": 1.944124018000642,
         "homogeneidade": 0.9001030677269068
       },
-      "nivel_electre": 24,
+      "nivel_electre": 29,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3712,7 +2494,7 @@
         "desvio_al2o3": 1.9540297537665974,
         "homogeneidade": 0.9314117787956797
       },
-      "nivel_electre": 25,
+      "nivel_electre": 30,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3728,7 +2510,7 @@
         "desvio_al2o3": 1.954049372091504,
         "homogeneidade": 0.9522180030152165
       },
-      "nivel_electre": 26,
+      "nivel_electre": 31,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3744,7 +2526,7 @@
         "desvio_al2o3": 1.9477997647546665,
         "homogeneidade": 0.9093783916461935
       },
-      "nivel_electre": 26,
+      "nivel_electre": 31,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3760,7 +2542,7 @@
         "desvio_al2o3": 1.9432584595832165,
         "homogeneidade": 0.8979690983251355
       },
-      "nivel_electre": 27,
+      "nivel_electre": 32,
       "no_ahp": false,
       "prioridade_ahp": null,
       "posicao_final": null
@@ -3778,8 +2560,8 @@
       },
       "nivel_electre": 1,
       "no_ahp": true,
-      "prioridade_ahp": 0.1186604336369663,
-      "posicao_final": 3
+      "prioridade_ahp": 0.23281395318210774,
+      "posicao_final": 2
     }
   ]
 }

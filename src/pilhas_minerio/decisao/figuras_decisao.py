@@ -86,7 +86,7 @@ class SensitivityFigures:
                            color=self._text_color(self.colors[winner[i][j]]))
         left.set_title("Tamanho do conjunto enviado ao AHP")
         right.set_title("Alternativa escolhida")
-        fig.suptitle("Veto e apoio (quadrado: valor base; X: valores da entrevista)", y=0.96)
+        fig.suptitle("Veto e apoio (quadrado: valor base; X: valores declarados pelo decisor)", y=0.96)
         return fig
 
     def _threshold_lines(self) -> plt.Figure:
@@ -106,7 +106,7 @@ class SensitivityFigures:
                 ax.text(i, sizes[i] + 0.3, r["vencedora"], ha="center", fontsize=8)
             ticks = [f"{x:.2f}" + ("*" if abs(x - interview) < 1e-9 else "") for x in xs]
             ax.set_xticks(range(len(xs)), ticks, rotation=60)
-            ax.set(xlabel=f"{label}  (contorno preto: base; *: valor da entrevista)",
+            ax.set(xlabel=f"{label}  (contorno preto: base; *: valor declarado pelo decisor)",
                    title=f"Variação do {group}")
             ax.grid(axis="y", alpha=0.25)
         axes[0].set_ylabel("alternativas que seguem para o AHP")
@@ -170,6 +170,6 @@ class SensitivityFigures:
         right.set_xlim(-0.5, len(steps) - 0.5)
         right.set_ylim(len(pairs) - 0.5, -0.5)
         right.set_xticks(range(len(steps)), [f"{s:+d}" for s in steps])
-        right.set_yticks(range(len(pairs)), [p.replace(":", " x ") for p in pairs], fontsize=8)
+        right.set_yticks(range(len(pairs)), [" x ".join(CRITERION_LABELS.get(k, k) for k in p.split(":")) for p in pairs], fontsize=8)
         right.set(xlabel="degraus na escala de Saaty", title="Um julgamento por vez")
         return fig
