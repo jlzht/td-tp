@@ -62,7 +62,7 @@ A N3 é enumerada por contagens de minérios, com limites de disponibilidade e d
 
 **Critério de parada:** orçamento de **300 ciclos** por execução, somando reparo e GVNS.
 
-## Entrega 1 — execução final
+## Entrega 1: execução final
 
 ```sh
 python -m pilhas_minerio.gvns --processos 15
@@ -70,7 +70,7 @@ python -m pilhas_minerio.gvns --processos 15
 
 Faz 15 execuções (5 sementes × 3 objetivos), com 300 ciclos cada, e grava em `resultados/entrega_1/`. A semente da execução `r` de `f_k` é `2026 + 10000·(k−1) + r` e não depende do número de processos. Saída: `execucoes.csv`, `resumo.csv` (mínimo, média, desvio padrão, máximo), `melhores_solucoes.json`, `convergencia.json`, `convergencia_ciclos.json`, `configuracao.json`, `convergencia_f*.pdf` e `melhor_f*.pdf`.
 
-## Entrega 2 — normalização e execução final
+## Entrega 2: normalização e execução final
 
 ```sh
 python -m pilhas_minerio.normalizacao
