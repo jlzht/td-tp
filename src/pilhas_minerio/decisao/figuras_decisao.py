@@ -75,9 +75,6 @@ class SensitivityFigures:
             ax.add_patch(Rectangle((support.index(round(base.tau_c, 2)) - 0.5,
                                     veto.index(round(base.tau_d, 2)) - 0.5), 1, 1, fill=False,
                                    edgecolor="black", linewidth=2.5))
-            ax.plot(support.index(round(self.params.sensitivity.interview_support, 2)),
-                    veto.index(round(self.params.sensitivity.interview_veto, 2)), marker="X",
-                    color="white", markeredgecolor="black", markersize=11, linestyle="")
         for i in range(len(veto)):
             for j in range(len(support)):
                 left.text(j, i, str(size[i, j]), ha="center", va="center", fontsize=7,
@@ -86,16 +83,14 @@ class SensitivityFigures:
                            color=self._text_color(self.colors[winner[i][j]]))
         left.set_title("Tamanho do conjunto enviado ao AHP")
         right.set_title("Alternativa escolhida")
-        fig.suptitle("Veto e apoio (quadrado: valor base; X: valores declarados pelo decisor)", y=0.96)
+        fig.suptitle("Veto e apoio (quadrado: valor base)", y=0.96)
         return fig
 
     def _threshold_lines(self) -> plt.Figure:
         fig, axes = plt.subplots(1, 2, figsize=(13, 4.8), sharey=True)
         base = self.params.pipeline
-        specs = (("veto", "veto (tau_d)", base.tau_d, self.params.sensitivity.interview_veto),
-                 ("apoio", "apoio mínimo (tau_c)", base.tau_c,
-                  self.params.sensitivity.interview_support))
-        for ax, (group, label, base_value, interview) in zip(axes, specs):
+        specs = (("veto", "veto (tau_d)", base.tau_d), ("apoio", "apoio mínimo (tau_c)", base.tau_c))
+        for ax, (group, label, base_value) in zip(axes, specs):
             rows = self._rows(group)
             xs = [r["valor"] for r in rows]
             sizes = [r["alternativas_no_ahp"] for r in rows]
@@ -104,9 +99,9 @@ class SensitivityFigures:
                    linewidth=2)
             for i, r in enumerate(rows):
                 ax.text(i, sizes[i] + 0.3, r["vencedora"], ha="center", fontsize=8)
-            ticks = [f"{x:.2f}" + ("*" if abs(x - interview) < 1e-9 else "") for x in xs]
+            ticks = [f"{x:.2f}" for x in xs]
             ax.set_xticks(range(len(xs)), ticks, rotation=60)
-            ax.set(xlabel=f"{label}  (contorno preto: base; *: valor declarado pelo decisor)",
+            ax.set(xlabel=f"{label}  (contorno preto: base)",
                    title=f"Variação do {group}")
             ax.grid(axis="y", alpha=0.25)
         axes[0].set_ylabel("alternativas que seguem para o AHP")

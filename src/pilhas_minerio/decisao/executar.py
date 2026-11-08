@@ -54,6 +54,8 @@ class FinalDecision:
             "ahp": {"julgamento_local": base.local_judgment,
                     "prioridade_global": summary["prioridade_global"],
                     "qc_maximo_entre_alternativas": summary["qc_maximo_ahp"]},
+            "desempate": {"tolerancia_relativa": base.tie_tolerance,
+                          "alternativas_empatadas": summary["empatadas"]},
             "ranking_final": [codes[i] for i in result.ranking[:summary["tamanho_ahp"]]],
             "escolhida": {"id": chosen, **by_code[chosen]},
             "alternativas_do_ahp": [by_code[c] for c in summary["conjunto_ahp"]],

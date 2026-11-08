@@ -28,8 +28,6 @@ class SensitivitySettings:
         support: Valores de tau_c, com o resto no valor base.
         heat_veto: Valores de tau_d do mapa de calor.
         heat_support: Valores de tau_c do mapa de calor.
-        interview_support: tau_c declarado na entrevista, marcado nos gráficos.
-        interview_veto: tau_d declarado na entrevista, marcado nos gráficos.
         weight_sweep_steps: Valores por critério na varredura de cada peso.
         judgment_steps: Degraus aplicados a um julgamento por vez.
         judgment_samples: Sorteios com todos os julgamentos variando juntos.
@@ -42,8 +40,6 @@ class SensitivitySettings:
     support: tuple[float, ...]
     heat_veto: tuple[float, ...]
     heat_support: tuple[float, ...]
-    interview_support: float
-    interview_veto: float
     weight_sweep_steps: int
     judgment_steps: tuple[int, ...]
     judgment_samples: int
@@ -94,14 +90,13 @@ class Hyperparameters:
             max_consistency_ratio=float(raw["pesos"]["qc_maximo"]),
             accept_above_limit=bool(raw["pesos"].get("aceitar_qc_acima_do_maximo", False)),
             pipeline=PipelineSettings(float(electre["tau_c"]), float(electre["tau_d"]),
-                                      raw["ahp"]["julgamento_local"], int(electre["niveis_para_ahp"])),
+                                      raw["ahp"]["julgamento_local"], int(electre["niveis_para_ahp"]),
+                                      float(raw["desempate"]["tolerancia_relativa"])),
             sensitivity=SensitivitySettings(
                 levels=tuple(int(x) for x in sens["niveis_para_ahp"]),
                 veto=_range(sens["veto"]), support=_range(sens["apoio"]),
                 heat_veto=_range(sens["mapa_calor"]["veto"]),
                 heat_support=_range(sens["mapa_calor"]["apoio"]),
-                interview_support=float(sens["marcas_da_entrevista"]["tau_c"]),
-                interview_veto=float(sens["marcas_da_entrevista"]["tau_d"]),
                 weight_sweep_steps=int(sens["varredura_pesos_passos"]),
                 judgment_steps=tuple(int(x) for x in judgments["degraus"]),
                 judgment_samples=int(judgments["sorteios"]),
@@ -120,6 +115,8 @@ class Hyperparameters:
             raise ValueError(f"julgamento_local deve estar em {LOCAL_JUDGMENTS}")
         if not 0 < base.tau_c <= 1 or not 0 <= base.tau_d <= 1:
             raise ValueError("tau_c deve estar em (0, 1] e tau_d em [0, 1]")
+        if not 0 <= base.tie_tolerance < 1:
+            raise ValueError("a tolerância de empate deve estar em [0, 1)")
         if base.levels < 1 or any(n < 1 for n in sens.levels):
             raise ValueError("níveis para o AHP devem ser positivos")
         if any(not 0 < c <= 1 for c in (*sens.support, *sens.heat_support)) or any(

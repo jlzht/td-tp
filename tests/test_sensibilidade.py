@@ -105,7 +105,7 @@ class WeightTests(unittest.TestCase):
 class GeneratorTests(unittest.TestCase):
     def setUp(self):
         self.problem = synthetic_problem(FRONT + [(9, 9), (10, 10)])
-        self.settings = PipelineSettings(0.5, 0.3, "faixa_linear", 1)
+        self.settings = PipelineSettings(0.5, 0.3, "faixa_linear", 1, 0.01)
         self.weights = np.array([0.5, 0.5])
 
     def test_linha_de_limiar_varia_so_um_parametro(self):
@@ -142,7 +142,7 @@ class GeneratorTests(unittest.TestCase):
 class JudgmentPerturbationTests(unittest.TestCase):
     def setUp(self):
         self.problem = synthetic_problem(FRONT)
-        self.settings = PipelineSettings(0.5, 0.3, "faixa_linear", 1)
+        self.settings = PipelineSettings(0.5, 0.3, "faixa_linear", 1, 0.01)
         self.keys = ["a", "b", "c"]
         self.judgments = {"a:b": 2, "a:c": 6, "b:c": 3}
 

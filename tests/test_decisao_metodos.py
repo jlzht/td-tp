@@ -123,7 +123,7 @@ class AhpTests(unittest.TestCase):
 class PipelineTests(unittest.TestCase):
     def test_conjunto_do_ahp_vai_a_frente_e_o_ahp_ordena_dentro_dele(self):
         problem = synthetic_problem(FRONT + [(9, 9)])
-        method = ElectreThenAhp(PipelineSettings(0.5, 0.2, "faixa_linear", 1))
+        method = ElectreThenAhp(PipelineSettings(0.5, 0.2, "faixa_linear", 1, 0.01))
         result = method.evaluate(problem, np.array([0.5, 0.5]))
         chosen = set(result.details["conjunto_ahp"])
         self.assertNotIn(5, chosen)
@@ -135,15 +135,27 @@ class PipelineTests(unittest.TestCase):
     def test_mais_niveis_levam_mais_alternativas_ao_ahp(self):
         problem = synthetic_problem(FRONT + [(9, 9), (10, 10)])
         weights = np.array([0.5, 0.5])
-        sizes = [ElectreThenAhp(PipelineSettings(0.5, 0.3, "faixa_linear", n)).evaluate(
+        sizes = [ElectreThenAhp(PipelineSettings(0.5, 0.3, "faixa_linear", n, 0.01)).evaluate(
             problem, weights).details["resumo"]["tamanho_ahp"] for n in (1, 2, 3)]
         self.assertLess(sizes[0], sizes[1])
         self.assertLessEqual(sizes[1], sizes[2])
 
+    def test_empate_no_ahp_e_decidido_pela_menor_pior_posicao_na_faixa(self):
+        # A alternativa 1 tem a menor pior posição (0,75 contra 1,0 da alternativa 0).
+        problem = synthetic_problem([(10, 0), (0, 6), (2, 8)])
+        method = ElectreThenAhp(PipelineSettings(0.5, 0.3, "faixa_linear", 1, 0.01))
+        priorities = np.array([0.4, 0.4, 0.2])
+        scores = 1.0 + priorities
+        ranking, tied = method._break_tie(problem, scores, [0, 1, 2], priorities)
+        self.assertEqual((ranking[0], tied), (1, [0, 1]))
+        self.assertEqual(sorted(ranking), [0, 1, 2])
+        ranking, tied = method._break_tie(problem, scores, [0, 1, 2], np.array([0.5, 0.3, 0.2]))
+        self.assertEqual((ranking, tied), ((0, 1, 2), []))
+
     def test_niveis_invalidos(self):
         problem = synthetic_problem(FRONT)
         with self.assertRaises(ValueError):
-            ElectreThenAhp(PipelineSettings(0.5, 0.3, "faixa_linear", 0)).evaluate(
+            ElectreThenAhp(PipelineSettings(0.5, 0.3, "faixa_linear", 0, 0.01)).evaluate(
                 problem, np.array([0.5, 0.5]))
 
 
