@@ -125,3 +125,26 @@ Todos os hiperparâmetros (julgamentos do decisor, limiares, níveis do ELECTRE 
 8. **Sensibilidade** (`decisao/sensibilidade.py`, `decisao/analise.py`): em torno do caso base, variam-se, um grupo por vez: o veto, o apoio, o número de níveis enviados ao AHP, o modo do AHP, cada peso de 0 a 1 (com o peso crítico em que a escolha muda), cada julgamento do decisor em 1 e 2 degraus da escala de Saaty e todos juntos em sorteios (descartando as matrizes mais inconsistentes que a original) e o par apoio e veto em um mapa de calor. Há ainda um caso de referência com o AHP sobre todas as alternativas, sem o ELECTRE I. Medem-se a vencedora, a fração de variações em que a vencedora do caso base se mantém, sua posição e o tau de Kendall com o ranking-base.
 
 Saída em `resultados/entrega_3/`: `uniao_nao_dominadas.json` (contagens, faixas dos critérios e uma linha por alternativa), `decisao.json` (pesos, limiares, conjunto enviado ao AHP, prioridades, ranking, alternativa escolhida e seus compromissos), `tabela_alternativas.csv` e `.tex` (critérios, nível no ELECTRE I e prioridade do AHP das 73 alternativas), `sensibilidade.json` e as figuras `projecoes_escolha.pdf`, `solucao_final.pdf`, `mapa_calor_limiares.pdf`, `sensibilidade_limiares.pdf`, `sensibilidade_pesos.pdf` e `sensibilidade_julgamentos.pdf`. As figuras e a tabela em `.tex` usadas no relatório são cópias dessas, em `relatorio/`.
+
+## Dashboard Interativo (Streamlit)
+
+O projeto inclui uma aplicação desenvolvida em **Streamlit** para visualização e análise dos resultados da otimização multiobjetivo e da decisão multicritério.
+
+O dashboard permite explorar as soluções não dominadas, comparar alternativas, visualizar os resultados dos métodos ELECTRE I e AHP e analisar o custo, a qualidade e a composição das pilhas de minério.
+
+### Instalação
+
+Na raiz do repositório, instale as dependências:
+
+```bash
+pip install -e .
+pip install -r dashboard/requirements.txt
+```
+
+### Execução
+
+Para iniciar a aplicação:
+
+```bash
+streamlit run dashboard/app.py
+```
