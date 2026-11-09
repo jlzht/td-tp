@@ -1,0 +1,11 @@
+# Tema escuro como padrão; pode ser alternado nas configurações do Streamlit.
+[theme]
+base = "dark"
+primaryColor = "#236EA4"
+backgroundColor = "#0F1826"
+secondaryBackgroundColor = "#18283B"
+textColor = "#EFF4FA"
+font = "sans serif"
+
+[client]
+showErrorDetails = "message"

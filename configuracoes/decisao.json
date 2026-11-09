@@ -1,0 +1,89 @@
+{
+  "criterio_extra": "homogeneidade",
+  "pesos": {
+    "criterios": [
+      "custo",
+      "desvio_sio2",
+      "desvio_al2o3",
+      "homogeneidade"
+    ],
+    "julgamentos": {
+      "custo:desvio_sio2": 7,
+      "custo:desvio_al2o3": 7,
+      "custo:homogeneidade": 9,
+      "desvio_sio2:desvio_al2o3": 3,
+      "desvio_sio2:homogeneidade": 7,
+      "desvio_al2o3:homogeneidade": 7
+    },
+    "qc_maximo": 0.1,
+    "aceitar_qc_acima_do_maximo": true
+  },
+  "electre1": {
+    "tau_c": 0.8,
+    "tau_d": 0.25,
+    "niveis_para_ahp": 1
+  },
+  "ahp": {
+    "julgamento_local": "faixa_linear"
+  },
+  "desempate": {
+    "tolerancia_relativa": 0.01
+  },
+  "sensibilidade": {
+    "niveis_para_ahp": [
+      1,
+      2,
+      3
+    ],
+    "veto": {
+      "inicio": 0.1,
+      "fim": 0.5,
+      "passo": 0.05
+    },
+    "apoio": {
+      "inicio": 0.5,
+      "fim": 0.9,
+      "passo": 0.05
+    },
+    "mapa_calor": {
+      "veto": {
+        "inicio": 0.0,
+        "fim": 1.0,
+        "passo": 0.05
+      },
+      "apoio": {
+        "inicio": 0.5,
+        "fim": 1.0,
+        "passo": 0.05
+      }
+    },
+    "varredura_pesos_passos": 41,
+    "julgamentos": {
+      "degraus": [
+        1,
+        2
+      ],
+      "sorteios": 1000,
+      "degrau_maximo_sorteio": 1,
+      "semente": 2026
+    },
+    "julgamento_local": [
+      "faixa_linear",
+      "razao"
+    ]
+  },
+  "justificativas": {
+    "criterio_extra": "Sugestão do enunciado e da professora. Com ele incluído, nenhuma das 73 alternativas passa a ser dominada, e tem leitura direta na operação do pátio. Decisão do grupo em 2026-11-05.",
+    "pesos.julgamentos": "Respostas de um profissional da Cassotis ao formulário da entrevista (entrevista/respostas_cassotis.csv, configuracoes/entrevista_cassotis.json), em 2026-11-06. QC = 0,20.",
+    "pesos.qc_maximo": "Regra prática das aulas: aceitar julgamentos com QC até 0,10.",
+    "pesos.aceitar_qc_acima_do_maximo": "Decisão do grupo em 2026-11-08. O QC de 0,20 decorre do teto da escala de Saaty (custo cerca de 20 vezes mais importante que a homogeneidade, acima do máximo 9). A devolutiva enviada ao respondente, com exemplos concretos, não teve resposta até o fechamento do trabalho; os pesos são usados como estão e o QC é registrado como limitação.",
+    "electre1.tau_c": "Valor declarado pelo respondente da Cassotis: a fração da importância que precisa estar a favor de uma alternativa para descartar outra é de pelo menos 80%.",
+    "electre1.tau_d": "Valor declarado pelo respondente da Cassotis: maior piora tolerada em um aspecto isolado de 25% da faixa.",
+    "electre1.niveis_para_ahp": "Decisão do grupo: só o primeiro nível (as alternativas que empatam em primeiro, por serem incomparáveis entre si) segue para o AHP. Partir um nível exigiria um desempate arbitrário. Primeiro e segundo níveis, e os três primeiros, são variantes da sensibilidade.",
+    "ahp.julgamento_local": "As matrizes de comparação entre alternativas saem dos valores medidos, pela faixa de variação de cada critério, como pedem as aulas ao tratar de faixas e pesos. A alternativa pela razão dos valores é testada na sensibilidade.",
+    "sensibilidade.veto": "Faixa em torno do valor base, parâmetro a parâmetro.",
+    "sensibilidade.apoio": "Faixa em torno do valor base, parâmetro a parâmetro.",
+    "sensibilidade.julgamentos": "Cada julgamento do decisor sobe ou desce de 1 a 2 degraus da escala de Saaty, um por vez, e todos juntos em sorteios de até 1 degrau. Como a matriz base foi aceita com QC acima de 0,10, são descartadas as matrizes mais inconsistentes que ela. Um degrau é a granularidade da própria entrevista, o que dá sentido à perturbação sem uma dispersão arbitrária. Sorteios e semente apenas fixam a reprodução.",
+    "desempate.tolerancia_relativa": "O AHP considera empatadas as alternativas cuja prioridade global fica a menos de 1% da maior; entre elas vence a de menor pior posição na faixa dos critérios (minimax). O enunciado pede um critério adicional para incomparabilidade no fim do processo. Qualquer tolerância entre 0,05% e 25% leva ao mesmo empate, entre as duas primeiras alternativas."
+  }
+}

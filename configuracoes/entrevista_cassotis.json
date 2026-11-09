@@ -1,0 +1,26 @@
+{
+  "data": "2026-11-06",
+  "natureza": "Formulário respondido por um profissional da Cassotis no papel de tomador de decisão (entrevista/respostas_cassotis.csv). O comentário livre foi omitido do repositório. A devolutiva enviada depois, com exemplos concretos, não teve resposta até o fechamento do trabalho.",
+  "julgamentos": {
+    "custo:desvio_sio2": 7.0,
+    "custo:desvio_al2o3": 7.0,
+    "custo:homogeneidade": 9.0,
+    "desvio_sio2:desvio_al2o3": 3.0,
+    "desvio_sio2:homogeneidade": 7.0,
+    "desvio_al2o3:homogeneidade": 7.0
+  },
+  "pesos": {
+    "custo": 0.6707606336543688,
+    "desvio_sio2": 0.18605466656717426,
+    "desvio_al2o3": 0.11012731729714104,
+    "homogeneidade": 0.033057382481315914
+  },
+  "qc": 0.2001799343843899,
+  "qc_dentro_do_limite": false,
+  "ordem_confere_com_os_pesos": true,
+  "maior_valor": "custo",
+  "menor_valor": "homogeneidade",
+  "veto_declarado": 0.25,
+  "apoio_declarado": 0.8,
+  "observacao": ""
+}
